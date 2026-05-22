@@ -899,6 +899,12 @@
     color: #000;
   }
   .btn.primary:hover { background: var(--accent-hover); color: #000; }
+  .btn.danger {
+    background: transparent;
+    color: #d04848;
+    border: 1px solid rgba(208,72,72,0.45);
+  }
+  .btn.danger:hover { background: #d04848; color: #fff; border-color: #d04848; transform: scale(1.03); }
 
   /* Preview pane */
   .preview-wrap {
@@ -4200,6 +4206,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn secondary" id="forkBtn">⑂ Fork</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">⇄ Compare with original</button>` : ''}
         ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">✎ Save new version</button>` : ''}
+        ${isOwner() ? `<button class="btn danger" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">🗑 Delete</button>` : ''}
       </div>
     </div>
 
@@ -4450,6 +4457,33 @@ function renderDetail(id, viewingVersionNum) {
   const saveVersionBtn = document.getElementById('saveVersionBtn');
   if (saveVersionBtn) {
     saveVersionBtn.addEventListener('click', () => openVersionEditor(p.id));
+  }
+
+  // Delete prompt (owner only) — removes from GitHub then from local state.
+  const deleteBtn = document.getElementById('deletePromptBtn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const msg = `Delete "${p.title}" (${p.id})?\n\nThis removes htmls/${p.id}.html and the manifest entry from GitHub. Cannot be undone.`;
+      if (!confirm(msg)) return;
+      const originalHTML = deleteBtn.innerHTML;
+      deleteBtn.disabled = true;
+      deleteBtn.innerHTML = '⏳ Deleting…';
+      try {
+        await deletePromptFromGitHub(p);
+        // Remove from in-memory state and persist cache
+        const lIdx = prompts.findIndex(x => x.id === p.id);
+        if (lIdx >= 0) prompts.splice(lIdx, 1);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts)); } catch(e){}
+        toast('Deleted "' + p.title + '" — Pages may take a minute to refresh');
+        showView('home');
+        renderGallery();
+      } catch (err) {
+        console.error('Delete failed:', err);
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = originalHTML;
+        alert('Delete failed: ' + err.message);
+      }
+    });
   }
 
   // Version timeline buttons (view + compare)
@@ -5863,6 +5897,12 @@ function updateSyncBadge() {
   const a = document.querySelector('.nav-settings');
   if (a) a.classList.toggle('connected', !!(cfg.pat && cfg.repo));
 }
+// True when a PAT + repo are configured — i.e. this browser can write to the collection.
+// In this single-tenant repo, holding the PAT means you own everything in it.
+function isOwner() {
+  const cfg = getSyncConfig();
+  return !!(cfg.pat && cfg.repo);
+}
 function b64utf8(str) {
   // btoa fails on multi-byte chars; encode via TextEncoder + binary string
   const bytes = new TextEncoder().encode(str);
@@ -5916,6 +5956,42 @@ async function ghPutFile(path, content, message, sha) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+}
+async function ghDeleteFile(path, message, sha) {
+  const cfg = getSyncConfig();
+  return ghFetch('/contents/' + encodeURIComponent(path), {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, branch: cfg.branch, sha: sha })
+  });
+}
+async function deletePromptFromGitHub(prompt) {
+  // 1. Delete the HTML file (and any per-version HTMLs) if they exist
+  const htmlPaths = ['htmls/' + prompt.id + '.html'];
+  if (prompt.versions && prompt.versions.length) {
+    prompt.versions.forEach((v, i) => {
+      const vNum = v.v != null ? v.v : (i + 1);
+      htmlPaths.push('htmls/' + prompt.id + '_v' + vNum + '.html');
+    });
+  }
+  for (const path of htmlPaths) {
+    const sha = await ghGetSha(path);
+    if (sha) await ghDeleteFile(path, 'Prompton: delete ' + path, sha);
+  }
+  // 2. Remove from manifest.json and re-PUT
+  const cfg = getSyncConfig();
+  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+  const manText = b64ToUtf8(manRaw.content);
+  let manifest;
+  try { manifest = JSON.parse(manText); }
+  catch (e) { manifest = []; }
+  const next = manifest.filter(p => p.id !== prompt.id);
+  await ghPutFile('manifest.json', JSON.stringify(next, null, 2), 'Prompton: remove ' + prompt.id, manRaw.sha);
+  // 3. Sync in-memory seedPrompts so subsequent renders match
+  if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+    const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
+    if (sIdx >= 0) seedPrompts.splice(sIdx, 1);
+  }
 }
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
