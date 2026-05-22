@@ -874,6 +874,49 @@
     border: 0;
     background: white;
   }
+  /* Fullscreen / Open-standalone overlay on the detail preview */
+  .preview-wrap .preview-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .preview-wrap:hover .preview-overlay,
+  .preview-wrap:focus-within .preview-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .preview-wrap .preview-overlay button,
+  .preview-wrap .preview-overlay a {
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .preview-wrap .preview-overlay button:hover,
+  .preview-wrap .preview-overlay a:hover {
+    background: rgba(0, 0, 0, 0.85);
+    transform: translateY(-1px);
+  }
+  /* When the iframe itself enters Fullscreen API, give it a black bg */
+  iframe:fullscreen { background: #000; width: 100vw; height: 100vh; }
+  iframe:-webkit-full-screen { background: #000; width: 100vw; height: 100vh; }
   .preview-caption {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -4122,7 +4165,11 @@ function renderDetail(id, viewingVersionNum) {
     <div class="detail-grid">
       <div>
         <div class="preview-wrap">
-          <iframe srcdoc="${escapeAttr(view.html)}" sandbox="allow-scripts allow-same-origin"></iframe>
+          <iframe id="detailPreviewIframe" srcdoc="${escapeAttr(view.html)}" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
+          <div class="preview-overlay">
+            <button type="button" id="fullscreenBtn" title="View fullscreen">⛶ Fullscreen</button>
+            <a id="openStandaloneLink" target="_blank" rel="noopener" title="Open this HTML on its own page (good for sharing)">↗ Open standalone</a>
+          </div>
         </div>
         <div class="preview-caption">
           <span>↑ Live preview · ${(new Blob([view.html]).size / 1024).toFixed(1)} KB</span>
@@ -4284,6 +4331,37 @@ function renderDetail(id, viewingVersionNum) {
   document.getElementById('forkBtn').addEventListener('click', () => {
     forkPrompt(p);
   });
+
+  // Fullscreen — request fullscreen on the live preview iframe so the HTML
+  // takes over the screen. Esc / browser UI returns the user to the detail view.
+  const fsBtn = document.getElementById('fullscreenBtn');
+  if (fsBtn) {
+    fsBtn.addEventListener('click', () => {
+      const iframe = document.getElementById('detailPreviewIframe');
+      if (!iframe) return;
+      const req = iframe.requestFullscreen || iframe.webkitRequestFullscreen || iframe.msRequestFullscreen;
+      if (req) {
+        req.call(iframe).catch(err => {
+          console.warn('Fullscreen denied — falling back to standalone tab:', err);
+          // Fallback: open standalone in new tab
+          const link = document.getElementById('openStandaloneLink');
+          if (link && link.href) window.open(link.href, '_blank', 'noopener');
+        });
+      } else {
+        toast('Fullscreen not supported — opening standalone instead.');
+        const link = document.getElementById('openStandaloneLink');
+        if (link && link.href) window.open(link.href, '_blank', 'noopener');
+      }
+    });
+  }
+
+  // Open standalone — direct link to the raw HTML file. On the production site
+  // (GitHub Pages) this is shareable; on the local dev server it's the same.
+  const openLink = document.getElementById('openStandaloneLink');
+  if (openLink) {
+    // Always link to the same-origin htmls/ path so it works both locally and on Pages.
+    openLink.href = 'htmls/' + encodeURIComponent(p.id) + '.html';
+  }
 
   // Top-level Copy prompt button — works for any prompt
   document.getElementById('copyPromptTopBtn').addEventListener('click', (e) => {
