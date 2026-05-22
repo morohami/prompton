@@ -4477,7 +4477,7 @@ function renderGallery() {
     card.innerHTML = `
       <div class="thumb-wrap">
         <span class="ribbon ${ribbonClass}">${ribbonText}</span>
-        <iframe class="thumb" srcdoc="${escapeAttr(p.html)}" sandbox="" scrolling="no" tabindex="-1"></iframe>
+        <div class="thumb thumb-mount" data-thumb-id="${p.id}"></div>
       </div>
       <div class="meta-top">
         <span>${formatDate(p.date)}</span>
@@ -4531,6 +4531,8 @@ function renderGallery() {
   grid.classList.toggle('compare-mode', compareMode);
   const publicCount = prompts.filter(p => !(p.author === 'you' && p.parentId)).length;
   document.getElementById('issueCount').textContent = `${publicCount} prompts in circulation`;
+  // Lazy-mount the grid's iframe thumbnails — only what enters the viewport.
+  mountAlbumThumbs(grid);
   showView('gallery');
 }
 
@@ -5458,16 +5460,17 @@ async function syncVersionsToGitHub(prompt) {
     const path = 'htmls/' + prompt.id + '_v' + vNum + '.html';
     const existing = await ghGetSha(path);
     if (!existing) {
-      await ghPutFile(path, v.html || '', 'Prompton: add ' + prompt.id + ' v' + vNum + ' html', null);
+      const cleaned = cleanupHtml(v.html || '');
+      v.html = cleaned;
+      await ghPutFile(path, cleaned, 'Prompton: add ' + prompt.id + ' v' + vNum + ' html', null);
     }
   }
-  // Also keep the top-level htmls/<id>.html in sync with the latest version's HTML
-  // so links to the canonical HTML show the latest content.
-  const latestHtml = prompt.versions[prompt.versions.length - 1].html || '';
+  // Keep the top-level htmls/<id>.html in sync with the latest version's HTML.
+  const latestHtml = cleanupHtml(prompt.versions[prompt.versions.length - 1].html || '');
+  prompt.versions[prompt.versions.length - 1].html = latestHtml;
   const topPath = 'htmls/' + prompt.id + '.html';
   const topSha = await ghGetSha(topPath);
   await ghPutFile(topPath, latestHtml, 'Prompton: refresh top-level html for ' + prompt.id, topSha);
-  // Update manifest with new versions[]
   await updatePromptMetadataOnGitHub(prompt);
 }
 
@@ -6151,11 +6154,12 @@ document.getElementById('sortSelect').addEventListener('change', (e) => {
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
 
-// Mount live <iframe> previews into .thumb-mount placeholders. The first
-// batch (visible-ish) goes in immediately; the rest are staggered with
-// requestIdleCallback / setTimeout so the main thread can paint first.
+// Mount live <iframe> previews into .thumb-mount placeholders.
+// Uses IntersectionObserver so only cards near the viewport actually build
+// their iframe — keeps the gallery snappy even with 100+ prompts.
+// Falls back to a tiered eager+idle mount when IO isn't available.
 function mountAlbumThumbs(scope) {
-  const mounts = Array.from((scope || document).querySelectorAll('.thumb-mount[data-thumb-id]'));
+  const mounts = Array.from((scope || document).querySelectorAll('.thumb-mount[data-thumb-id]:not([data-mounted="1"])'));
   if (!mounts.length) return;
   const cache = window._albumHtmlCache || {};
   const buildIframe = (mount) => {
@@ -6174,33 +6178,52 @@ function mountAlbumThumbs(scope) {
     mount.appendChild(iframe);
   };
 
-  // Wire the per-card fullscreen button. Lives inside the same .album-thumb
-  // as the iframe — find it via the parent and request fullscreen on the iframe.
+  // Wire the per-card fullscreen button (no change vs before).
   (scope || document).querySelectorAll('.album-fullscreen[data-fullscreen-id]:not([data-fs-wired="1"])').forEach(btn => {
     btn.dataset.fsWired = '1';
     btn.addEventListener('click', (e) => {
-      e.stopPropagation();           // don't bubble to the card → don't open detail
+      e.stopPropagation();
       e.preventDefault();
       requestFullscreenForCard(btn);
     });
   });
 
-  // First ~8 (fits the visible area in most layouts) — mount synchronously.
-  const eager = mounts.slice(0, 8);
-  const rest = mounts.slice(8);
+  // Always mount the first 4 immediately so above-the-fold content paints
+  // without waiting for IO callbacks (which fire a tick later).
+  const eager = mounts.slice(0, 4);
+  const rest = mounts.slice(4);
   eager.forEach(buildIframe);
-  // Rest — defer to next idle frame so initial paint isn't blocked.
-  const schedule = (fn) => {
-    if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 1500 });
-    else setTimeout(fn, 60);
-  };
-  let i = 0;
-  const tick = () => {
-    const batchEnd = Math.min(i + 4, rest.length);
-    for (; i < batchEnd; i++) buildIframe(rest[i]);
-    if (i < rest.length) schedule(tick);
-  };
-  if (rest.length) schedule(tick);
+  if (!rest.length) return;
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          buildIframe(e.target);
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '400px 0px', threshold: 0.01 });
+    rest.forEach(m => io.observe(m));
+    // Safety net: if IO never fires (some embedded preview environments),
+    // mount everything after 3s so the user never sees blank cards.
+    setTimeout(() => {
+      rest.forEach(m => { if (m.dataset.mounted !== '1') buildIframe(m); });
+    }, 3000);
+  } else {
+    // Older browsers — fall back to staggered idle mounting.
+    const schedule = (fn) => {
+      if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 1500 });
+      else setTimeout(fn, 60);
+    };
+    let i = 0;
+    const tick = () => {
+      const batchEnd = Math.min(i + 4, rest.length);
+      for (; i < batchEnd; i++) buildIframe(rest[i]);
+      if (i < rest.length) schedule(tick);
+    };
+    schedule(tick);
+  }
 }
 
 // Find the iframe inside the same .album-thumb as `btn` and put it fullscreen.
@@ -6848,11 +6871,29 @@ async function updatePromptMetadataOnGitHub(prompt) {
   try { await pushOGPageToGitHub(prompt); } catch (e) { console.warn('OG page refresh failed:', e); }
 }
 
+// Conservative HTML cleanup — safe on arbitrary prompt output.
+//   - Strip UTF-8 BOM
+//   - Normalize CRLF → LF
+//   - Collapse runs of 3+ blank lines down to a single blank line
+//   - Strip HTML comments that aren't conditional comments (<!--[if ...]>)
+// Does NOT minify, collapse meaningful whitespace, or touch script/style content.
+function cleanupHtml(raw) {
+  if (typeof raw !== 'string' || !raw) return raw || '';
+  let s = raw.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  s = s.replace(/<!--(?!\s*\[if)[\s\S]*?-->/g, '');
+  s = s.replace(/\n[ \t]*\n[ \t]*\n+/g, '\n\n');
+  s = s.replace(/[ \t]+\n/g, '\n');
+  s = s.replace(/\n+$/, '\n');
+  return s;
+}
+
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';
   const htmlSha = await ghGetSha(htmlPath);  // null for create, existing sha for update
-  await ghPutFile(htmlPath, prompt.html || '', 'Prompton: add ' + prompt.id + ' html', htmlSha);
+  const cleanedHtml = cleanupHtml(prompt.html);
+  prompt.html = cleanedHtml; // also persist the cleaned version in-memory
+  await ghPutFile(htmlPath, cleanedHtml, 'Prompton: add ' + prompt.id + ' html', htmlSha);
   // 2. Update manifest.json — read fresh then append/replace this prompt
   const cfg = getSyncConfig();
   const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
