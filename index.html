@@ -527,6 +527,48 @@
   }
   .album-card:hover .album-play { pointer-events: auto; }
   .album-card .album-play:hover { background: var(--accent-hover); transform: scale(1.06); }
+
+  /* Always-visible fullscreen button — works on touch (no hover required) */
+  .album-card .album-fullscreen {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 3;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background 0.15s, transform 0.1s;
+    padding: 0;
+    line-height: 1;
+    font-family: inherit;
+  }
+  .album-card .album-fullscreen:hover,
+  .album-card .album-fullscreen:focus-visible {
+    background: rgba(0, 0, 0, 0.85);
+    transform: scale(1.06);
+    outline: none;
+  }
+  .album-card .album-fullscreen:active {
+    transform: scale(0.94);
+  }
+  /* Bigger tap target on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    .album-card .album-fullscreen {
+      width: 38px;
+      height: 38px;
+      font-size: 16px;
+    }
+  }
   .album-card h3.album-title {
     font-family: 'DM Sans', sans-serif;
     font-weight: 700;
@@ -3828,6 +3870,7 @@ function renderGallery() {
       '<div class="album-card" data-news-go="' + p.id + '">' +
         '<div class="album-thumb">' +
           '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>' +
+          '<button type="button" class="album-fullscreen" data-fullscreen-id="' + p.id + '" title="View this HTML fullscreen" aria-label="View fullscreen">⛶</button>' +
           '<div class="album-play" title="Open prompt">▶</div>' +
         '</div>' +
         '<h3 class="album-title">' + escapeHtml(p.title) + '</h3>' +
@@ -5415,9 +5458,22 @@ function mountAlbumThumbs(scope) {
     iframe.setAttribute('tabindex', '-1');
     iframe.setAttribute('aria-hidden', 'true');
     iframe.setAttribute('loading', 'lazy');
+    iframe.setAttribute('allowfullscreen', '');
     iframe.srcdoc = html;
     mount.appendChild(iframe);
   };
+
+  // Wire the per-card fullscreen button. Lives inside the same .album-thumb
+  // as the iframe — find it via the parent and request fullscreen on the iframe.
+  (scope || document).querySelectorAll('.album-fullscreen[data-fullscreen-id]:not([data-fs-wired="1"])').forEach(btn => {
+    btn.dataset.fsWired = '1';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();           // don't bubble to the card → don't open detail
+      e.preventDefault();
+      requestFullscreenForCard(btn);
+    });
+  });
+
   // First ~8 (fits the visible area in most layouts) — mount synchronously.
   const eager = mounts.slice(0, 8);
   const rest = mounts.slice(8);
@@ -5434,6 +5490,28 @@ function mountAlbumThumbs(scope) {
     if (i < rest.length) schedule(tick);
   };
   if (rest.length) schedule(tick);
+}
+
+// Find the iframe inside the same .album-thumb as `btn` and put it fullscreen.
+// Falls back to opening the standalone htmls/<id>.html page if the browser
+// won't allow fullscreen (e.g. iOS Safari on a non-secure context).
+function requestFullscreenForCard(btn) {
+  const id = btn.dataset.fullscreenId;
+  const card = btn.closest('.album-card');
+  const iframe = card && card.querySelector('iframe');
+  if (!iframe) {
+    window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
+    return;
+  }
+  const req = iframe.requestFullscreen || iframe.webkitRequestFullscreen || iframe.msRequestFullscreen;
+  if (!req) {
+    window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
+    return;
+  }
+  req.call(iframe).catch(err => {
+    console.warn('Fullscreen denied, opening standalone:', err);
+    window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
+  });
 }
 function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
 function safeFilename(prompt) {
