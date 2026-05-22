@@ -178,32 +178,6 @@
     "devNotes": ""
   },
   {
-    "id": "p1779555000006",
-    "title": "Canvas Grid Mouse Effect (boilerplate only)",
-    "description": "外部 style.css と script.js を参照する 19 行のブートストラップ HTML。単体では何も描画されない（注意）。",
-    "systemPrompt": "",
-    "userPrompt": "マウス位置で歪むキャンバスグリッドエフェクトを作って。GSAP を使い、グリッドの各セルがマウスから離れるにつれて元の位置に戻るスプリングアニメーション。",
-    "context": "元コードは外部 ./style.css + ./script.js に分離されているため、このファイル単体ではプレビュー不可。",
-    "model": "Claude Opus 4.7",
-    "license": "CC0 — Public domain",
-    "tags": [
-      "canvas",
-      "javascript",
-      "demo",
-      "external-deps",
-      "broken"
-    ],
-    "tag": "canvas",
-    "author": "you",
-    "authorName": "You",
-    "date": "2026-05-23",
-    "downloads": 0,
-    "forks": 0,
-    "parentId": null,
-    "usage": [],
-    "variables": []
-  },
-  {
     "id": "p1779555000007",
     "title": "関ヶ原の戦い 布陣図 v2 — AI討論つき",
     "description": "関ヶ原の戦いの布陣図インタラクティブ可視化 v2。武将の声色変更と AI 討論機能つき。",
