@@ -705,6 +705,67 @@
   .chip.active .chip-count { background: rgba(0,0,0,0.18); color: rgba(0,0,0,0.6); }
   .tag-chips { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
+  /* Curated tag chip row used in upload + metadata editor */
+  .curated-tag-chips {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 8px;
+  }
+  .curated-chip {
+    background: transparent;
+    border: 1px solid rgba(127,127,127,0.35);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .curated-chip.curated {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .curated-chip:hover {
+    background: var(--accent);
+    color: var(--accent-on, #000);
+    border-color: var(--accent);
+  }
+
+  /* Settings → tag curation panel */
+  .tag-curation { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(127,127,127,0.18); }
+  .tag-curation h2 { margin-top: 0; }
+  .tag-curation .tag-list .tag-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg-elevated); border: 1px solid rgba(127,127,127,0.18);
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-curation .tag-list .tag-pill .x {
+    cursor: pointer; color: var(--text-muted); font-size: 14px; line-height: 1;
+    background: transparent; border: 0; padding: 0;
+  }
+  .tag-curation .tag-list .tag-pill .x:hover { color: #d04848; }
+  .alias-list {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 240px; overflow: auto;
+    border: 1px solid rgba(127,127,127,0.18); border-radius: 6px;
+    padding: 8px;
+  }
+  .alias-list .alias-row {
+    display: flex; align-items: center; gap: 8px; font-size: 13px;
+  }
+  .alias-list .alias-row .from { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .alias-list .alias-row .arrow { color: var(--ink-soft); }
+  .alias-list .alias-row .to { font-weight: 600; }
+  .alias-list .alias-row .x {
+    margin-left: auto; cursor: pointer; color: var(--text-muted);
+    background: transparent; border: 0; font-size: 14px;
+  }
+  .alias-list .alias-row .x:hover { color: #d04848; }
+  .alias-list .empty { color: var(--text-muted); font-style: italic; font-size: 12px; }
+
   .sort-label {
     color: var(--text-muted);
     margin-right: -4px;
@@ -3533,8 +3594,9 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
             </div>
           </div>
           <div class="field">
-            <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
+            <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated · click chips below to add)</span></label>
             <input type="text" name="tags" id="tagsInput" placeholder="planner, food, weekly" />
+            <div class="curated-tag-chips" id="curatedTagChipsUpload"></div>
           </div>
         </div>
       </details>
@@ -3583,6 +3645,33 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       </div>
       <div class="settings-status" id="syncStatus"></div>
     </form>
+
+    <div class="tag-curation" id="tagCurationPanel">
+      <h2>Tag curation</h2>
+      <p class="lede">Curate the chips suggested on upload, and map aliases so similar tags collapse into one.</p>
+      <div class="settings-field">
+        <label>Curated tags <span class="hint">Shown as suggestion chips on the upload form</span></label>
+        <div class="tag-list" id="curatedTagList"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="curatedTagAddInput" placeholder="add a tag…" style="flex:0 0 220px;max-width:100%" />
+          <button type="button" class="btn-secondary" id="curatedTagAddBtn">Add</button>
+        </div>
+      </div>
+      <div class="settings-field">
+        <label>Aliases <span class="hint">left side → right side. e.g. "ai" → "AI"</span></label>
+        <div class="alias-list" id="aliasList"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="aliasFromInput" placeholder="from (raw)" style="flex:0 0 160px;max-width:100%" />
+          <span style="color:var(--ink-soft)">→</span>
+          <input type="text" id="aliasToInput" placeholder="to (canonical)" style="flex:0 0 160px;max-width:100%" />
+          <button type="button" class="btn-secondary" id="aliasAddBtn">Add alias</button>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button type="button" id="tagSaveBtn" class="btn-primary">Save tag config</button>
+      </div>
+      <div class="settings-status" id="tagSaveStatus"></div>
+    </div>
   </div>
 </section>
 
@@ -3727,6 +3816,64 @@ function toggleFollow(theirHandle) {
 }
 
 let prompts = [];
+let tagConfig = { curated: [], aliases: {} };
+
+// ─── Tag normalization ───
+// Apply alias map to a single tag. Unknown tags pass through unchanged.
+function normalizeTag(t) {
+  if (!t) return t;
+  const trimmed = String(t).trim();
+  if (!trimmed) return trimmed;
+  return (tagConfig.aliases && tagConfig.aliases[trimmed]) || trimmed;
+}
+// Render clickable chips for curated + previously-used tags into a mount,
+// excluding tags already present in the linked input. Clicking a chip
+// appends the tag to the input and re-renders.
+function mountCuratedTagChips(inputId, mountId) {
+  const input = document.getElementById(inputId);
+  const mount = document.getElementById(mountId);
+  if (!input || !mount) return;
+  const refresh = () => {
+    const present = new Set(input.value.split(',').map(s => normalizeTag(s.trim())).filter(Boolean));
+    // Past tags: any tag that appears on at least one prompt.
+    const past = new Set();
+    prompts.forEach(p => {
+      if (p.tag) past.add(normalizeTag(p.tag));
+      if (Array.isArray(p.tags)) p.tags.forEach(t => past.add(normalizeTag(t)));
+    });
+    const curatedSet = new Set(tagConfig.curated || []);
+    // Show curated first, then any past tags not in curated; skip whatever is already in the input.
+    const ordered = [
+      ...(tagConfig.curated || []).filter(t => !present.has(t)),
+      ...[...past].filter(t => t && !curatedSet.has(t) && !present.has(t)).sort()
+    ];
+    mount.innerHTML = ordered.map(t => {
+      const isCurated = curatedSet.has(t);
+      return `<button type="button" class="curated-chip${isCurated ? ' curated' : ''}" data-tag="${escapeAttr(t)}">+ ${escapeHtml(t)}</button>`;
+    }).join('');
+  };
+  mount.addEventListener('click', (e) => {
+    const chip = e.target.closest('.curated-chip');
+    if (!chip) return;
+    const tag = chip.dataset.tag;
+    const cur = input.value.trim();
+    input.value = cur ? (cur.replace(/,\s*$/, '') + ', ' + tag) : tag;
+    refresh();
+  });
+  input.addEventListener('input', refresh);
+  refresh();
+}
+
+function normalizeTagList(tags) {
+  if (!Array.isArray(tags)) return tags;
+  const seen = new Set();
+  const out = [];
+  for (const t of tags) {
+    const n = normalizeTag(t);
+    if (n && !seen.has(n)) { seen.add(n); out.push(n); }
+  }
+  return out;
+}
 
 // ─── Versioning helpers ───
 function syncTopLevelFromLatest(p) {
@@ -3998,7 +4145,11 @@ function renderGallery() {
   // ── Filtered / sorted list (excluding your private forks) ──
   let list = prompts.filter(p => !(p.author === 'you' && p.parentId));
   if (currentFilter !== 'all') {
-    list = list.filter(p => p.tag === currentFilter || p.tags?.includes(currentFilter));
+    list = list.filter(p => {
+      if (normalizeTag(p.tag) === currentFilter) return true;
+      if (Array.isArray(p.tags) && p.tags.some(t => normalizeTag(t) === currentFilter)) return true;
+      return false;
+    });
   }
   if (currentSearch.trim()) {
     const q = currentSearch.toLowerCase();
@@ -4236,7 +4387,7 @@ function renderDetail(id, viewingVersionNum) {
 
         <div class="meta-block">
           <h2>Tags</h2>
-          <div class="tag-list">${(p.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
+          <div class="tag-list">${normalizeTagList(p.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
         </div>
 
         ${children.length || parent ? `
@@ -4814,8 +4965,9 @@ function openMetadataEditor(promptId) {
         <textarea name="description">${escapeHtml(p.description || '')}</textarea>
       </div>
       <div class="field">
-        <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
-        <input type="text" name="tags" value="${escapeAttr((p.tags || []).join(', '))}">
+        <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated · click chips below to add)</span></label>
+        <input type="text" name="tags" id="metaTagsInput" value="${escapeAttr((p.tags || []).join(', '))}">
+        <div class="curated-tag-chips" id="curatedTagChipsMeta"></div>
       </div>
       <div class="field">
         <label>License</label>
@@ -4833,6 +4985,7 @@ function openMetadataEditor(promptId) {
       </div>
     </div>
   `;
+  mountCuratedTagChips('metaTagsInput', 'curatedTagChipsMeta');
   document.getElementById('metadataCancelBtn').addEventListener('click', () => { mount.innerHTML = ''; });
   document.getElementById('metadataSaveBtn').addEventListener('click', () => {
     const editor = document.getElementById('metadataEditor');
@@ -4842,7 +4995,7 @@ function openMetadataEditor(promptId) {
       return;
     }
     const tagsRaw = editor.querySelector('[name="tags"]').value;
-    const tags = tagsRaw.split(',').map(s => s.trim()).filter(Boolean);
+    const tags = normalizeTagList(tagsRaw.split(',').map(s => s.trim()).filter(Boolean));
     saveMetadata(promptId, {
       title: title,
       description: editor.querySelector('[name="description"]').value,
@@ -5516,7 +5669,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   }).filter(Boolean) : [];
 
   const tagsRaw = (fd.get('tags') || '').trim();
-  const tags = tagsRaw ? tagsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const tags = normalizeTagList(tagsRaw ? tagsRaw.split(',').map(s=>s.trim()).filter(Boolean) : []);
 
   const newPrompt = {
     id: 'p' + Date.now(),
@@ -5576,8 +5729,8 @@ function renderTagChips() {
   prompts.forEach(p => {
     if (p.author === 'you' && p.parentId) return; // skip private forks
     const tagSet = new Set();
-    if (p.tag) tagSet.add(p.tag);
-    if (Array.isArray(p.tags)) p.tags.forEach(t => tagSet.add(t));
+    if (p.tag) tagSet.add(normalizeTag(p.tag));
+    if (Array.isArray(p.tags)) p.tags.forEach(t => tagSet.add(normalizeTag(t)));
     tagSet.forEach(t => { if (t) counts[t] = (counts[t] || 0) + 1; });
   });
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
@@ -6189,6 +6342,7 @@ function renderSettings() {
     status.className = 'settings-status info';
     status.innerHTML = 'Configured: <code>' + escapeHtml(cfg.repo) + '</code> on branch <code>' + escapeHtml(cfg.branch || 'main') + '</code>. Click "Test connection" to verify.';
   }
+  renderTagCurationPanel();
   showView('settings');
 }
 document.getElementById('settingsForm').addEventListener('submit', (e) => {
@@ -6235,12 +6389,105 @@ document.getElementById('syncClearBtn').addEventListener('click', () => {
   updateSyncBadge();
 });
 
+// ─── Tag curation panel ───
+function renderTagCurationPanel() {
+  const curatedHost = document.getElementById('curatedTagList');
+  if (!curatedHost) return;
+  const sorted = [...(tagConfig.curated || [])].sort((a, b) => a.localeCompare(b));
+  curatedHost.innerHTML = sorted.map(t =>
+    `<span class="tag-pill">${escapeHtml(t)} <button class="x" type="button" data-rm-curated="${escapeAttr(t)}" title="Remove">×</button></span>`
+  ).join('') || '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No curated tags yet — add one below.</span>';
+
+  const aliasHost = document.getElementById('aliasList');
+  if (!aliasHost) return;
+  const entries = Object.entries(tagConfig.aliases || {}).sort((a, b) => a[0].localeCompare(b[0]));
+  if (!entries.length) {
+    aliasHost.innerHTML = '<div class="empty">No aliases yet.</div>';
+  } else {
+    aliasHost.innerHTML = entries.map(([from, to]) =>
+      `<div class="alias-row"><span class="from">${escapeHtml(from)}</span><span class="arrow">→</span><span class="to">${escapeHtml(to)}</span><button class="x" type="button" data-rm-alias="${escapeAttr(from)}" title="Remove">×</button></div>`
+    ).join('');
+  }
+}
+// Wire curation panel handlers (the renderSettings function calls render below).
+document.getElementById('curatedTagAddBtn').addEventListener('click', () => {
+  const input = document.getElementById('curatedTagAddInput');
+  const t = (input.value || '').trim();
+  if (!t) return;
+  const normalized = normalizeTag(t);
+  if (!tagConfig.curated.includes(normalized)) tagConfig.curated.push(normalized);
+  input.value = '';
+  renderTagCurationPanel();
+});
+document.getElementById('curatedTagAddInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('curatedTagAddBtn').click(); }
+});
+document.getElementById('curatedTagList').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-rm-curated]');
+  if (!btn) return;
+  const t = btn.dataset.rmCurated;
+  tagConfig.curated = tagConfig.curated.filter(x => x !== t);
+  renderTagCurationPanel();
+});
+document.getElementById('aliasAddBtn').addEventListener('click', () => {
+  const from = (document.getElementById('aliasFromInput').value || '').trim();
+  const to = (document.getElementById('aliasToInput').value || '').trim();
+  if (!from || !to) return;
+  if (from === to) { toast('Alias from and to are the same.'); return; }
+  tagConfig.aliases[from] = to;
+  document.getElementById('aliasFromInput').value = '';
+  document.getElementById('aliasToInput').value = '';
+  renderTagCurationPanel();
+});
+document.getElementById('aliasList').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-rm-alias]');
+  if (!btn) return;
+  delete tagConfig.aliases[btn.dataset.rmAlias];
+  renderTagCurationPanel();
+});
+document.getElementById('tagSaveBtn').addEventListener('click', async () => {
+  const status = document.getElementById('tagSaveStatus');
+  status.className = 'settings-status info';
+  status.textContent = 'Saving…';
+  // Normalize curated through itself to canonicalize, dedupe, sort
+  tagConfig.curated = [...new Set(tagConfig.curated.map(normalizeTag).filter(Boolean))].sort();
+  if (!isOwner()) {
+    // No PAT — just keep it in memory + localStorage cache so chips still help locally.
+    try { localStorage.setItem('prompton_tags_v1', JSON.stringify(tagConfig)); } catch(e) {}
+    status.className = 'settings-status ok';
+    status.textContent = 'Saved locally — configure GitHub to publish.';
+    return;
+  }
+  try {
+    const cfg = getSyncConfig();
+    let existingSha = null;
+    try {
+      const raw = await ghFetch('/contents/tags.json?ref=' + encodeURIComponent(cfg.branch));
+      existingSha = raw.sha;
+    } catch (e) { if (!String(e.message).includes('404')) throw e; }
+    await ghPutFile('tags.json', JSON.stringify(tagConfig, null, 2), 'Prompton: update tag config', existingSha);
+    status.className = 'settings-status ok';
+    status.textContent = '✓ Saved to GitHub — Pages may take a minute to refresh.';
+    // Re-render anywhere chips show
+    if (document.getElementById('curatedTagChipsUpload')) mountCuratedTagChips('tagsInput', 'curatedTagChipsUpload');
+    renderTagChips();
+  } catch (err) {
+    console.error('Tag config save failed:', err);
+    status.className = 'settings-status err';
+    status.textContent = err.message;
+  }
+});
+
 // ─── Remote data loader (manifest.json + htmls/*.html) ───
 async function fetchSeed() {
-  const [manifest, profileSeed] = await Promise.all([
+  const [manifest, profileSeed, tagSeed] = await Promise.all([
     fetch('manifest.json').then(r => { if (!r.ok) throw new Error('manifest.json ' + r.status); return r.json(); }),
-    fetch('profiles.json').then(r => { if (!r.ok) throw new Error('profiles.json ' + r.status); return r.json(); })
+    fetch('profiles.json').then(r => { if (!r.ok) throw new Error('profiles.json ' + r.status); return r.json(); }),
+    fetch('tags.json').then(r => r.ok ? r.json() : { curated: [], aliases: {} }).catch(() => ({ curated: [], aliases: {} }))
   ]);
+  tagConfig = tagSeed || { curated: [], aliases: {} };
+  if (!Array.isArray(tagConfig.curated)) tagConfig.curated = [];
+  if (!tagConfig.aliases || typeof tagConfig.aliases !== 'object') tagConfig.aliases = {};
   const htmlJobs = [];
   for (const p of manifest) {
     htmlJobs.push(fetch('htmls/' + p.id + '.html').then(r => r.ok ? r.text() : '').then(h => { p.html = h; }));
@@ -6276,6 +6523,7 @@ async function fetchSeed() {
   profiles = JSON.parse(JSON.stringify(seedProfiles));
   prompts.forEach(p => { if (p.versions && p.versions.length) syncTopLevelFromLatest(p); });
   updateSyncBadge();
+  mountCuratedTagChips('tagsInput', 'curatedTagChipsUpload');
   if (!handleCompareHash()) renderGallery();
 })();
 </script>
