@@ -799,6 +799,12 @@
     background: transparent; border: 0; padding: 0;
   }
   .tag-curation .tag-list .tag-pill .x:hover { color: #d04848; }
+  .tag-curation .tag-list .tag-pill.unused {
+    background: rgba(208, 72, 72, 0.10);
+    border: 1px dashed rgba(208, 72, 72, 0.45);
+    color: #d04848;
+  }
+  .tag-curation .tag-list .tag-pill.unused .x { color: #d04848; opacity: 0.8; }
   .alias-list {
     display: flex; flex-direction: column; gap: 6px;
     max-height: 240px; overflow: auto;
@@ -3848,6 +3854,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
           <input type="text" id="curatedTagAddInput" placeholder="add a tag…" style="flex:0 0 220px;max-width:100%" />
           <button type="button" class="btn-secondary" id="curatedTagAddBtn">Add</button>
+          <button type="button" class="btn-text" id="curatedRemoveUnusedBtn" style="display:none;color:#d04848" title="Drop curated tags that no prompt is using. Click 'Save tag config' to publish.">Remove 0 unused tags</button>
         </div>
       </div>
       <div class="settings-field">
@@ -6807,13 +6814,42 @@ document.getElementById('syncClearBtn').addEventListener('click', () => {
 });
 
 // ─── Tag curation panel ───
+// Return the set of tag names actually used by at least one prompt (after
+// normalization so curated entries can be compared apples-to-apples).
+function getUsedTagSet() {
+  const used = new Set();
+  (typeof prompts !== 'undefined' ? prompts : []).forEach(p => {
+    if (p.tag) used.add(normalizeTag(p.tag));
+    if (Array.isArray(p.tags)) p.tags.forEach(t => used.add(normalizeTag(t)));
+  });
+  return used;
+}
+
 function renderTagCurationPanel() {
   const curatedHost = document.getElementById('curatedTagList');
   if (!curatedHost) return;
   const sorted = [...(tagConfig.curated || [])].sort((a, b) => a.localeCompare(b));
-  curatedHost.innerHTML = sorted.map(t =>
-    `<span class="tag-pill">${escapeHtml(t)} <button class="x" type="button" data-rm-curated="${escapeAttr(t)}" title="Remove">×</button></span>`
-  ).join('') || '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No curated tags yet — add one below.</span>';
+  const used = getUsedTagSet();
+  const unusedCount = sorted.filter(t => !used.has(normalizeTag(t))).length;
+  curatedHost.innerHTML = sorted.map(t => {
+    const isUnused = !used.has(normalizeTag(t));
+    const cls = 'tag-pill' + (isUnused ? ' unused' : '');
+    const title = isUnused ? 'Not used by any prompt' : 'Used by prompts';
+    return `<span class="${cls}" title="${title}">${escapeHtml(t)} <button class="x" type="button" data-rm-curated="${escapeAttr(t)}" title="Remove">×</button></span>`;
+  }).join('') || '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No curated tags yet — add one below.</span>';
+
+  // Bulk action: clear all unused curated tags in one click (state only — the
+  // user still has to click "Save tag config" to push the change to tags.json).
+  const unusedBtn = document.getElementById('curatedRemoveUnusedBtn');
+  if (unusedBtn) {
+    if (unusedCount > 0) {
+      unusedBtn.style.display = '';
+      unusedBtn.textContent = `Remove ${unusedCount} unused tag${unusedCount === 1 ? '' : 's'}`;
+      unusedBtn.disabled = false;
+    } else {
+      unusedBtn.style.display = 'none';
+    }
+  }
 
   const aliasHost = document.getElementById('aliasList');
   if (!aliasHost) return;
@@ -6838,6 +6874,12 @@ document.getElementById('curatedTagAddBtn').addEventListener('click', () => {
 });
 document.getElementById('curatedTagAddInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); document.getElementById('curatedTagAddBtn').click(); }
+});
+document.getElementById('curatedRemoveUnusedBtn').addEventListener('click', () => {
+  const used = getUsedTagSet();
+  tagConfig.curated = (tagConfig.curated || []).filter(t => used.has(normalizeTag(t)));
+  renderTagCurationPanel();
+  toast('Unused curated tags removed — click "Save tag config" to publish.');
 });
 document.getElementById('curatedTagList').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-rm-curated]');
