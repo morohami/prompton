@@ -818,6 +818,34 @@
   .alias-list .alias-row .x:hover { color: #d04848; }
   .alias-list .empty { color: var(--text-muted); font-style: italic; font-size: 12px; }
 
+  /* Bulk upload queue */
+  .bulk-queue {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 320px; overflow: auto;
+    border: 1px solid rgba(127,127,127,0.18); border-radius: 6px;
+    padding: 8px;
+  }
+  .bulk-queue:empty { display: none; }
+  .bulk-queue .bulk-row {
+    display: flex; align-items: center; gap: 8px; font-size: 13px;
+  }
+  .bulk-queue .bulk-row .fname {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted); font-size: 11px; min-width: 160px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .bulk-queue .bulk-row input.title {
+    flex: 1; padding: 6px 8px; border: 1px solid rgba(127,127,127,0.25);
+    background: var(--bg-card); color: var(--text); border-radius: 4px;
+    font-size: 13px;
+  }
+  .bulk-queue .bulk-row .x {
+    cursor: pointer; color: var(--text-muted); background: transparent;
+    border: 0; font-size: 16px; line-height: 1;
+  }
+  .bulk-queue .bulk-row .x:hover { color: #d04848; }
+  .bulk-queue .bulk-row.done .title { opacity: 0.5; }
+
   /* Share popover */
   .share-popover {
     position: absolute;
@@ -3846,6 +3874,24 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       </div>
       <div class="settings-status" id="thumbStatus"></div>
     </div>
+
+    <div class="tag-curation" id="bulkUploadPanel">
+      <h2>Bulk upload</h2>
+      <p class="lede">Drop several .html files at once — Prompton will publish them all in a single commit. Each file becomes its own prompt; you can edit titles before publishing and fill in prompt text / tags later via Edit.</p>
+      <div class="settings-field">
+        <label class="file-drop large" id="bulkFileDrop" style="margin-top:0">
+          <div class="drop-title" id="bulkDropTitle">Drop .html files here</div>
+          <div class="drop-hint">click to browse · drag &amp; drop multiple</div>
+          <input type="file" id="bulkFileInput" accept=".html,text/html" multiple style="display:none" />
+        </label>
+        <div id="bulkQueue" class="bulk-queue" style="margin-top:12px"></div>
+      </div>
+      <div class="settings-actions">
+        <button type="button" id="bulkPublishBtn" class="btn-primary" disabled>Publish 0 prompts</button>
+        <button type="button" id="bulkClearBtn" class="btn-text" disabled>Clear queue</button>
+      </div>
+      <div class="settings-status" id="bulkStatus"></div>
+    </div>
   </div>
 </section>
 
@@ -6852,6 +6898,178 @@ document.getElementById('thumbRegenBtn').addEventListener('click', async () => {
   status.textContent = `✓ Regenerated ${done} thumbnail${done === 1 ? '' : 's'}` + (failed ? ` · ${failed} failed (see console).` : '.');
   renderGallery();
 });
+// ─── Bulk upload (multiple HTMLs in a single commit) ───
+(() => {
+  const drop = document.getElementById('bulkFileDrop');
+  const input = document.getElementById('bulkFileInput');
+  const queueEl = document.getElementById('bulkQueue');
+  const publishBtn = document.getElementById('bulkPublishBtn');
+  const clearBtn = document.getElementById('bulkClearBtn');
+  const statusEl = document.getElementById('bulkStatus');
+  if (!drop) return;
+  let queue = [];
+
+  const updateButtons = () => {
+    publishBtn.disabled = queue.length === 0;
+    clearBtn.disabled = queue.length === 0;
+    publishBtn.textContent = `Publish ${queue.length} prompt${queue.length === 1 ? '' : 's'}`;
+  };
+  const renderQueue = () => {
+    if (!queue.length) { queueEl.innerHTML = ''; updateButtons(); return; }
+    queueEl.innerHTML = queue.map((q, i) =>
+      `<div class="bulk-row" data-i="${i}">
+         <span class="fname" title="${escapeAttr(q.filename)}">${escapeHtml(q.filename)}</span>
+         <input class="title" type="text" value="${escapeAttr(q.title)}" placeholder="Title…">
+         <button type="button" class="x" title="Remove">×</button>
+       </div>`
+    ).join('');
+    queueEl.querySelectorAll('.bulk-row').forEach(row => {
+      const i = +row.dataset.i;
+      row.querySelector('input.title').addEventListener('input', (e) => { queue[i].title = e.target.value; });
+      row.querySelector('.x').addEventListener('click', () => { queue.splice(i, 1); renderQueue(); });
+    });
+    updateButtons();
+  };
+  const parseTitle = (html, filename) => {
+    const m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    if (m && m[1].trim()) return m[1].trim();
+    return filename.replace(/\.html?$/i, '').replace(/[_-]+/g, ' ').trim() || filename;
+  };
+  const acceptFiles = async (fileList) => {
+    const files = Array.from(fileList || []).filter(f => /\.html?$/i.test(f.name));
+    if (!files.length) return;
+    for (const f of files) {
+      const text = await f.text();
+      queue.push({ filename: f.name, title: parseTitle(text, f.name), html: text });
+    }
+    renderQueue();
+  };
+
+  input.addEventListener('change', () => acceptFiles(input.files).then(() => { input.value = ''; }));
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('has-file'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('has-file'));
+  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('has-file'); acceptFiles(e.dataTransfer.files); });
+  clearBtn.addEventListener('click', () => { queue = []; renderQueue(); statusEl.textContent = ''; statusEl.className = 'settings-status'; });
+
+  publishBtn.addEventListener('click', async () => {
+    if (!isOwner()) {
+      statusEl.className = 'settings-status err';
+      statusEl.textContent = 'Configure GitHub above first — bulk upload writes to the repo.';
+      return;
+    }
+    if (!queue.length) return;
+    publishBtn.disabled = true; clearBtn.disabled = true;
+    statusEl.className = 'settings-status info';
+    statusEl.textContent = 'Preparing commit…';
+
+    const today = new Date().toISOString().slice(0, 10);
+    const youName = (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You');
+    const newPrompts = queue.map((q, i) => ({
+      id: 'p' + (Date.now() + i),
+      title: q.title,
+      description: '',
+      systemPrompt: '', userPrompt: '(bulk-uploaded — paste original prompt via Edit)', context: '',
+      model: 'Claude Opus 4.7',
+      license: 'CC0 — Public domain',
+      tags: [], tag: 'other',
+      author: 'you', authorName: youName,
+      date: today,
+      downloads: 0, forks: 0, parentId: null,
+      usage: [], variables: [],
+      html: cleanupHtml(q.html)
+    }));
+
+    // Read current manifest, splice in the new entries (no html field)
+    let manSha = null, manifest = [];
+    try {
+      const cfg = getSyncConfig();
+      const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+      manSha = manRaw.sha;
+      manifest = JSON.parse(b64ToUtf8(manRaw.content)) || [];
+    } catch (err) {
+      statusEl.className = 'settings-status err';
+      statusEl.textContent = 'Failed to read manifest: ' + err.message;
+      updateButtons();
+      return;
+    }
+    const metaList = newPrompts.map(p => { const m = JSON.parse(JSON.stringify(p)); delete m.html; return m; });
+    const nextManifest = [...metaList, ...manifest];
+
+    // Build the bulk-commit file list: each html + the updated manifest + OG pages
+    const files = [];
+    for (const p of newPrompts) {
+      files.push({ path: 'htmls/' + p.id + '.html', content: p.html });
+      files.push({ path: 'p/' + p.id + '/index.html', content: generateOGPageHtml(p) });
+    }
+    files.push({ path: 'manifest.json', content: JSON.stringify(nextManifest, null, 2) });
+
+    try {
+      statusEl.textContent = `Pushing ${files.length} files in one commit…`;
+      await ghBulkCommit(files, 'Prompton: bulk upload ' + newPrompts.length + ' prompts');
+    } catch (err) {
+      console.error('Bulk commit failed:', err);
+      statusEl.className = 'settings-status err';
+      statusEl.textContent = 'Bulk commit failed: ' + err.message;
+      updateButtons();
+      return;
+    }
+
+    // Local state sync
+    for (const p of newPrompts) {
+      prompts.unshift(p);
+      seedPrompts.unshift(JSON.parse(JSON.stringify(p)));
+    }
+    saveData(prompts);
+    queue = []; renderQueue();
+    statusEl.className = 'settings-status ok';
+    statusEl.textContent = `✓ Published ${newPrompts.length} prompts in one commit. Generating thumbnails in background…`;
+    renderGallery();
+
+    // Background: generate all thumbnails LOCALLY first (no per-file commits),
+    // then push every thumb + the manifest in a single second commit so the
+    // bulk-upload history stays at two commits total.
+    (async () => {
+      const thumbFiles = [];
+      for (const p of newPrompts) {
+        try {
+          const blob = await generateThumbnail(p.html);
+          const path = 'thumbs/' + p.id + '.jpg';
+          thumbFiles.push({ path: path, content: blob });
+          p.thumb = path;
+          const s = seedPrompts.find(x => x.id === p.id);
+          if (s) s.thumb = path;
+        } catch (e) { console.warn('Bulk thumb failed for ' + p.id + ':', e); }
+      }
+      if (!thumbFiles.length) {
+        statusEl.textContent = `✓ Published ${newPrompts.length} prompts · no thumbnails generated.`;
+        return;
+      }
+      // Re-fetch the manifest (it grew when ghBulkCommit landed) so we can
+      // splice in the new `thumb` fields without losing anything else.
+      try {
+        const cfg2 = getSyncConfig();
+        const manRaw2 = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg2.branch));
+        const m2 = JSON.parse(b64ToUtf8(manRaw2.content)) || [];
+        const byId = new Map(m2.map(e => [e.id, e]));
+        for (const p of newPrompts) {
+          const e = byId.get(p.id);
+          if (e) e.thumb = 'thumbs/' + p.id + '.jpg';
+        }
+        thumbFiles.push({ path: 'manifest.json', content: JSON.stringify(m2, null, 2) });
+        await ghBulkCommit(thumbFiles, 'Prompton: bulk thumbnails for ' + newPrompts.length + ' prompts');
+      } catch (err) {
+        console.warn('Bulk thumb commit failed:', err);
+        statusEl.className = 'settings-status info';
+        statusEl.textContent = `Published ${newPrompts.length} prompts · thumbnails failed (${err.message}).`;
+        return;
+      }
+      statusEl.className = 'settings-status ok';
+      statusEl.textContent = `✓ Published ${newPrompts.length} prompts + thumbnails (2 commits).`;
+      renderGallery();
+    })();
+  });
+})();
+
 document.getElementById('tagSaveBtn').addEventListener('click', async () => {
   const status = document.getElementById('tagSaveStatus');
   status.className = 'settings-status info';

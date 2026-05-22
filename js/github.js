@@ -354,6 +354,61 @@ async function pushThumbnailToGitHub(prompt, html) {
   return path;
 }
 
+// ─── Bulk commit via Git Data API ───
+// Combines an arbitrary number of file writes into ONE commit so the history
+// stays sane when the user bulk-uploads. Each entry:
+//   { path: 'htmls/foo.html', content: <string|Blob>, encoding?: 'base64' }
+// For Blob inputs we always send base64; for strings we send utf-8 by default.
+async function ghBulkCommit(files, message) {
+  const cfg = getSyncConfig();
+  if (!cfg.repo || !cfg.pat) throw new Error('Configure repo and PAT in Settings first.');
+  if (!files || !files.length) throw new Error('ghBulkCommit: no files');
+  // 1. Look up the current branch tip + its tree
+  const branch = cfg.branch || 'main';
+  const ref = await ghFetch('/git/ref/heads/' + encodeURIComponent(branch));
+  const parentSha = ref.object.sha;
+  const parentCommit = await ghFetch('/git/commits/' + encodeURIComponent(parentSha));
+  const baseTreeSha = parentCommit.tree.sha;
+  // 2. Upload each file as a blob → collect SHA + path
+  const treeEntries = [];
+  for (const f of files) {
+    let content, encoding;
+    if (f.content instanceof Blob) {
+      content = await blobToBase64(f.content);
+      encoding = 'base64';
+    } else if (typeof f.content === 'string') {
+      content = f.content;
+      encoding = f.encoding || 'utf-8';
+    } else {
+      throw new Error('ghBulkCommit: file content must be a string or Blob');
+    }
+    const blob = await ghFetch('/git/blobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: content, encoding: encoding })
+    });
+    treeEntries.push({ path: f.path, mode: '100644', type: 'blob', sha: blob.sha });
+  }
+  // 3. Build a new tree on top of the current one + commit it
+  const newTree = await ghFetch('/git/trees', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base_tree: baseTreeSha, tree: treeEntries })
+  });
+  const newCommit = await ghFetch('/git/commits', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, tree: newTree.sha, parents: [parentSha] })
+  });
+  // 4. Move the branch ref forward
+  await ghFetch('/git/refs/heads/' + encodeURIComponent(branch), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: newCommit.sha })
+  });
+  return newCommit;
+}
+
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';
