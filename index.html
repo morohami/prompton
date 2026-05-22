@@ -3580,7 +3580,7 @@
           <div class="drop-hint" id="dropHint">
             click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>
           </div>
-          <input type="file" name="htmlFile" accept=".html,text/html" required style="display:none" id="htmlFile" />
+          <input type="file" name="htmlFile" accept=".html,text/html" style="display:none" id="htmlFile" />
         </label>
         <div class="html-preview" id="htmlPreview" style="display:none">
           <div class="preview-label">↑ Live preview · <span id="previewSize"></span></div>
@@ -6711,11 +6711,17 @@ document.getElementById('tagSaveBtn').addEventListener('click', async () => {
 
 // ─── Remote data loader (manifest.json + htmls/*.html) ───
 async function fetchSeed() {
-  const [manifest, profileSeed, tagSeed] = await Promise.all([
+  const [manifestRaw, profileSeed, tagSeed] = await Promise.all([
     fetch('manifest.json').then(r => { if (!r.ok) throw new Error('manifest.json ' + r.status); return r.json(); }),
     fetch('profiles.json').then(r => { if (!r.ok) throw new Error('profiles.json ' + r.status); return r.json(); }),
     fetch('tags.json').then(r => r.ok ? r.json() : { curated: [], aliases: {} }).catch(() => ({ curated: [], aliases: {} }))
   ]);
+  // Schema versioning: accept both legacy array form and {schemaVersion, prompts} object form.
+  // Current writes still emit the array form so existing tools keep working; the wrapper
+  // is only consumed for forward-compat with future migrations.
+  const manifest = Array.isArray(manifestRaw)
+    ? manifestRaw
+    : (manifestRaw && Array.isArray(manifestRaw.prompts) ? manifestRaw.prompts : []);
   tagConfig = tagSeed || { curated: [], aliases: {} };
   if (!Array.isArray(tagConfig.curated)) tagConfig.curated = [];
   if (!tagConfig.aliases || typeof tagConfig.aliases !== 'object') tagConfig.aliases = {};
@@ -6733,6 +6739,14 @@ async function fetchSeed() {
   seedPrompts = manifest;
   seedProfiles = profileSeed;
   if (seedProfiles.you && !seedProfiles.you.joined) seedProfiles.you.joined = new Date().toISOString().slice(0, 10);
+}
+
+// ─── Service Worker registration ───
+// Only register on http(s) (skip file:// / local dev with no SW support).
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW registration failed:', err));
+  });
 }
 
 // ─── Bootstrap ───

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prompton — redirecting…</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 40px; text-align: center; color: #555; }
+  a { color: #e8893a; }
+</style>
+<script>
+// GitHub Pages serves 404.html for any path that doesn't map to a file.
+// We use it to translate clean URLs like /prompton/p/<id> into the SPA's
+// hash form /prompton/#/p/<id>, so deep links work without the # in the URL.
+(function () {
+  var segs = location.pathname.split('/').filter(Boolean);
+  // First segment is the repo name when hosted on user.github.io/<repo>/.
+  // On a custom domain or user.github.io root, base is empty.
+  var base = '/';
+  var rest = segs.slice();
+  if (segs.length >= 1 && location.hostname.endsWith('.github.io') && location.hostname !== 'github.io') {
+    // For project Pages (user.github.io/<repo>/), keep the first segment as base.
+    base = '/' + segs[0] + '/';
+    rest = segs.slice(1);
+  }
+  if (!rest.length) {
+    // /<repo>/ itself shouldn't normally hit 404, but if it does, go home.
+    location.replace(base + location.search + location.hash);
+    return;
+  }
+  // Recognised routes → hash equivalents
+  var hash = '#/' + rest.join('/');
+  // Examples:
+  //   /prompton/p/p001          → /prompton/#/p/p001
+  //   /prompton/profile/foo     → /prompton/#/profile/foo
+  //   /prompton/settings        → /prompton/#/settings
+  location.replace(base + location.search + hash);
+})();
+</script>
+</head>
+<body>
+<p>Redirecting to <a id="link" href="/">Prompton</a>…</p>
+</body>
+</html>
