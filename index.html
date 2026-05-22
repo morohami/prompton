@@ -705,6 +705,58 @@
   .chip.active .chip-count { background: rgba(0,0,0,0.18); color: rgba(0,0,0,0.6); }
   .tag-chips { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
+  /* ─── Pill-based tag picker ─── */
+  .tag-picker { display: flex; flex-direction: column; gap: 10px; }
+  .tag-picker-pills {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid rgba(127,127,127,0.28);
+    border-radius: 8px;
+    background: var(--input-bg, transparent);
+    cursor: text;
+    align-items: center;
+  }
+  .tag-picker-pills:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(232,137,58,0.15);
+  }
+  .tag-picker-pills .tag-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--accent);
+    color: var(--accent-on, #000);
+    padding: 4px 6px 4px 10px;
+    border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+    line-height: 1;
+  }
+  .tag-picker-pills .tag-pill .x {
+    background: transparent; border: 0;
+    color: inherit; opacity: 0.7;
+    cursor: pointer;
+    font-size: 16px; line-height: 1;
+    padding: 0 4px;
+    border-radius: 999px;
+  }
+  .tag-picker-pills .tag-pill .x:hover { opacity: 1; background: rgba(0,0,0,0.12); }
+  .tag-picker-pills .tag-picker-input {
+    flex: 1; min-width: 120px;
+    background: transparent; border: 0; outline: 0;
+    font: inherit; font-size: 13px;
+    color: var(--text);
+    padding: 4px 2px;
+  }
+  .tag-picker-pills .tag-picker-input::placeholder { color: var(--text-muted); }
+  .tag-picker-suggest {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    min-height: 0;
+  }
+  .tag-picker-suggest:empty { display: none; }
+  .tag-picker-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); margin-right: 4px;
+  }
+
   /* Curated tag chip row used in upload + metadata editor */
   .curated-tag-chips {
     display: flex; flex-wrap: wrap; gap: 6px;
@@ -971,9 +1023,10 @@
   .detail-header h1 {
     font-family: 'Fraunces', serif;
     font-weight: 400;
-    font-size: clamp(36px, 5vw, 64px);
-    line-height: 1.0;
+    font-size: clamp(26px, 3.4vw, 44px);
+    line-height: 1.1;
     letter-spacing: -0.02em;
+    word-break: break-word;
   }
   .detail-header h1 em { font-style: italic; color: var(--tomato); }
   .detail-byline {
@@ -3653,9 +3706,8 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
             </div>
           </div>
           <div class="field">
-            <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated · click chips below to add)</span></label>
-            <input type="text" name="tags" id="tagsInput" placeholder="planner, food, weekly" />
-            <div class="curated-tag-chips" id="curatedTagChipsUpload"></div>
+            <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(type to add · Enter or comma to commit · × on a pill to remove)</span></label>
+            <div id="uploadTagPicker"></div>
           </div>
         </div>
       </details>
@@ -3885,6 +3937,131 @@ function normalizeTag(t) {
   if (!trimmed) return trimmed;
   return (tagConfig.aliases && tagConfig.aliases[trimmed]) || trimmed;
 }
+// Pill-based tag picker. Replaces the comma-text input + chip-row combo.
+//
+// Layout:
+//   <div class="tag-picker" id="<containerId>">
+//     <div class="tag-picker-pills"></div>   ← selected pills + inline input
+//     <div class="tag-picker-suggest"></div> ← curated/past suggestions
+//   </div>
+//
+// Behaviour:
+//   - Selected tags render as pills with an × button
+//   - Inline input accepts Enter, comma, or Tab to commit current text as a pill
+//   - Backspace on empty input removes the last pill
+//   - Suggestion chips show curated + past tags that aren't selected or
+//     intentionally removed this session; click adds to selection
+//   - Returns an API: { getTags(), setTags(arr), addTag(t), removeTag(t) }
+function mountTagPicker(containerId, initialTags, opts) {
+  const container = document.getElementById(containerId);
+  if (!container) return null;
+  opts = opts || {};
+  let selected = (initialTags || []).map(normalizeTag).filter(Boolean);
+  // Dedupe initial
+  selected = [...new Set(selected)];
+  const removed = new Set();
+
+  container.classList.add('tag-picker');
+  container.innerHTML = `
+    <div class="tag-picker-pills" data-tp-pills></div>
+    <div class="tag-picker-suggest" data-tp-suggest></div>
+  `;
+  const pillsEl = container.querySelector('[data-tp-pills]');
+  const suggestEl = container.querySelector('[data-tp-suggest]');
+
+  const renderPills = () => {
+    const inputVal = pillsEl.querySelector('input')?.value || '';
+    pillsEl.innerHTML = selected.map(t =>
+      `<span class="tag-pill"><span class="t">${escapeHtml(t)}</span><button type="button" class="x" data-rm-pill="${escapeAttr(t)}" aria-label="Remove ${escapeAttr(t)}">×</button></span>`
+    ).join('') + `<input type="text" class="tag-picker-input" placeholder="${selected.length ? '' : 'add a tag…'}" autocomplete="off">`;
+    const inp = pillsEl.querySelector('input');
+    inp.value = inputVal;
+  };
+
+  const renderSuggest = () => {
+    const curatedSet = new Set(tagConfig.curated || []);
+    const past = new Set();
+    prompts.forEach(p => {
+      if (p.tag) past.add(normalizeTag(p.tag));
+      if (Array.isArray(p.tags)) p.tags.forEach(t => past.add(normalizeTag(t)));
+    });
+    const selSet = new Set(selected);
+    const ordered = [
+      ...(tagConfig.curated || []).filter(t => !selSet.has(t) && !removed.has(t)),
+      ...[...past].filter(t => t && !curatedSet.has(t) && !selSet.has(t) && !removed.has(t)).sort()
+    ];
+    suggestEl.innerHTML = ordered.length
+      ? '<span class="tag-picker-label">Suggested:</span>' + ordered.map(t => {
+          const curated = curatedSet.has(t);
+          return `<button type="button" class="curated-chip${curated ? ' curated' : ''}" data-tp-add="${escapeAttr(t)}">+ ${escapeHtml(t)}</button>`;
+        }).join('')
+      : '';
+  };
+
+  const refresh = () => { renderPills(); renderSuggest(); if (opts.onChange) opts.onChange(selected.slice()); };
+
+  const addTag = (raw) => {
+    const t = normalizeTag(String(raw || '').trim());
+    if (!t) return;
+    if (selected.includes(t)) return;
+    selected.push(t);
+    removed.delete(t);
+    refresh();
+    // Refocus input
+    pillsEl.querySelector('input')?.focus();
+  };
+  const removeTag = (t) => {
+    const i = selected.indexOf(t);
+    if (i < 0) return;
+    selected.splice(i, 1);
+    removed.add(t);
+    refresh();
+  };
+
+  // Pills container: click on × removes pill; clicking anywhere else focuses input
+  pillsEl.addEventListener('click', (e) => {
+    const xBtn = e.target.closest('[data-rm-pill]');
+    if (xBtn) { removeTag(xBtn.dataset.rmPill); return; }
+    if (!e.target.matches('input')) {
+      pillsEl.querySelector('input')?.focus();
+    }
+  });
+  // Keydown on input: Enter / comma / Tab → commit; Backspace on empty → remove last
+  pillsEl.addEventListener('keydown', (e) => {
+    if (!e.target.matches('input')) return;
+    const inp = e.target;
+    if (e.key === 'Enter' || e.key === ',' || (e.key === 'Tab' && inp.value.trim())) {
+      e.preventDefault();
+      const v = inp.value.trim().replace(/,$/, '');
+      if (v) addTag(v);
+      inp.value = '';
+    } else if (e.key === 'Backspace' && !inp.value && selected.length) {
+      e.preventDefault();
+      removeTag(selected[selected.length - 1]);
+    }
+  });
+  // Blur on input: commit any pending text (so users don't lose it by clicking elsewhere)
+  pillsEl.addEventListener('focusout', (e) => {
+    if (!e.target.matches('input')) return;
+    const v = e.target.value.trim();
+    if (v) { addTag(v); e.target.value = ''; }
+  });
+  // Suggestion chip click: add
+  suggestEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-tp-add]');
+    if (!chip) return;
+    addTag(chip.dataset.tpAdd);
+  });
+
+  refresh();
+  return {
+    getTags: () => selected.slice(),
+    setTags: (arr) => { selected = (arr || []).map(normalizeTag).filter(Boolean); selected = [...new Set(selected)]; refresh(); },
+    addTag,
+    removeTag
+  };
+}
+
 // Render clickable chips for curated + previously-used tags into a mount,
 // excluding tags already present in the linked input. Clicking a chip
 // appends the tag to the input and re-renders.
@@ -5102,9 +5279,8 @@ function openMetadataEditor(promptId) {
         <textarea name="devNotes" style="min-height:80px">${escapeHtml(p.devNotes || '')}</textarea>
       </div>
       <div class="field">
-        <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated · click chips below to add)</span></label>
-        <input type="text" name="tags" id="metaTagsInput" value="${escapeAttr((p.tags || []).join(', '))}">
-        <div class="curated-tag-chips" id="curatedTagChipsMeta"></div>
+        <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(type to add · Enter or comma to commit · × on a pill to remove)</span></label>
+        <div id="metaTagPicker"></div>
       </div>
       <div class="field">
         <label>License</label>
@@ -5122,7 +5298,7 @@ function openMetadataEditor(promptId) {
       </div>
     </div>
   `;
-  mountCuratedTagChips('metaTagsInput', 'curatedTagChipsMeta', p.tags || []);
+  const metaPicker = mountTagPicker('metaTagPicker', p.tags || []);
   document.getElementById('metadataCancelBtn').addEventListener('click', () => { mount.innerHTML = ''; });
   document.getElementById('metadataSaveBtn').addEventListener('click', () => {
     const editor = document.getElementById('metadataEditor');
@@ -5131,8 +5307,7 @@ function openMetadataEditor(promptId) {
       toast('Title is required.');
       return;
     }
-    const tagsRaw = editor.querySelector('[name="tags"]').value;
-    const tags = normalizeTagList(tagsRaw.split(',').map(s => s.trim()).filter(Boolean));
+    const tags = normalizeTagList(metaPicker ? metaPicker.getTags() : []);
     saveMetadata(promptId, {
       title: title,
       description: editor.querySelector('[name="description"]').value,
@@ -5842,8 +6017,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     };
   }).filter(Boolean) : [];
 
-  const tagsRaw = (fd.get('tags') || '').trim();
-  const tags = normalizeTagList(tagsRaw ? tagsRaw.split(',').map(s=>s.trim()).filter(Boolean) : []);
+  const tags = normalizeTagList(window._uploadTagPicker ? window._uploadTagPicker.getTags() : []);
 
   const newPrompt = {
     id: 'p' + Date.now(),
@@ -5886,6 +6060,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   }
 
   e.target.reset();
+  if (window._uploadTagPicker) window._uploadTagPicker.setTags([]);
   uploadedHtml = '';
   fileDrop.classList.remove('has-file');
   document.getElementById('dropTitle').textContent = 'Drop .html here';
@@ -6870,7 +7045,7 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   profiles = JSON.parse(JSON.stringify(seedProfiles));
   prompts.forEach(p => { if (p.versions && p.versions.length) syncTopLevelFromLatest(p); });
   updateSyncBadge();
-  mountCuratedTagChips('tagsInput', 'curatedTagChipsUpload');
+  window._uploadTagPicker = mountTagPicker('uploadTagPicker', []);
   if (!handleCompareHash()) renderGallery();
 })();
 </script>
