@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>世界のホテル・不動産ビジネスモデル完全マップ（74モデル）</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0e; --s1:#131318; --s2:#1a1a22; --s3:#222230;
+  --border:#2a2a36; --text:#eae8e4; --t2:#8a889a; --t3:#5a586a;
+  --c1:#ffd060; --c2:#50c8ff; --c3:#50e898; --c4:#b080ff; --c5:#ff8850;
+  --red:#ff5060;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;}
+.mono{font-family:'JetBrains Mono',monospace;}
+a{color:var(--c2);text-decoration:none;}
+
+/* ── Header ── */
+header{padding:48px 24px 0;max-width:1280px;margin:0 auto;text-align:center;}
+header h1{font-size:clamp(24px,5vw,44px);font-weight:900;letter-spacing:-1px;line-height:1.2;}
+header h1 em{font-style:normal;background:linear-gradient(90deg,var(--c1),var(--c5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sub{color:var(--t2);font-size:13px;margin-top:8px;}
+.kpi-row{display:flex;justify-content:center;gap:12px;margin-top:28px;flex-wrap:wrap;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 22px;text-align:center;min-width:120px;}
+.kpi .v{font-size:30px;font-weight:900;line-height:1;}
+.kpi .l{font-size:10px;color:var(--t2);margin-top:4px;font-weight:400;}
+.kpi:nth-child(1) .v{color:var(--c1);}
+.kpi:nth-child(2) .v{color:var(--c2);}
+.kpi:nth-child(3) .v{color:var(--c3);}
+.kpi:nth-child(4) .v{color:var(--c4);}
+
+/* ── Section titles ── */
+.sec{max-width:1280px;margin:0 auto;padding:48px 24px 0;}
+.sec h2{font-size:20px;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.sec h2 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+/* ── Findings ── */
+.findings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+.fc{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:12.5px;line-height:1.8;position:relative;overflow:hidden;transition:transform .15s;}
+.fc:hover{transform:translateY(-2px);}
+.fc::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;}
+.fc:nth-child(1)::before{background:var(--c1);} .fc:nth-child(2)::before{background:var(--c2);}
+.fc:nth-child(3)::before{background:var(--c3);} .fc:nth-child(4)::before{background:var(--c4);}
+.fc:nth-child(5)::before{background:var(--c5);}
+.fc .ft{font-size:10px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+.fc:nth-child(1) .ft{color:var(--c1);} .fc:nth-child(2) .ft{color:var(--c2);}
+.fc:nth-child(3) .ft{color:var(--c3);} .fc:nth-child(4) .ft{color:var(--c4);}
+.fc:nth-child(5) .ft{color:var(--c5);}
+.fc strong{font-weight:600;}
+
+/* ── Bubble Chart ── */
+.chart-wrap{max-width:1280px;margin:0 auto;padding:40px 24px 0;}
+.chart-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;overflow:hidden;}
+.chart-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.chart-header h3{font-size:16px;font-weight:800;}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;}
+.chart-legend span{font-size:10px;display:flex;align-items:center;gap:4px;color:var(--t2);}
+.chart-legend span::before{content:'';width:10px;height:10px;border-radius:50%;display:inline-block;}
+.chart-legend .lg1::before{background:var(--c1);} .chart-legend .lg2::before{background:var(--c2);}
+.chart-legend .lg3::before{background:var(--c3);} .chart-legend .lg4::before{background:var(--c4);}
+.chart-legend .lg5::before{background:var(--c5);}
+#bubbleCanvas{width:100%;cursor:crosshair;}
+.axis-label{position:absolute;font-size:10px;color:var(--t3);font-weight:600;}
+.axis-label.x{bottom:8px;left:50%;transform:translateX(-50%);}
+.axis-label.y{top:50%;left:8px;transform:rotate(-90deg) translateX(-50%);transform-origin:left center;}
+.bubble-tooltip{position:fixed;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:12px;line-height:1.6;pointer-events:none;z-index:100;max-width:340px;display:none;box-shadow:0 12px 40px rgba(0,0,0,.6);}
+.bubble-tooltip .tt-name{font-weight:800;font-size:14px;margin-bottom:4px;}
+.bubble-tooltip .tt-cat{font-size:10px;font-weight:600;margin-bottom:6px;}
+
+/* ── Axis Tabs ── */
+.axis-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.ax-tab{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:400;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.ax-tab:hover{border-color:var(--t2);}
+.ax-tab.active{font-weight:600;}
+.ax-tab .cnt{font-size:10px;color:var(--t2);background:var(--s2);padding:1px 6px;border-radius:4px;}
+.ax-tab.c1.active{border-color:var(--c1);color:var(--c1);background:rgba(255,208,96,.06);}
+.ax-tab.c2.active{border-color:var(--c2);color:var(--c2);background:rgba(80,200,255,.06);}
+.ax-tab.c3.active{border-color:var(--c3);color:var(--c3);background:rgba(80,232,152,.06);}
+.ax-tab.c4.active{border-color:var(--c4);color:var(--c4);background:rgba(176,128,255,.06);}
+.ax-tab.c5.active{border-color:var(--c5);color:var(--c5);background:rgba(255,136,80,.06);}
+
+/* ── Filter bar ── */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.filter-row label{font-size:10px;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-right:4px;}
+.fb{background:var(--s2);border:1px solid var(--border);color:var(--t2);font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .12s;}
+.fb:hover{border-color:var(--t2);color:var(--text);}
+.fb.on{background:var(--c1);color:var(--bg);border-color:var(--c1);font-weight:600;}
+.fb.jp-best.on{background:var(--c3);border-color:var(--c3);}
+.fb.jp-good.on{background:var(--c2);border-color:var(--c2);}
+.fb.jp-fair.on{background:var(--c1);border-color:var(--c1);}
+.fb.jp-hard.on{background:var(--red);border-color:var(--red);}
+.search-input{background:var(--s2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 14px;border-radius:8px;font-family:inherit;width:220px;margin-left:auto;}
+.search-input::placeholder{color:var(--t3);}
+.result-info{font-size:11px;color:var(--t2);margin-bottom:16px;}
+
+/* ── Cards ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .12s,box-shadow .12s;cursor:pointer;}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4);}
+.card-top{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:10px;}
+.card-num{font-size:20px;font-weight:900;color:var(--t3);line-height:1;min-width:28px;}
+.card-main{flex:1;min-width:0;}
+.card-name{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+.card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px;}
+.badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.badge-cat{background:rgba(255,255,255,.06);color:var(--t2);}
+.badge-cat.c1{color:var(--c1);background:rgba(255,208,96,.1);}
+.badge-cat.c2{color:var(--c2);background:rgba(80,200,255,.1);}
+.badge-cat.c3{color:var(--c3);background:rgba(80,232,152,.1);}
+.badge-cat.c4{color:var(--c4);background:rgba(176,128,255,.1);}
+.badge-cat.c5{color:var(--c5);background:rgba(255,136,80,.1);}
+.badge-asset{background:rgba(255,255,255,.04);color:var(--t2);}
+.badge-asset.heavy{color:var(--red);background:rgba(255,80,96,.1);}
+.badge-asset.light{color:var(--c3);background:rgba(80,232,152,.1);}
+.badge-asset.ultra{color:var(--c2);background:rgba(80,200,255,.1);}
+.badge-asset.mid{color:var(--c1);background:rgba(255,208,96,.1);}
+.badge-jp{font-size:11px;font-weight:900;padding:2px 8px;border-radius:4px;margin-left:auto;}
+.badge-jp.best{color:var(--c3);background:rgba(80,232,152,.15);}
+.badge-jp.good{color:var(--c2);background:rgba(80,200,255,.12);}
+.badge-jp.fair{color:var(--c1);background:rgba(255,208,96,.12);}
+.badge-jp.hard{color:var(--red);background:rgba(255,80,96,.12);}
+.card-detail{max-height:0;overflow:hidden;transition:max-height .25s ease;background:var(--s2);}
+.card-detail.open{max-height:400px;}
+.card-detail-inner{padding:12px 16px;font-size:11.5px;line-height:1.8;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;}
+.card-detail-inner .dl{color:var(--t2);font-weight:600;white-space:nowrap;}
+.card-detail-inner .dv{color:var(--text);}
+
+/* ── Recommendations ── */
+.reco-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;}
+.rc{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.rc::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;}
+.rc.now::before{background:var(--c3);} .rc.mid::before{background:var(--c1);} .rc.wait::before{background:var(--red);}
+.rc .pri{font-size:10px;font-weight:700;margin-bottom:6px;letter-spacing:.5px;}
+.rc.now .pri{color:var(--c3);} .rc.mid .pri{color:var(--c1);} .rc.wait .pri{color:var(--red);}
+.rc h3{font-size:14px;font-weight:700;margin-bottom:6px;}
+.rc p{font-size:12px;color:var(--t2);line-height:1.8;}
+
+/* ── Caveats ── */
+.caveats{max-width:1280px;margin:0 auto;padding:48px 24px 64px;}
+.caveats h2{font-size:16px;font-weight:800;color:var(--t2);margin-bottom:12px;}
+.caveats ul{list-style:none;}
+.caveats li{font-size:11px;color:var(--t3);line-height:1.8;padding:3px 0;padding-left:20px;position:relative;}
+.caveats li::before{content:'⚠';position:absolute;left:0;top:3px;}
+
+@media(max-width:600px){
+  header{padding:28px 16px 0;}
+  .sec,.chart-wrap,.caveats{padding-left:16px;padding-right:16px;}
+  .card-grid{grid-template-columns:1fr;}
+  .search-input{width:100%;margin-left:0;margin-top:6px;}
+  #bubbleCanvas{height:260px!important;}
+}
+@media print{
+  body{background:#fff;color:#111;}
+  .card,.fc,.rc,.kpi,.chart-box{border:1px solid #ccc;background:#f9f9f9;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .card-detail{max-height:none!important;}
+  .card-detail.open{max-height:none!important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ホテル・不動産<br><em>ビジネスモデル完全マップ</em></h1>
+  <div class="sub">所有 × 運営 × 収益化 × アセット × 顧客の5軸で74モデルを網羅｜2026年5月調査</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="v">74</div><div class="l">収録モデル</div></div>
+    <div class="kpi"><div class="v">5</div><div class="l">分類軸</div></div>
+    <div class="kpi"><div class="v">38</div><div class="l">日本◎モデル</div></div>
+    <div class="kpi"><div class="v">¥1,600億+</div><div class="l">国内STO累計</div></div>
+  </div>
+</header>
+
+<!-- Findings -->
+<section class="sec">
+  <h2><span class="dot" style="background:var(--c1)"></span>5つの構造変化</h2>
+  <div class="findings-grid">
+    <div class="fc"><div class="ft">所有と運営の完全分離</div><strong>Hilton非所有率99.3%、Marriott所有1%未満、Accor 3%。</strong>世界のメジャーは「ブランド＋ロイヤルティ＋配信」を売る超ライト型に完全移行。日本は所有直営が主流で、TPO/マンチャイズの空白が巨大。</div>
+    <div class="fc"><div class="ft">収益化の多層化</div><strong>一泊課金→サブスク→トークン→フラクショナル。</strong>HafH（130カ国/15,000施設）、ADDress（276物件）、Pacaso（LLC 1/8〜1/2持分）、不動産STO累計¥1,600億超がパラレルに存在。</div>
+    <div class="fc"><div class="ft">小口化・流動化の波</div><strong>J-REIT→不特法CF→STO→ユーティリティトークン。</strong>「雪の花」STO＋館内利用券がファンビジネスの先駆。受益証券発行信託で20%分離課税が確立。</div>
+    <div class="fc"><div class="ft">アセット型イノベーション</div><strong>カプセル→コンテナ→ツリーハウス→居住型クルーズ。</strong>低CAPEX×高単価ニッチが成長。グランピング CAGR 7.6%。空き家900万戸（率13.8%）がコリビングの受け皿。</div>
+    <div class="fc"><div class="ft">規制グレーゾーンの巧妙な活用</div><strong>ADDressは「賃貸業」で旅館業法を回避。</strong>Pacasoは住宅LLC共有でタイムシェア規制を回避。日本は旅館業法/住宅宿泊事業法/特区民泊の3制度を使い分け。</div>
+  </div>
+</section>
+
+<!-- Bubble Chart -->
+<div class="chart-wrap">
+  <div class="chart-box">
+    <div class="chart-header">
+      <h3>アセット軽重 × 日本適用度マトリクス</h3>
+      <div class="chart-legend">
+        <span class="lg1">所有</span><span class="lg2">運営</span><span class="lg3">収益化</span><span class="lg4">アセット</span><span class="lg5">顧客</span>
+      </div>
+    </div>
+    <canvas id="bubbleCanvas" height="340"></canvas>
+    <div class="axis-label x">← ヘビー（自社所有）───── アセット性質 ─────超ライト（プラットフォーム）→</div>
+    <div class="axis-label y">← 困難 ── 日本適用度 ── 即適用 →</div>
+  </div>
+</div>
+<div class="bubble-tooltip" id="tooltip"></div>
+
+<!-- Model Cards -->
+<section class="sec" id="cardSection">
+  <h2><span class="dot" style="background:var(--c2)"></span>74モデル一覧</h2>
+
+  <div class="axis-tabs" id="axisTabs">
+    <div class="ax-tab active" onclick="filterCat(null,this)">すべて <span class="cnt">74</span></div>
+    <div class="ax-tab c1" onclick="filterCat('所有',this)">所有 <span class="cnt">15</span></div>
+    <div class="ax-tab c2" onclick="filterCat('運営',this)">運営 <span class="cnt">15</span></div>
+    <div class="ax-tab c3" onclick="filterCat('収益化',this)">収益化 <span class="cnt">15</span></div>
+    <div class="ax-tab c4" onclick="filterCat('アセット',this)">アセット <span class="cnt">19</span></div>
+    <div class="ax-tab c5" onclick="filterCat('顧客',this)">顧客 <span class="cnt">10</span></div>
+  </div>
+
+  <div class="filter-row">
+    <label>日本適用</label>
+    <button class="fb jp-best" onclick="toggleJP('◎',this)">◎ 即適用</button>
+    <button class="fb jp-good" onclick="toggleJP('○',this)">○ 可能</button>
+    <button class="fb jp-fair" onclick="toggleJP('△',this)">△ 要調整</button>
+    <button class="fb jp-hard" onclick="toggleJP('×',this)">× 困難</button>
+    <label style="margin-left:12px">アセット</label>
+    <button class="fb" onclick="toggleAsset('超ライト',this)">超ライト</button>
+    <button class="fb" onclick="toggleAsset('ライト',this)">ライト</button>
+    <button class="fb" onclick="toggleAsset('ヘビー',this)">ヘビー</button>
+    <input type="text" class="search-input" placeholder="🔍 モデル名・企業名で検索..." oninput="doSearch(this.value)">
+  </div>
+  <div class="result-info" id="resultInfo">74モデル表示中</div>
+
+  <div class="card-grid" id="cardGrid"></div>
+</section>
+
+<!-- Recommendations -->
+<section class="sec">
+  <h2><span class="dot" style="background:var(--c3)"></span>日本市場への実装優先度</h2>
+  <div class="reco-grid">
+    <div class="rc now"><div class="pri">◎ 即時実装</div><h3>マンチャイズ／ホワイトラベルTPO</h3><p>欧州でTPO 10年で40%増（HVS）。日本の独立系オーナー・閉館旅館の事業承継案件向けに空白巨大。星野リゾート・マイステイズが先行するが中小規模TPOの成長余地。</p></div>
+    <div class="rc now"><div class="pri">◎ 即時実装</div><h3>不動産STO × ユーティリティトークン</h3><p>累計¥1,600億超。「雪の花」STO＋館内利用券が先駆。旅館セールリースバック＋STO小口化は事業承継×投資家ファンビジネスの融合点。受益証券発行信託で20%分離課税。</p></div>
+    <div class="rc now"><div class="pri">◎ 即時実装</div><h3>コリビング × 簡易宿所ハイブリッド</h3><p>空き家900万戸（率13.8%、過去最多）が背景。ADDress型の多拠点居住が拡大中。不特法の小規模ライセンス（資本金1,000万〜）で参入ハードル低下。</p></div>
+    <div class="rc mid"><div class="pri">○ 中期実装</div><h3>スタンドアロン・ブランデッドレジデンス</h3><p>Four Seasons 2024H1で$1.2B売上。東京/京都/沖縄/ニセコでパイプライン化。分譲完売率と再販プレミアム115%超が維持指標。</p></div>
+    <div class="rc mid"><div class="pri">○ 中期実装</div><h3>グランピング × 温泉 × ペット同伴複合</h3><p>国内市場 CAGR 7.6%（2025→2034、IMARC）。観光庁14モデル拠点指定済。稼働率60%＋ADR ¥40,000超が損益分岐。</p></div>
+    <div class="rc wait"><div class="pri">△ 慎重検討</div><h3>フラクショナル区分所有（Pacaso型）</h3><p>区分所有法×宅建業法×旅館業法の三重ハードル。米国でもHOA訴訟続出。日本は会員権預託金型（リゾートトラスト）が機能的代替として既存市場を支配。</p></div>
+  </div>
+</section>
+
+<!-- Caveats -->
+<section class="caveats">
+  <h2>▍ 留意事項</h2>
+  <ul>
+    <li>REIT保有物件数、コリビング拠点数、サブスク会員数は四半期で変動。本表は2024-2026年5月のスナップショット。</li>
+    <li>住宅宿泊事業法は自治体条例で大差あり（京都60日制限、札幌住居専用地域制限等）。</li>
+    <li>ADDressの「賃貸業」整理は厚労省の実質判断基準との齟齬リスクあり。</li>
+    <li>「収益保証」付き分譲（コンドホテル等）は「集団投資スキーム持分」整理→第二種金商業登録が必要なリスク。</li>
+    <li>会員権預託金は運営会社破綻時に毀損リスク（リーマンショック時に複数事例）。</li>
+    <li>STO二次流通（大阪デジタルエクスチェンジSTART、2023年12月〜）は流動性が限定的。</li>
+    <li>Storylines MV Narrative 2026年就航予定、Club Med南アフリカリゾート2026年予定等は未実現の予測値。</li>
+  </ul>
+</section>
+
+<script>
+// ── DATA ──
+const D=[
+{n:1,cat:"所有",name:"自社所有・直営方式",co:"帝国ホテル、オークラ／Marriott(自社1%未満)／Accor(3%)／Mandarin Oriental",rev:"売上総取り",asset:"ヘビー",jp:"◎",reg:"旅館業法、建築基準法"},
+{n:2,cat:"所有",name:"区分所有型ホテル（Strata）",co:"レーベンクロスタワー／Wyndham系",rev:"オーナーから借上転貸",asset:"ライト",jp:"△",reg:"区分所有法、旅館業法、宅建業法。収益保証→金商法リスク"},
+{n:3,cat:"所有",name:"任意組合型小口化",co:"Jointoα(あなぶき興産)、CREAL",rev:"出資金運用＋運営分配",asset:"ライト",jp:"○",reg:"不動産特定共同事業法"},
+{n:4,cat:"所有",name:"匿名組合型CF",co:"CREAL(2号)、利回りくん／Cadre(米)",rev:"賃料＋売却益(雑所得)",asset:"ライト",jp:"◎",reg:"不特法電子取引業務、金商法"},
+{n:5,cat:"所有",name:"フラクショナル・オーナーシップ",co:"Pacaso(米/LLC 1/8〜1/2、2,000+オーナー)、Equity Estates、Ember",rev:"持分譲渡＋管理費(~12%手数料)",asset:"ハイブリッド",jp:"△",reg:"区分所有法、宅建業法。米ではタイムシェア境界訴訟"},
+{n:6,cat:"所有",name:"プライベート・レジデンス・クラブ",co:"Ritz-Carlton DC、Four Seasons RC(55物件/20カ国/$12B+累計)",rev:"高額入会金＋年会費＋利用料",asset:"ヘビー",jp:"△",reg:"証券登録(米)、日本では会員権類似整理"},
+{n:7,cat:"所有",name:"タイムシェア",co:"Hilton GV、Marriott VC、Disney VC／東急ハーヴェスト",rev:"ポイント/週単位＋管理費",asset:"ヘビー",jp:"△",reg:"米ARDA自主規制、日本は宅建業法上の整理困難"},
+{n:8,cat:"所有",name:"リゾート会員権（預託金型）",co:"リゾートトラスト「エクシブ」、東急ハーヴェスト、ダイヤモンドソサエティ",rev:"預託金(無利子)＋年会費＋利用料",asset:"ヘビー",jp:"◎",reg:"預託金償還リスク(過去破綻事例)"},
+{n:9,cat:"所有",name:"コンドホテル",co:"マンハッタン・クラブ、Trump系／軽井沢・ニセコ一部",rev:"区分販売＋運営プール分配",asset:"ライト",jp:"△",reg:"旅館業＋区分所有＋金商法"},
+{n:10,cat:"所有",name:"ブランデッド・レジデンス（併設型）",co:"Four Seasons(55物件/20カ国、2024H1 $1.2B)、Aman、Ritz-Carlton",rev:"区分分譲＋ブランドフィー＋運営フィー",asset:"ハイブリッド",jp:"○",reg:"商標ライセンス、管理規約、宅建業法"},
+{n:11,cat:"所有",name:"スタンドアロン・ブランデッドレジデンス",co:"St. Regis単独棟(Marriott系1/3超)、Aman NY、Accor系",rev:"同上(ホテル併設なし)",asset:"ライト",jp:"○",reg:"同上"},
+{n:12,cat:"所有",name:"居住型クルーズ",co:"Storylines MV Narrative(530室/$598k〜)、The World($2-15M)",rev:"持分販売＋月額生活費",asset:"ヘビー",jp:"×",reg:"船舶法、外国法人籍"},
+{n:13,cat:"所有",name:"不動産STO",co:"ケネディクス悠洛京都(96.95億)、雪の花(21.65億)、ドーミーイン神戸(35.2億)／Aspen Coin(米$18M)",rev:"トークン販売＋分配＋ユーティリティ特典",asset:"ライト",jp:"◎",reg:"改正金商法、受益証券発行信託、JSDA、JSTOA"},
+{n:14,cat:"所有",name:"一棟貸切ヴィラ所有",co:"onefinestay(3,000棟超)、Welk／NOT A HOTEL(日)",rev:"購入＋管理委託＋運用収益分配",asset:"ヘビー",jp:"○",reg:"旅館業法/住宅宿泊事業法"},
+{n:15,cat:"所有",name:"NFT/トークン型オーナーシップ",co:"Dream Hollywood NFT(実験)／エンジョイワークス×LIFULL(葉山、1,530万)",rev:"NFT特典＋分配",asset:"ライト",jp:"△",reg:"金商法、暗号資産規制"},
+{n:16,cat:"運営",name:"所有直営（Owner-operator）",co:"JR東海ホテルズ、JR西日本、ANAクラウンプラザ",rev:"売上総取り",asset:"ヘビー",jp:"◎",reg:"—"},
+{n:17,cat:"運営",name:"リース方式（固定/変動）",co:"宿泊特化型ホテル多数、Daiwa Resorts",rev:"賃料収入",asset:"ライト",jp:"◎",reg:"借地借家法、IFRS 16"},
+{n:18,cat:"運営",name:"マスターリース（一括借上）",co:"住友不動産、相鉄ホテル",rev:"一括賃料",asset:"中間",jp:"◎",reg:"借地借家法"},
+{n:19,cat:"運営",name:"マネジメント契約（HMA）",co:"Marriott、Hilton、Hyatt(中東84%HMA)、Accor／星野リゾート",rev:"ベース2-4%＋インセンティブ(GOP%)",asset:"超ライト",jp:"◎",reg:"業務委託契約"},
+{n:20,cat:"運営",name:"フランチャイズ",co:"Wyndham(~100%FC/1.22億会員)、Hilton 88.6%、Marriott 76.8%",rev:"加盟金＋ロイヤルティ8-12%＋マーケティング",asset:"超ライト",jp:"◎",reg:"FCガイドライン"},
+{n:21,cat:"運営",name:"マンチャイズ（HMA→FC移行型）",co:"Wyndham×Nile(インド)、中東で増加",rev:"初期HMA→5-10年後FC化",asset:"超ライト",jp:"△",reg:"FCガイドライン"},
+{n:22,cat:"運営",name:"ホワイトラベル運営",co:"Aleph Hospitality、Core Hospitality(北欧)、Michels & Taylor(28物件)",rev:"運営フィー(ブランドなし)",asset:"超ライト",jp:"○",reg:"業務委託"},
+{n:23,cat:"運営",name:"サードパーティ・オペレーター（TPO）",co:"Aimbridge、Highgate／Michels & Taylor(欧TPO 10年40%増)",rev:"ベース＋インセンティブ",asset:"超ライト",jp:"○",reg:"業務委託"},
+{n:24,cat:"運営",name:"ソフトブランド",co:"Autograph Collection(180+)、Curio、Vignette／Mesm Tokyo",rev:"FCフィー＋ロイヤルティ流入",asset:"超ライト",jp:"○",reg:"FCガイドライン"},
+{n:25,cat:"運営",name:"リファラル／アフィリエイト",co:"Leading Hotels、Preferred、Relais & Châteaux、SLH",rev:"加盟費＋送客手数料",asset:"超ライト",jp:"◎",reg:"商標ライセンス"},
+{n:26,cat:"運営",name:"半公的事業スキーム",co:"国民宿舎、休暇村／Aramark、Xanterra(米国立公園)",rev:"指定管理料＋営業利益",asset:"中間",jp:"◎",reg:"地方自治法、PFI法"},
+{n:27,cat:"運営",name:"交通・エンタメ系チェーン",co:"阪急阪神、東武、JR各社／Disney Resorts",rev:"本業誘客＋ホテル収益",asset:"ヘビー",jp:"◎",reg:"—"},
+{n:28,cat:"運営",name:"コンセッション運営",co:"米国立公園コンセッション、特区指定管理",rev:"運営収益−手数料",asset:"中間",jp:"○",reg:"国立公園法、特区法"},
+{n:29,cat:"運営",name:"再生ファンド型運営委託",co:"星野リゾート観光活性化F(~50億/2020)、DBJ×星野1号2号",rev:"投資家リターン＋運営フィー",asset:"ライト",jp:"◎",reg:"投資事業有限責任組合法"},
+{n:30,cat:"運営",name:"バケレン運営代行",co:"Vacasa(4万棟超)、Awaze(11万棟/36カ国)、Sonder、Evolve",rev:"委託手数料10-35%",asset:"ライト",jp:"○",reg:"住宅宿泊管理業者登録"},
+{n:31,cat:"収益化",name:"一泊都度課金",co:"全業界の基本",rev:"RevPAR × 稼働率",asset:"—",jp:"◎",reg:"—"},
+{n:32,cat:"収益化",name:"サブスクリプション宿泊",co:"HafH(130カ国/15,000施設/80万泊)、ADDress(276物件/¥9,800〜)、Inspirato Pass($2,500/月)",rev:"月額＋一泊(コイン制等)",asset:"中間",jp:"◎",reg:"旅館業法/賃貸業の整理"},
+{n:33,cat:"収益化",name:"デスティネーション/ヴァケーションクラブ",co:"Exclusive Resorts(4,000会員/400物件)、Inspirato／エクシブ、東急ハーヴェスト",rev:"入会金＋年会費＋一泊",asset:"ヘビー",jp:"◎",reg:"預託金制"},
+{n:34,cat:"収益化",name:"ロイヤルティ/ポイント発行",co:"Marriott Bonvoy、Hilton Honors、Wyndham(1.22億会員)、Accor ALL",rev:"加盟ホテル手数料、ポイント預り、提携カード",asset:"超ライト",jp:"◎",reg:"資金決済法(前払式)、景表法"},
+{n:35,cat:"収益化",name:"J-REIT / 公募REIT",co:"Invincible(86.7%ホテル)、Japan Hotel REIT、星野REIT、Ichigo Hotel／Park Hotels(米)",rev:"不動産賃料＋分配",asset:"ライト",jp:"◎",reg:"投信法、金商法"},
+{n:36,cat:"収益化",name:"不特法クラウドファンディング",co:"CREAL、Jointoα、利回りくん、TECROWD／小規模:資本金1,000万〜",rev:"出資金運用＋成功報酬",asset:"ライト",jp:"◎",reg:"不特法、金商法(電子取引業務)"},
+{n:37,cat:"収益化",name:"不動産STO",co:"悠洛京都三条(96.95億)、雪の花(21.65億)、ドーミーイン神戸(35.2億)／Aspen Coin($18M)",rev:"トークン＋分配＋ユーティリティ",asset:"ライト",jp:"◎",reg:"改正金商法、受益証券発行信託"},
+{n:38,cat:"収益化",name:"P2Pプラットフォーム",co:"Airbnb($11.1B/2024、GBV $81.8B)、Vrbo、Booking Homes",rev:"取扱手数料3-15%",asset:"超ライト",jp:"◎",reg:"住宅宿泊事業法、特区民泊"},
+{n:39,cat:"収益化",name:"オール・インクルーシブ",co:"Club Med(70拠点/40カ国/€20億)、Sandals",rev:"パッケージ価格",asset:"ヘビー",jp:"○",reg:"—"},
+{n:40,cat:"収益化",name:"アンシラリー収益（料飲/宴会/ブライダル）",co:"帝国ホテル、ニューオータニ(宿泊外比率~60%)",rev:"宿泊外収益",asset:"ヘビー",jp:"◎",reg:"食品衛生法、酒税法"},
+{n:41,cat:"収益化",name:"サブリース/オフバランス",co:"Daiwa Resorts→Accor転換(23物件/6,000室/2024)",rev:"賃料＋運営フィー",asset:"ライト",jp:"◎",reg:"借地借家法"},
+{n:42,cat:"収益化",name:"OTAアグリゲーター",co:"Booking.com、Expedia／楽天トラベル、じゃらん",rev:"予約手数料10-25%",asset:"超ライト",jp:"◎",reg:"旅行業法、独禁法(レートパリティ)"},
+{n:43,cat:"収益化",name:"Day Use / 短時間利用",co:"Dayuse、Hotels by Day／アパ「テレワーク」",rev:"時間貸単価",asset:"—",jp:"◎",reg:"旅館業法(営業形態整理)"},
+{n:44,cat:"収益化",name:"温浴 × 宿泊複合",co:"ドーミーイン、サウナ＆カプセル北欧／韓国Cimer SPA",rev:"入館料＋宿泊",asset:"中間",jp:"◎",reg:"公衆浴場法、温泉法"},
+{n:45,cat:"収益化",name:"MICE / コンベンション",co:"MGM、Caesars／グランドプリンス高輪、東京ベイ舞浜",rev:"法人MICE＋宿泊",asset:"ヘビー",jp:"◎",reg:"—"},
+{n:46,cat:"アセット",name:"シティ／ビジネスホテル",co:"アパ、東横イン、ルートイン／Courtyard、Hilton Garden Inn",rev:"単価×稼働",asset:"中間",jp:"◎",reg:"旅館業法"},
+{n:47,cat:"アセット",name:"リゾート／ラグジュアリー",co:"星野リゾート、Aman、Four Seasons／Ritz-Carlton",rev:"単価＋アンシラリー",asset:"ヘビー",jp:"◎",reg:"旅館業法"},
+{n:48,cat:"アセット",name:"旅館（伝統）",co:"加賀屋、星野「界」シリーズ",rev:"一泊二食＋温泉",asset:"ヘビー",jp:"◎",reg:"旅館業法、温泉法"},
+{n:49,cat:"アセット",name:"民泊（住宅宿泊事業法）",co:"Airbnb host／年間180日制限、届出制",rev:"一泊単価",asset:"ライト",jp:"◎",reg:"住宅宿泊事業法、消防法、用途地域条例"},
+{n:50,cat:"アセット",name:"特区民泊",co:"大田区、大阪市、北九州市、新潟市／2泊3日以上・日数制限なし",rev:"一泊単価",asset:"ライト",jp:"○",reg:"国家戦略特区法、認定制(地域限定)"},
+{n:51,cat:"アセット",name:"簡易宿所",co:"ゲストハウス、ホステル、ドミトリー／2016年基準緩和",rev:"一泊単価",asset:"中間",jp:"◎",reg:"旅館業法、消防法、建築基準法"},
+{n:52,cat:"アセット",name:"カプセル／ポッドホテル",co:"9h(Nine Hours)、First Cabin、The Millennials／Yotel",rev:"¥2,500-5,000/泊",asset:"ライト",jp:"◎",reg:"旅館業法(簡易宿所)"},
+{n:53,cat:"アセット",name:"コリビング／シェアハウス",co:"オークハウス、ボーダレスハウス、Hmlet(三菱地所JV)、Social Apartment(49拠点)／Common(米)",rev:"月額＋共益費＋イベント",asset:"中間",jp:"◎",reg:"借地借家法、寄宿舎、消防法"},
+{n:54,cat:"アセット",name:"サービスアパートメント",co:"Ascott(Citadines/Oakwood)、MIMARU(大和ハウス)／Sonder",rev:"月額(家具/水光熱込)",asset:"中間",jp:"◎",reg:"旅館業ホテル型／賃貸住宅型"},
+{n:55,cat:"アセット",name:"グランピング",co:"GLAMPING VILLAGE富士河口湖、星野BEB／Under Canvas、AutoCamp",rev:"高単価＋BBQ・体験",asset:"ライト",jp:"◎",reg:"旅館業法、農地法、自然公園法"},
+{n:56,cat:"アセット",name:"キャンプ場／オートキャンプ",co:"スノーピーク、PICA／KOA(米)",rev:"サイト料＋レンタル",asset:"ライト",jp:"◎",reg:"林地開発、農地法"},
+{n:57,cat:"アセット",name:"ツリーハウス",co:"Mohicans Treehouse(米)、Treehotel(瑞)／ツリーフルツリーハウス(日)",rev:"高単価/泊",asset:"ライト",jp:"○",reg:"建築基準法(仮設物解釈)、消防法"},
+{n:58,cat:"アセット",name:"コンテナ／モジュラーホテル",co:"CitizenM(20ftコンテナ)／Marriott Element、Tru by Hilton",rev:"単価＋低CAPEX",asset:"ライト",jp:"○",reg:"建築基準法、消防法"},
+{n:59,cat:"アセット",name:"エアストリーム／RVリゾート",co:"AutoCamp(米5拠点)、Mohicans Silver Bullet、Custom Airstream",rev:"高単価/泊",asset:"ライト",jp:"△",reg:"道路運送車両法、旅館業法"},
+{n:60,cat:"アセット",name:"バンライフ／キャンピングカー",co:"Cabana、KIBBO(米)／Carstay、Vansion(日)",rev:"月額/時間貸",asset:"超ライト",jp:"○",reg:"道路運送車両法"},
+{n:61,cat:"アセット",name:"クルーズ船",co:"Royal Caribbean、Carnival／Storylines、The World",rev:"客室販売＋寄港ツアー",asset:"ヘビー",jp:"×",reg:"船舶安全法、外航法"},
+{n:62,cat:"アセット",name:"ブックホテル",co:"BOOK AND BED TOKYO、箱根本箱",rev:"単価＋飲食",asset:"中間",jp:"◎",reg:"簡易宿所"},
+{n:63,cat:"アセット",name:"スマートホテル／無人",co:"変なホテル(H.I.S.)／CitizenM",rev:"低運営コスト×単価",asset:"ライト",jp:"◎",reg:"旅館業法(フロント省略特例)"},
+{n:64,cat:"アセット",name:"寺泊・宿坊",co:"高野山宿坊、永平寺／韓国テンプルステイ",rev:"一泊二食＋体験",asset:"中間",jp:"◎",reg:"旅館業法(簡易宿所)"},
+{n:65,cat:"顧客",name:"富裕層向けブランデッドレジデンス",co:"Aman、Four Seasons、One&Only／Bulgari Tokyo、Janu Tokyo",rev:"区分販売＋ブランドフィー",asset:"ライト",jp:"◎",reg:"商標ライセンス、宅建業法"},
+{n:66,cat:"顧客",name:"デジタルノマド向けコリビング",co:"Selina(80+拠点)、Outsite(30拠点)、WiFi Tribe、Anyplace／HafH、ADDress",rev:"月額＋日割",asset:"ライト",jp:"◎",reg:"旅館業/賃貸業の整理"},
+{n:67,cat:"顧客",name:"インバウンド向けファミリー型",co:"MIMARU、京町家ホテル、Banyan Tree",rev:"単価＋食事込",asset:"中間",jp:"◎",reg:"旅館業法"},
+{n:68,cat:"顧客",name:"法人・MICE向け",co:"Marriott、Hyatt Regency／グランドハイアット東京",rev:"法人契約＋宴会",asset:"ヘビー",jp:"◎",reg:"—"},
+{n:69,cat:"顧客",name:"シニアCCRC（継続ケア型）",co:"Acts、Vi Living(米/$200K〜)／サンシティ、グランクレール(日)",rev:"入居金＋月額＋医療費",asset:"ヘビー",jp:"◎",reg:"老人福祉法、サ高住法"},
+{n:70,cat:"顧客",name:"ファミリー向けオールインクルーシブ",co:"Club Med Mini Club(1967〜)、Atlantis、Beaches／リゾナーレ(日)",rev:"パッケージ",asset:"ヘビー",jp:"○",reg:"—"},
+{n:71,cat:"顧客",name:"Z世代/バックパッカー",co:"Selina、Generator、Mad Monkey、Yotel／UNPLAN、TOGGLE(日)",rev:"ドミトリー＋イベント",asset:"ライト",jp:"◎",reg:"簡易宿所"},
+{n:72,cat:"顧客",name:"ペット同伴",co:"Doggies Villa(淡路島)、FOREST RUN(兵庫)",rev:"高単価/泊",asset:"中間",jp:"◎",reg:"動物愛護法"},
+{n:73,cat:"顧客",name:"ワーケーション/法人月額",co:"HafH法人プラン、Selina B2B／Hyatt Work From Hyatt",rev:"法人契約",asset:"ライト",jp:"◎",reg:"法人税(福利厚生/給与課税)"},
+{n:74,cat:"顧客",name:"ヘルスツーリズム/メディカル",co:"Six Senses、Canyon Ranch／スパディオ温泉系(日)",rev:"高単価×滞在期間",asset:"ヘビー",jp:"○",reg:"医師法、医療法(診療行為の境界)"}
+];
+
+const CC={所有:"c1",運営:"c2",収益化:"c3",アセット:"c4",顧客:"c5"};
+const CV={c1:"#ffd060",c2:"#50c8ff",c3:"#50e898",c4:"#b080ff",c5:"#ff8850"};
+const AM={"ヘビー":"heavy","ライト":"light","中間":"mid","超ライト":"ultra","ハイブリッド":"mid","—":"mid"};
+const JM={"◎":"best","○":"good","△":"fair","×":"hard"};
+const assetX={"ヘビー":0.15,"中間":0.38,"ハイブリッド":0.5,"ライト":0.65,"超ライト":0.88,"—":0.5};
+const jpY={"×":0.15,"△":0.38,"○":0.62,"◎":0.88};
+
+// ── State ──
+let fCat=null, fJP=null, fAsset=null, fSearch='';
+
+function filtered(){
+  let r=D;
+  if(fCat) r=r.filter(d=>d.cat===fCat);
+  if(fJP) r=r.filter(d=>d.jp===fJP);
+  if(fAsset) r=r.filter(d=>d.asset===fAsset);
+  if(fSearch){const q=fSearch.toLowerCase();r=r.filter(d=>(d.name+d.co+d.rev+d.reg).toLowerCase().includes(q));}
+  return r;
+}
+
+// ── Cards ──
+function renderCards(){
+  const f=filtered();
+  const g=document.getElementById('cardGrid');
+  g.innerHTML=f.map(d=>`
+<div class="card" onclick="toggleCard(this)" data-n="${d.n}">
+  <div class="card-top">
+    <div class="card-num">${d.n}</div>
+    <div class="card-main">
+      <div class="card-name">${d.name}</div>
+      <div class="card-badges">
+        <span class="badge badge-cat ${CC[d.cat]}">${d.cat}</span>
+        <span class="badge badge-asset ${AM[d.asset]||'mid'}">${d.asset}</span>
+        <span class="badge badge-jp ${JM[d.jp]}">${d.jp} ${d.jp==='◎'?'即適用':d.jp==='○'?'適用可':d.jp==='△'?'要調整':'困難'}</span>
+      </div>
+    </div>
+  </div>
+  <div class="card-detail" id="detail-${d.n}">
+    <div class="card-detail-inner">
+      <span class="dl">代表企業</span><span class="dv">${d.co}</span>
+      <span class="dl">収益源</span><span class="dv">${d.rev}</span>
+      <span class="dl">法規・注意</span><span class="dv">${d.reg}</span>
+    </div>
+  </div>
+</div>`).join('');
+  document.getElementById('resultInfo').textContent=f.length+'モデル表示中';
+}
+
+function toggleCard(el){
+  const n=el.dataset.n;
+  const det=document.getElementById('detail-'+n);
+  det.classList.toggle('open');
+}
+
+// ── Filters ──
+function filterCat(cat,el){
+  fCat=fCat===cat?null:cat;
+  document.querySelectorAll('.ax-tab').forEach(t=>t.classList.remove('active'));
+  if(fCat) el.classList.add('active'); else document.querySelector('.ax-tab').classList.add('active');
+  renderCards(); drawBubbles();
+}
+function toggleJP(v,el){
+  fJP=fJP===v?null:v;
+  document.querySelectorAll('.fb.jp-best,.fb.jp-good,.fb.jp-fair,.fb.jp-hard').forEach(b=>b.classList.remove('on'));
+  if(fJP) el.classList.add('on');
+  renderCards(); drawBubbles();
+}
+function toggleAsset(v,el){
+  fAsset=fAsset===v?null:v;
+  document.querySelectorAll('.filter-row .fb:not(.jp-best):not(.jp-good):not(.jp-fair):not(.jp-hard)').forEach(b=>b.classList.remove('on'));
+  if(fAsset) el.classList.add('on');
+  renderCards(); drawBubbles();
+}
+function doSearch(v){fSearch=v;renderCards();drawBubbles();}
+
+// ── Bubble Chart ──
+const canvas=document.getElementById('bubbleCanvas');
+const ctx=canvas.getContext('2d');
+let bubblePositions=[];
+
+function drawBubbles(){
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);
+  const W=rect.width, H=rect.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,.04)';
+  ctx.lineWidth=1;
+  for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(W*i/4,0);ctx.lineTo(W*i/4,H);ctx.stroke();}
+  for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(0,H*i/4);ctx.lineTo(W,H*i/4);ctx.stroke();}
+
+  // Labels
+  ctx.font='10px "Noto Sans JP"';ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.textAlign='center';
+  ctx.fillText('ヘビー',W*0.15,H-4);ctx.fillText('中間',W*0.38,H-4);
+  ctx.fillText('ライト',W*0.65,H-4);ctx.fillText('超ライト',W*0.88,H-4);
+  ctx.textAlign='left';
+  ctx.fillText('×',4,H*0.85);ctx.fillText('△',4,H*0.62);ctx.fillText('○',4,H*0.38);ctx.fillText('◎',4,H*0.12);
+
+  const f=filtered();
+  bubblePositions=[];
+  const R=Math.min(14, Math.max(7, 200/Math.sqrt(f.length)));
+
+  // Jitter to avoid overlap
+  const used=[];
+  f.forEach(d=>{
+    let bx=(assetX[d.asset]||0.5)*W;
+    let by=(1-(jpY[d.jp]||0.5))*H;
+    // Jitter
+    for(let tries=0;tries<20;tries++){
+      let collision=false;
+      for(const u of used){if(Math.hypot(u.x-bx,u.y-by)<R*2.2){collision=true;break;}}
+      if(!collision) break;
+      bx+=(Math.random()-.5)*R*3;
+      by+=(Math.random()-.5)*R*2;
+    }
+    bx=Math.max(R+20,Math.min(W-R,bx));
+    by=Math.max(R,Math.min(H-R-14,by));
+    used.push({x:bx,y:by});
+
+    const color=CV[CC[d.cat]];
+    ctx.beginPath();ctx.arc(bx,by,R,0,Math.PI*2);
+    ctx.fillStyle=color+'30';ctx.fill();
+    ctx.strokeStyle=color+'90';ctx.lineWidth=1.5;ctx.stroke();
+
+    ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(8,R-2)}px "JetBrains Mono"`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(d.n,bx,by);
+
+    bubblePositions.push({x:bx,y:by,r:R,d:d});
+  });
+}
+
+// Tooltip
+const tooltip=document.getElementById('tooltip');
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  let hit=null;
+  for(const b of bubblePositions){if(Math.hypot(b.x-mx,b.y-my)<=b.r){hit=b;break;}}
+  if(hit){
+    const d=hit.d;
+    tooltip.style.display='block';
+    tooltip.style.left=Math.min(e.clientX+12,window.innerWidth-360)+'px';
+    tooltip.style.top=(e.clientY+12)+'px';
+    tooltip.innerHTML=`<div class="tt-name">${d.n}. ${d.name}</div>
+<div class="tt-cat" style="color:${CV[CC[d.cat]]}">${d.cat}｜${d.asset}｜日本 ${d.jp}</div>
+<div style="font-size:11px;color:#aaa;margin-top:4px"><b style="color:#eee">企業:</b> ${d.co}</div>
+<div style="font-size:11px;color:#aaa"><b style="color:#eee">収益:</b> ${d.rev}</div>
+<div style="font-size:11px;color:#aaa"><b style="color:#eee">法規:</b> ${d.reg}</div>`;
+  } else {
+    tooltip.style.display='none';
+  }
+});
+canvas.addEventListener('mouseleave',()=>{tooltip.style.display='none';});
+
+// Click bubble to scroll to card
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  for(const b of bubblePositions){
+    if(Math.hypot(b.x-mx,b.y-my)<=b.r){
+      const card=document.querySelector(`.card[data-n="${b.d.n}"]`);
+      if(card){card.scrollIntoView({behavior:'smooth',block:'center'});const det=card.querySelector('.card-detail');if(!det.classList.contains('open'))det.classList.add('open');}
+      break;
+    }
+  }
+});
+
+// ── Init ──
+renderCards();
+window.addEventListener('resize',drawBubbles);
+setTimeout(drawBubbles,100);
+</script>
+</body>
+</html>

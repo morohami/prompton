@@ -1,5 +1,223 @@
 [
     {
+        "id":  "p1779555000001",
+        "title":  "ホテルと金 ─ Vol. I (final draft)",
+        "description":  "ホテル業界とファイナンスを横断する longform — Vol. 1 最終ドラフト。340KB の単一HTML。",
+        "systemPrompt":  "あなたは経済週刊誌の編集者。1万字超の longform 記事を、読者が止まらず読み進められるようにデザインと文体で設計する。",
+        "userPrompt":  "日本のホテル業界における所有・運営・収益化の構造を、雑誌のような longform フォーマットで読ませる単一HTMLを生成して。見出し階層、引用、データブロック、表を含め、エディトリアル風のタイポグラフィでまとめる。",
+        "context":  "Vol. I の対象テーマ：ホテル所有形態、REIT、STO、サブスクリプション宿泊、ブランデッドレジデンス、観光業の資金循環。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "hotel",
+                     "finance",
+                     "longform",
+                     "japan",
+                     "editorial"
+                 ],
+        "tag":  "hotel",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
+        "id":  "p1779555000002",
+        "title":  "ホテルと金 ─ Vol. I (draft 2026-05-21)",
+        "description":  "「ホテルと金」Vol. 1 の中間ドラフト（2026-05-21時点）。最終版に向けた途中経過のアーカイブ。",
+        "systemPrompt":  "",
+        "userPrompt":  "ホテルと金 Vol. I の途中ドラフト。最終版との差分を保持するためアーカイブ目的で投稿。",
+        "context":  "2026-05-21 時点のスナップショット。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "hotel",
+                     "finance",
+                     "longform",
+                     "japan",
+                     "draft",
+                     "archive"
+                 ],
+        "tag":  "hotel",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
+        "id":  "p1779555000003",
+        "title":  "世界のホテル・不動産ビジネスモデル完全マップ (74モデル)",
+        "description":  "所有 × 運営 × 収益化 × アセット × 顧客の5軸で74のホテル・不動産ビジネスモデルをマップ化。バブルチャート + フィルター可能なカードグリッド。",
+        "systemPrompt":  "あなたは産業構造分析のアナリスト。一見複雑な業界マップを、視覚的に直感で読める1ページに圧縮する。",
+        "userPrompt":  "ホテル・不動産業界の74のビジネスモデルを、所有/運営/収益化/アセット/顧客の5軸でマップ化する単一HTMLを作って。上部にバブルチャート（X軸=アセット軽重、Y軸=日本適用度、色=カテゴリ）、下部にフィルター可能なカードグリッド。各モデルに代表企業・収益源・法規制を含める。ダークテーマ、JetBrains Mono、80年代風のアクセントカラー。",
+        "context":  "対象は2026年5月時点の最新動向。日本市場への適用度を◎○△×で評価。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "hotel",
+                     "real-estate",
+                     "business-model",
+                     "data-viz",
+                     "japan",
+                     "interactive",
+                     "dashboard"
+                 ],
+        "tag":  "hotel",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
+        "id":  "p1779555000004",
+        "title":  "M-M-MAX Newsroom — retro CRT carousel",
+        "description":  "Max Headroom 風のCRTテレビモニター演出で、フロントエンド記事をカルーセル表示。Bungee・VT323・Orbitron フォント、スキャンライン、グリッチアニメーション、自動再生。",
+        "systemPrompt":  "あなたは1980年代のテレビ放送をピクセル単位で再現する CSS アーティスト。",
+        "userPrompt":  "Max Headroom (1985) 風のCRTモニター上で記事をカルーセル表示する単一HTMLを作って。ピンク/シアン/イエローのネオン、走査線、グリッチエフェクト、CRTビネット、自動切り替え（9秒）、矢印キー操作対応。フォントは Bungee + VT323 + Orbitron。表示はホスト名・タイトル・日付・抜粋・前後リンク。",
+        "context":  "12枚のフロントエンド関連記事をカルーセル化。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "retro",
+                     "css",
+                     "animation",
+                     "newsroom",
+                     "max-headroom",
+                     "crt",
+                     "typography"
+                 ],
+        "tag":  "retro",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
+        "id":  "p1779555000005",
+        "title":  "Prompton — recipes for AI (single-file prototype)",
+        "description":  "Prompton 自身の初期プロトタイプ（GitHub バックエンド移行前のシングルファイル版）。すべてのデータがインラインで埋め込まれていた頃のアーカイブ。",
+        "systemPrompt":  "あなたは Spotify と The New Yorker のハイブリッド UI を設計する。",
+        "userPrompt":  "Spotify風のダークUIで、AIプロンプトを「レコード」のように飾るシングルファイルHTMLを作って。アルバムカード、ホリゾンタルスクロールロー、Today\u0027s Lead ヒーロー、プロンプト本文の表示、変数の {{X}} 置換、フォーク機能、バージョン履歴、比較ビューを含む。LocalStorage 永続化。",
+        "context":  "Prompton の初期プロトタイプ。後に manifest.json + htmls/ アーキテクチャに分離された。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "prompton",
+                     "prototype",
+                     "meta",
+                     "spotify-style",
+                     "single-file",
+                     "archive"
+                 ],
+        "tag":  "prompton",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
+        "id":  "p1779555000006",
+        "title":  "Canvas Grid Mouse Effect (boilerplate only)",
+        "description":  "外部 style.css と script.js を参照する 19 行のブートストラップ HTML。単体では何も描画されない（注意）。",
+        "systemPrompt":  "",
+        "userPrompt":  "マウス位置で歪むキャンバスグリッドエフェクトを作って。GSAP を使い、グリッドの各セルがマウスから離れるにつれて元の位置に戻るスプリングアニメーション。",
+        "context":  "元コードは外部 ./style.css + ./script.js に分離されているため、このファイル単体ではプレビュー不可。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "canvas",
+                     "javascript",
+                     "demo",
+                     "external-deps",
+                     "broken"
+                 ],
+        "tag":  "canvas",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
+        "id":  "p1779555000007",
+        "title":  "関ヶ原の戦い 布陣図 v2 — AI討論つき",
+        "description":  "関ヶ原の戦いの布陣図インタラクティブ可視化 v2。武将の声色変更と AI 討論機能つき。",
+        "systemPrompt":  "あなたは戦国史と Web インタラクションの両方に精通したデザイナー。歴史学的正確さとUXの楽しさを両立する。",
+        "userPrompt":  "関ヶ原の戦い (1600) の布陣図を、武将ごとにクリックで詳細表示できるインタラクティブ単一HTMLにして。東軍・西軍の色分け、地形（松尾山・南宮山・桃配山）、時系列スライダー、武将ごとの「声色変更」音声合成プレビュー、二武将を選んで AI 討論をシミュレーションする機能を含む。",
+        "context":  "v2 — 初版に AI 討論機能を追加。",
+        "model":  "Claude Opus 4.7",
+        "license":  "CC0 — Public domain",
+        "tags":  [
+                     "history",
+                     "japan",
+                     "sengoku",
+                     "visualization",
+                     "interactive",
+                     "ai-debate",
+                     "voice"
+                 ],
+        "tag":  "history",
+        "author":  "you",
+        "authorName":  "You",
+        "date":  "2026-05-23",
+        "downloads":  0,
+        "forks":  0,
+        "parentId":  null,
+        "usage":  [
+
+                  ],
+        "variables":  [
+
+                      ]
+    },
+    {
         "id":  "p1779462705263",
         "title":  "国名と政治体制の矛盾マップ",
         "description":  "",

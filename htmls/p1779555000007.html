@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>関ヶ原の戦い 布陣図 v2</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f0e8;--bg2:#ebe5d8;--ink:#2c2a25;--ink2:#6b6660;--ink3:#9e978d;
+  --east:#1a5276;--west:#922b21;--turn:#7d6608;--idle:#6c6c6c;
+  --gold:#8b7340;--gold-light:#c9b97a;
+}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:14px}
+h1{font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;text-align:center;letter-spacing:.1em}
+.sub{text-align:center;font-size:12px;color:var(--ink2);margin:2px 0 12px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin-bottom:10px;font-size:12px}
+.tile-switch,.theory-switch{display:flex;border:1px solid var(--gold-light);border-radius:4px;overflow:hidden}
+.tile-switch button,.theory-switch button{padding:6px 12px;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:12px;color:var(--ink2)}
+.tile-switch button.active,.theory-switch button.active{background:var(--gold);color:#fff}
+.legend{display:flex;gap:10px;font-size:11px;color:var(--ink2);flex-wrap:wrap;justify-content:center}
+.legend span{display:flex;align-items:center;gap:4px}
+.ldot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.settings-btn{border:1px solid var(--gold-light);background:#fffdf7;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--ink)}
+.settings-btn:hover{background:var(--gold);color:#fff}
+.settings-btn.active{background:var(--gold);color:#fff}
+.is-hidden{display:none!important}
+
+.map-area{position:relative}
+#map{height:560px;border-radius:8px;border:1px solid #d5cfc4;background:#e8e2d3}
+.tile-sepia .leaflet-tile-pane{filter:sepia(0.55) saturate(0.7) contrast(1.05) brightness(0.95)}
+.hillshade-layer{mix-blend-mode:multiply;opacity:0.5}
+
+.telop-layer{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:500;overflow:hidden}
+.telop{position:absolute;font-family:'Noto Serif JP',serif;font-weight:900;font-size:26px;color:#fff;text-shadow:3px 3px 0 #c0392b,-2px -2px 0 #c0392b,2px -2px 0 #c0392b,-2px 2px 0 #c0392b,0 0 12px rgba(0,0,0,0.5);background:rgba(255,253,247,0.15);padding:6px 18px;border:3px solid #c0392b;border-radius:8px;transform:rotate(-6deg);animation:telop-pop 1.6s ease-out forwards;letter-spacing:.08em;white-space:nowrap}
+@keyframes telop-pop{0%{transform:scale(0.3) rotate(-20deg);opacity:0}20%{transform:scale(1.2) rotate(-6deg);opacity:1}60%{transform:scale(1) rotate(-6deg);opacity:1}100%{transform:scale(1.1) rotate(-6deg);opacity:0}}
+
+.advantage-wrap{margin-top:10px;background:#fffdf7;border:1px solid #d5cfc4;border-radius:8px;padding:10px 14px}
+.advantage-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.advantage-head .east-label{color:var(--east);font-weight:700}
+.advantage-head .west-label{color:var(--west);font-weight:700}
+.advantage-bar{height:18px;display:flex;border-radius:9px;overflow:hidden;border:1px solid #d5cfc4;background:#eee}
+.advantage-bar .east-bar{background:linear-gradient(90deg,#2874a6,#1a5276);transition:width .1s linear;display:flex;align-items:center;justify-content:flex-start;color:#fff;font-size:11px;font-weight:700;padding:0 8px}
+.advantage-bar .west-bar{background:linear-gradient(90deg,#922b21,#a93226);transition:width .1s linear;display:flex;align-items:center;justify-content:flex-end;color:#fff;font-size:11px;font-weight:700;padding:0 8px}
+.advantage-note{font-size:10.5px;color:var(--ink3);margin-top:4px;text-align:center}
+
+.timeline-wrap{margin-top:10px;padding:10px 14px;background:var(--bg2);border-radius:8px;border:1px solid #d5cfc4}
+.tl-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.tl-title{font-family:'Noto Serif JP',serif;font-weight:700;font-size:15px;color:var(--ink)}
+.tl-time{font-size:12px;color:var(--ink2)}
+.slider-row{display:flex;gap:8px;align-items:center}
+.icon-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--gold-light);background:#fffdf7;cursor:pointer;font-size:14px;color:var(--ink);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.icon-btn:hover{background:var(--gold);color:#fff}
+.icon-btn.active{background:var(--gold);color:#fff}
+input[type=range]{flex:1;accent-color:var(--gold)}
+.phase-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10.5px;color:var(--ink3);padding:0 16px}
+.phase-labels span{flex:1;text-align:center;cursor:pointer}
+.phase-labels span.active{color:var(--ink);font-weight:700}
+.narration-row{display:flex;gap:8px;align-items:flex-start;margin-top:10px}
+.narration{flex:1;font-size:13px;line-height:1.85;color:var(--ink);background:#fffdf7;border-radius:6px;padding:12px 14px;border-left:3px solid var(--gold-light);min-height:90px}
+.narration .dagger{color:var(--west);font-weight:700;cursor:help;border-bottom:1px dotted var(--west)}
+.shimazu-info{display:none;margin-top:8px;background:rgba(146,43,33,0.07);border-left:3px solid var(--west);padding:8px 12px;font-size:12px;color:var(--ink2);border-radius:4px}
+.shimazu-info.show{display:block}
+
+.tabs{margin-top:14px;background:#fffdf7;border:1px solid #d5cfc4;border-radius:8px;overflow:hidden}
+.tab-nav{display:flex;border-bottom:1px solid #d5cfc4;background:var(--bg2)}
+.tab-nav button{flex:1;padding:10px;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:13px;color:var(--ink2);border-right:1px solid #d5cfc4;font-weight:500}
+.tab-nav button:last-child{border-right:none}
+.tab-nav button.active{background:#fffdf7;color:var(--ink);font-weight:700;box-shadow:inset 0 -3px 0 var(--gold)}
+.tab-body{padding:14px;min-height:200px;max-height:340px;overflow-y:auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.log-entry{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed #e5dfd2;font-size:12.5px;line-height:1.6;animation:log-in 0.4s ease-out}
+@keyframes log-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.log-entry:last-child{border-bottom:none}
+.log-time{flex-shrink:0;color:var(--ink3);font-size:11px;width:60px;font-family:monospace}
+.log-phase{flex-shrink:0;font-size:10px;background:var(--bg2);color:var(--ink2);padding:1px 5px;border-radius:3px;height:fit-content;margin-top:2px}
+.log-phase.p0{background:#e8d8b8;color:#7d6608}
+.log-phase.p1{background:#d4e6f1;color:#1a5276}
+.log-phase.p2{background:#f9e79f;color:#7d6608}
+.log-phase.p3{background:#f2d7d5;color:#922b21}
+.log-phase.p4{background:#e5dfd2;color:#6c6c6c}
+.log-text{flex:1;color:var(--ink)}
+.log-text b{color:var(--west);font-weight:700}
+.log-text .impact{font-family:'Noto Serif JP',serif;font-weight:700;color:#c0392b}
+
+.relations{font-size:12.5px;line-height:1.7}
+.rel-section{margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed #e5dfd2}
+.rel-section:last-child{border-bottom:none}
+.rel-title{font-family:'Noto Serif JP',serif;font-weight:700;font-size:14px;color:var(--ink);margin-bottom:6px;padding:4px 8px;background:var(--bg2);border-radius:3px}
+.rel-item{padding:3px 0 3px 12px;color:var(--ink2)}
+.rel-item b{font-family:'Noto Serif JP',serif;color:var(--ink)}
+.rel-arrow{color:var(--gold);margin:0 4px;font-weight:700}
+
+.fates{font-size:12.5px;line-height:1.6}
+.fates-note{font-size:11px;color:var(--ink2);background:#fdf8e8;border-left:3px solid var(--gold-light);padding:6px 9px;border-radius:4px;margin-bottom:8px}
+.fate-entry{display:flex;gap:10px;padding:6px 0;border-bottom:1px dashed #e5dfd2}
+.fate-entry:last-child{border-bottom:none}
+.fate-date{flex-shrink:0;font-family:'Noto Serif JP',serif;font-weight:700;font-size:12px;color:var(--gold);width:90px}
+.fate-text{flex:1;color:var(--ink)}
+.fate-text .name{font-weight:700;font-family:'Noto Serif JP',serif}
+.fate-text .name.east{color:var(--east)}
+.fate-text .name.west{color:var(--west)}
+.fate-text .name.turn{color:var(--turn)}
+.fate-text .name.idle{color:var(--idle)}
+
+.footer{margin-top:14px;font-size:11.5px;color:var(--ink2)}
+.footer details{background:var(--bg2);border-radius:6px;padding:6px 10px;margin-top:6px}
+.footer summary{cursor:pointer;font-weight:500;color:var(--ink)}
+.footer .body{margin-top:6px;line-height:1.7}
+.footer .body p{margin-bottom:4px}
+.footer .body ul{list-style:none;padding-left:0}
+.footer .body li{padding:2px 0}
+
+.kamon-marker{display:flex;flex-direction:column;align-items:center;pointer-events:auto}
+.theory-badge{font-size:9px;background:var(--gold);color:#fff;padding:1px 5px;border-radius:2px;margin-bottom:2px;font-weight:700;letter-spacing:.05em;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
+.theory-badge.compare-trad{background:var(--turn)}
+.theory-badge.compare-rev{background:#a04000}
+.kamon-circle{border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);transition:width .3s,height .3s}
+.kamon-circle.east{background:#1a5276}
+.kamon-circle.west{background:#922b21}
+.kamon-circle.turncoat{background:#7d6608}
+.kamon-circle.inactive{background:#6c6c6c}
+.kamon-circle.dead{background:#3b3a37;border-color:#888}
+.kamon-circle svg{fill:#fff;stroke:#fff}
+.kamon-circle.dead svg{opacity:0.7}
+.kamon-label{margin-top:2px;font-size:10.5px;background:rgba(255,253,247,0.92);padding:1px 6px;border-radius:3px;white-space:nowrap;color:var(--ink);border:1px solid #d5cfc4}
+.kamon-marker.routed .kamon-circle{opacity:.5}
+.kamon-marker.routed .kamon-label{opacity:.6}
+.kamon-marker.compare-rev{opacity:0.7}
+
+.leaflet-marker-icon{transition:transform 0.08s linear}
+.leaflet-marker-icon.battle-icon,.leaflet-marker-icon.death-icon{transition:none}
+
+.battle-badge{width:28px;height:28px;background:#fff;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.battle-badge.decisive{width:36px;height:36px;border:3px solid #c0392b;background:#fff5f3;font-size:18px}
+
+.leaflet-popup-content{font-family:'Noto Sans JP',sans-serif;font-size:12.5px;line-height:1.7;color:var(--ink);min-width:260px;max-width:320px}
+.popup-head{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.popup-portrait{width:64px;height:80px;background:#eee;border:1px solid #d5cfc4;flex-shrink:0;object-fit:cover;display:block}
+.popup-portrait.fallback{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink3)}
+.popup-meta{flex:1}
+.popup-name{font-weight:700;font-size:14px;margin-bottom:2px;font-family:'Noto Serif JP',serif}
+.popup-name.east{color:var(--east)}
+.popup-name.west{color:var(--west)}
+.popup-name.turncoat{color:var(--turn)}
+.popup-name.inactive{color:var(--idle)}
+.popup-soldiers{display:inline-block;font-size:11px;color:var(--ink2);background:var(--bg2);padding:1px 6px;border-radius:3px;margin-bottom:4px;line-height:1.5}
+.popup-info{font-size:12px;color:var(--ink2)}
+.popup-meta-grid{margin-top:8px;border-top:1px dashed #d5cfc4;padding-top:7px;font-size:11.5px;color:var(--ink2)}
+.popup-meta-row{display:grid;grid-template-columns:66px 1fr;gap:6px;padding:2px 0}
+.popup-meta-row b{color:var(--gold);font-weight:700}
+.source-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;background:var(--gold);margin-right:4px;white-space:nowrap}
+.source-badge.primary{background:#1f6f3d}
+.source-badge.official{background:#2874a6}
+.source-badge.compiled{background:#8b7340}
+.source-badge.research{background:#566573}
+.source-badge.story{background:#922b21}
+
+/* AI補助機能は史実表示の邪魔にならないよう画面から外す */
+.qna-box{margin-top:10px;padding-top:8px;border-top:1px dashed #d5cfc4}
+.qna-title{font-size:11px;color:var(--ink3);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.qna-title b{color:var(--gold);font-weight:700}
+.qna-input{width:100%;padding:5px 8px;border:1px solid #d5cfc4;border-radius:4px;font-family:inherit;font-size:12px;background:#fff}
+.qna-row{display:flex;gap:4px;margin-top:4px}
+.qna-send{padding:5px 10px;background:var(--gold);color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit}
+.qna-send:hover{background:#7d6638}
+.qna-send:disabled{background:#ccc;cursor:not-allowed}
+.qna-speak{padding:5px 8px;background:#fffdf7;border:1px solid var(--gold-light);border-radius:4px;font-size:11px;cursor:pointer}
+.qna-answer{margin-top:6px;padding:8px;background:#fdf8e8;border-left:2px solid var(--gold);font-size:12px;line-height:1.6;color:var(--ink);border-radius:0 4px 4px 0;white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.qna-answer.loading{color:var(--ink3);font-style:italic}
+.qna-answer.error{background:#fdecea;border-color:#c0392b;color:#922b21}
+.qna-nokey{font-size:11px;color:var(--ink3);font-style:italic;padding:4px 0}
+.qna-examples{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.qna-chip{font-size:10.5px;padding:3px 8px;background:#fffdf7;border:1px solid var(--gold-light);border-radius:11px;color:var(--ink2);cursor:pointer;font-family:inherit;line-height:1.3;text-align:left}
+.qna-chip:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+/* 史料・伝承タブ */
+.docs-list{display:flex;flex-direction:column;gap:10px}
+.doc{border:1px solid #d5cfc4;border-radius:6px;background:#fffdf7;padding:10px 12px}
+.doc-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.doc-title{font-family:'Noto Serif JP',serif;font-weight:700;color:var(--ink);font-size:13.5px}
+.doc-meta{font-size:10.5px;color:var(--ink3)}
+.doc-summary{background:#f5f0e0;border-left:3px solid var(--gold);padding:7px 10px;font-size:12px;line-height:1.7;color:#3c3a35;margin-bottom:4px}
+.doc-use{font-size:12px;line-height:1.7;color:var(--ink2);padding:4px 0}
+.doc-warning{font-size:11px;color:#922b21;background:#fdecea;padding:5px 8px;border-radius:3px;margin-top:4px;border-left:2px solid #c0392b}
+.doc-link{font-size:11px;margin-top:5px}
+.doc-link a{color:var(--gold);text-decoration:underline}
+.doc-significance{font-size:11px;color:var(--ink2);background:#fdf8e8;padding:5px 8px;border-radius:3px;margin-top:4px;border-left:2px solid var(--gold-light)}
+.doc-significance b{color:var(--gold)}
+.geo-note-marker{font-family:'Noto Sans JP',sans-serif;font-size:10px;font-weight:700;color:#fff;background:#566573;border:2px solid #fff;border-radius:12px;padding:2px 6px;box-shadow:0 1px 4px rgba(0,0,0,0.35);white-space:nowrap}
+.geo-note-marker.high{background:#7d6608}
+.geo-note-marker.river{background:#2874a6}
+.geo-note-marker.road{background:#8b7340}
+
+/* AI討論タブ */
+.debate-controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#fffdf7;padding:10px;border:1px solid #d5cfc4;border-radius:6px;margin-bottom:10px}
+.debate-controls select,.debate-controls input{padding:4px 6px;font-size:12px;border:1px solid #d5cfc4;border-radius:3px;font-family:inherit;background:#fff}
+.debate-controls .vs{font-family:'Noto Serif JP',serif;font-weight:900;color:var(--gold);font-size:14px;padding:0 4px}
+.debate-start{padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700}
+.debate-start:hover{background:#7d6638}
+.debate-start:disabled{background:#ccc;cursor:not-allowed}
+.debate-log{display:flex;flex-direction:column;gap:8px}
+.debate-msg{display:flex;gap:8px;padding:8px 10px;border-radius:6px;font-size:12.5px;line-height:1.6;white-space:pre-wrap}
+.debate-msg.east{background:#eaf2f8;border-left:3px solid var(--east)}
+.debate-msg.west{background:#fdecea;border-left:3px solid var(--west)}
+.debate-msg.turncoat{background:#fef9e7;border-left:3px solid var(--turn)}
+.debate-msg.inactive{background:#eee;border-left:3px solid var(--idle)}
+.debate-msg .speaker{font-family:'Noto Serif JP',serif;font-weight:700;min-width:90px;flex-shrink:0}
+.debate-msg .speaker.east{color:var(--east)}
+.debate-msg .speaker.west{color:var(--west)}
+.debate-msg .speaker.turncoat{color:var(--turn)}
+.debate-msg .speaker.inactive{color:var(--idle)}
+.debate-loading{text-align:center;color:var(--ink3);font-style:italic;padding:8px;font-size:12px}
+.debate-empty{text-align:center;color:var(--ink3);padding:20px;font-size:12px}
+
+/* ナレーター */
+.narration-bubble{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);max-width:80%;background:rgba(20,18,15,0.92);color:#fdf8e8;padding:10px 16px;border-radius:8px;font-size:13px;line-height:1.7;border:1px solid var(--gold);z-index:600;box-shadow:0 4px 16px rgba(0,0,0,0.3);font-family:'Noto Serif JP',serif;animation:narration-in 0.4s ease-out}
+.narration-bubble .label{display:inline-block;font-size:10px;background:var(--gold);color:#fff;padding:1px 6px;border-radius:3px;margin-right:6px;vertical-align:middle;letter-spacing:.05em}
+.narration-bubble .close{position:absolute;top:4px;right:8px;background:none;border:none;color:#fff;cursor:pointer;font-size:14px;opacity:0.6}
+.narration-bubble .close:hover{opacity:1}
+@keyframes narration-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+.compare-arrow{stroke:#a04000;stroke-width:2;stroke-dasharray:6,4;fill:none}
+
+/* 設定モーダル */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:14px}
+.modal-bg.show{display:flex}
+.modal{background:#fffdf7;border-radius:10px;padding:20px;max-width:480px;width:100%;border:1px solid #d5cfc4;box-shadow:0 10px 40px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto}
+.modal h2{font-family:'Noto Serif JP',serif;font-size:18px;margin-bottom:12px;color:var(--ink)}
+.modal .field{margin-bottom:12px}
+.modal label{display:block;font-size:12px;color:var(--ink2);margin-bottom:4px;font-weight:500}
+.modal input[type=password],.modal input[type=text],.modal select{width:100%;padding:7px 10px;border:1px solid #d5cfc4;border-radius:4px;font-family:inherit;font-size:13px;background:#fff}
+.modal .hint{font-size:11px;color:var(--ink3);margin-top:3px;line-height:1.5}
+.modal .hint a{color:var(--gold);text-decoration:underline}
+.modal-buttons{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal-buttons button{padding:7px 16px;border-radius:4px;border:1px solid var(--gold-light);background:#fffdf7;cursor:pointer;font-family:inherit;font-size:12px;color:var(--ink)}
+.modal-buttons button.primary{background:var(--gold);color:#fff;border-color:var(--gold)}
+.modal-buttons button:hover{filter:brightness(1.05)}
+.status-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;margin-left:6px;font-weight:700}
+.status-badge.ok{background:#d4edda;color:#155724}
+.status-badge.ng{background:#f8d7da;color:#721c24}
+
+@media (max-width:640px){
+  #map{height:400px}
+  h1{font-size:18px}
+  .narration{font-size:12px}
+  .telop{font-size:18px;padding:4px 12px}
+  .tab-body{max-height:280px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>関ヶ原の戦い</h1>
+  <p class="sub">慶長五年九月十五日（1600年10月21日）</p>
+
+  <div class="controls">
+    <div class="tile-switch" id="tile-switch">
+      <button data-tile="oldmap" class="active">古地図風</button>
+      <button data-tile="oldterrain">古地図+地形</button>
+      <button data-tile="terrain">地形図</button>
+      <button data-tile="aerial">航空写真</button>
+    </div>
+    <div class="theory-switch" id="theory-switch">
+      <button data-theory="traditional">通説</button>
+      <button data-theory="revisionist" class="active">一次史料重視</button>
+      <button data-theory="compare">比較</button>
+    </div>
+    <button class="settings-btn active" id="toggle-geo">地理注記</button>
+    <button class="settings-btn" id="open-settings">⚙ AI設定 <span id="key-status" class="status-badge ng">未設定</span></button>
+    <div class="legend">
+      <span><span class="ldot" style="background:var(--east)"></span>東軍</span>
+      <span><span class="ldot" style="background:var(--west)"></span>西軍</span>
+      <span><span class="ldot" style="background:var(--turn)"></span>離反</span>
+      <span><span class="ldot" style="background:var(--idle)"></span>不参戦</span>
+    </div>
+  </div>
+
+  <div class="map-area">
+    <div id="map"></div>
+    <div class="telop-layer" id="telop-layer"></div>
+  </div>
+
+  <div class="advantage-wrap">
+    <div class="advantage-head">
+      <span class="east-label">東軍 <span id="east-pct">55</span>%</span>
+      <span class="advantage-note">推計兵力に基づく参考表示</span>
+      <span class="west-label"><span id="west-pct">45</span>% 西軍</span>
+    </div>
+    <div class="advantage-bar">
+      <div class="east-bar" id="east-bar" style="width:55%">東軍</div>
+      <div class="west-bar" id="west-bar" style="width:45%">西軍</div>
+    </div>
+  </div>
+
+  <div class="timeline-wrap">
+    <div class="tl-head">
+      <div class="tl-title" id="tl-title">初期配置</div>
+      <div class="tl-time" id="tl-time">午前6時頃</div>
+    </div>
+    <div class="slider-row">
+      <button class="icon-btn" id="play-btn" title="再生／停止">▶</button>
+      <input type="range" id="slider" min="0" max="4" step="0.01" value="0">
+      <button class="icon-btn" id="speak-btn" title="ナレーション読み上げ">🔊</button>
+    </div>
+    <div class="phase-labels" id="phase-labels">
+      <span data-p="0" class="active">初期配置</span>
+      <span data-p="1">開戦</span>
+      <span data-p="2">離反争点</span>
+      <span data-p="3">西軍崩壊</span>
+      <span data-p="4">島津の退き口</span>
+    </div>
+    <div class="narration-row">
+      <div class="narration" id="narration"></div>
+    </div>
+    <div class="shimazu-info" id="shimazu-info">
+      <b>島津の退き口</b>　総距離：約80km（関ヶ原→堺）　所要：約5日間　堺到達者：約80名<span class="dagger" title="「約80名」は義弘と共に堺から船で帰還した人数。">†</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab-nav">
+      <button data-tab="log" class="active">⚔ 戦闘ログ</button>
+      <button data-tab="relations">相関図</button>
+      <button data-tab="fates">戦後</button>
+      <button data-tab="docs">📜 史料</button>
+      <button data-tab="debate">⚖ AI討論</button>
+    </div>
+    <div class="tab-body">
+      <div class="tab-panel active" id="tab-log"></div>
+      <div class="tab-panel" id="tab-relations"></div>
+      <div class="tab-panel" id="tab-fates"></div>
+      <div class="tab-panel" id="tab-docs"></div>
+      <div class="tab-panel" id="tab-debate"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <details>
+      <summary>全体注記</summary>
+      <div class="body">
+        <p>※陣地・兵力は、明治期参謀本部系の布陣図と近年研究を区別して表示する。点の位置は陣跡碑・史跡比定に基づく近似。</p>
+        <p>†開戦時刻：通説では午前8時頃、一次史料重視説では午前10時頃。</p>
+        <p>†問鉄砲と離反タイミング：一次史料に問鉄砲の記述がなく、開戦直後の離反説あり。</p>
+        <p>史料タブでは、原本・写本の所在や底本が示せる史料を優先し、辞世句や名場面は伝承として扱う。</p>
+        <p>†捨て奸：島津氏側の一次史料には登場せず後世の創作と見られる。</p>
+        <p>形勢比は理解補助の参考値で、同時代史料から数値復元できるものではない。</p>
+      </div>
+    </details>
+    <details>
+      <summary>地図・肖像出典</summary>
+      <div class="body">
+        <p>地図：国土地理院 / © OpenTopoMap (CC-BY-SA)<br>肖像：Wikimedia Commons（パブリックドメイン）<br>AI：OpenRouter API（任意設定）</p>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- AI設定モーダル -->
+<div class="modal-bg" id="settings-modal">
+  <div class="modal">
+    <h2>⚙ OpenRouter API 設定</h2>
+    <div class="field">
+      <label>API キー（OpenRouter）</label>
+      <input type="password" id="grok-key" placeholder="sk-or-v1-..." autocomplete="off">
+      <div class="hint">キーはこのブラウザのlocalStorageにのみ保存されます。他人と共有しないでください。<br>取得: <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> で無料発行（GoogleまたはGitHubでサインイン）</div>
+    </div>
+    <div class="field">
+      <label>モデル</label>
+      <select id="grok-model">
+        <option value="qwen/qwen3-next-80b-a3b-instruct:free">Qwen3 80B（無料・日本語◎・推奨）</option>
+        <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B（無料・高品質）</option>
+        <option value="z-ai/glm-4.5-air:free">GLM 4.5 Air（無料）</option>
+        <option value="deepseek/deepseek-v4-flash:free">DeepSeek V4 Flash（無料・速い）</option>
+        <option value="openai/gpt-oss-120b:free">GPT-OSS 120B（無料）</option>
+        <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku（有料・激安・1回0.1円）</option>
+        <option value="anthropic/claude-sonnet-4-5">Claude Sonnet 4.5（有料・高品質）</option>
+        <option value="anthropic/claude-opus-4-7">Claude Opus 4.7（有料・最高品質）</option>
+        <option value="openai/gpt-4o-mini">GPT-4o mini（有料・安い）</option>
+        <option value="openai/gpt-4o">GPT-4o（有料）</option>
+      </select>
+      <div class="hint">`:free` 付きは無料モデル。日本語の自然さは Qwen3 が安定。</div>
+    </div>
+    <div class="field">
+      <label>読み上げ音声</label>
+      <select id="tts-voice"><option value="">（自動：最高品質を選択）</option></select>
+      <div class="hint">Edgeブラウザだと <b>Microsoft Nanami/Keita Online (Natural)</b> が選べて高品質。Chromeは「Google 日本語」程度。</div>
+    </div>
+    <div class="field">
+      <label>読み上げ速度: <span id="tts-rate-val">0.95</span></label>
+      <input type="range" id="tts-rate" min="0.5" max="1.5" step="0.05" value="0.95" style="width:100%">
+    </div>
+    <div class="field">
+      <label><input type="checkbox" id="auto-speak"> 回答を自動で読み上げる</label>
+      <button type="button" id="tts-test" style="margin-top:6px;padding:4px 10px;font-size:11px;cursor:pointer;border:1px solid #d5cfc4;border-radius:4px;background:#fffdf7">▶ テスト再生</button>
+    </div>
+    <div class="modal-buttons">
+      <button id="clear-key">キーを削除</button>
+      <button id="close-settings">閉じる</button>
+      <button class="primary" id="save-settings">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================================================
+   家紋SVG
+   ========================================================= */
+const KAMON = {
+  'mitsubaaoi':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M15 4 C18 6 19 10 17 13 L13 13 C11 10 12 6 15 4 Z" fill="#fff"/><path d="M4 18 C6 15 10 14 13 16 L13 20 C10 22 6 21 4 18 Z" fill="#fff"/><path d="M26 18 C24 15 20 14 17 16 L17 20 C20 22 24 21 26 18 Z" fill="#fff"/></svg>',
+  'omodaka':'<svg viewBox="0 0 30 30"><path d="M15 4 L22 14 L18 14 L18 22 L12 22 L12 14 L8 14 Z" fill="#fff"/><path d="M9 24 Q15 22 21 24" stroke="#fff" stroke-width="1.5" fill="none"/></svg>',
+  'ii_tachibana':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="15" cy="12" r="3" fill="#fff"/><ellipse cx="9" cy="17" rx="3" ry="4" fill="#fff" transform="rotate(-30 9 17)"/><ellipse cx="21" cy="17" rx="3" ry="4" fill="#fff" transform="rotate(30 21 17)"/><ellipse cx="15" cy="22" rx="3" ry="4" fill="#fff"/></svg>',
+  'fujidomoe':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M15 7 Q22 10 22 17 Q20 21 15 21 Q10 21 8 17 Q8 10 15 7 Z" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M15 12 Q18 14 18 17" stroke="#fff" stroke-width="1.5" fill="none"/></svg>',
+  'kuyou':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="4" fill="#fff"/><circle cx="15" cy="5" r="2.5" fill="#fff"/><circle cx="15" cy="25" r="2.5" fill="#fff"/><circle cx="5" cy="15" r="2.5" fill="#fff"/><circle cx="25" cy="15" r="2.5" fill="#fff"/><circle cx="8" cy="8" r="2.5" fill="#fff"/><circle cx="22" cy="8" r="2.5" fill="#fff"/><circle cx="8" cy="22" r="2.5" fill="#fff"/><circle cx="22" cy="22" r="2.5" fill="#fff"/></svg>',
+  'tsuta':'<svg viewBox="0 0 30 30"><path d="M15 5 C20 8 22 13 20 18 C22 22 19 25 15 24 C11 25 8 22 10 18 C8 13 10 8 15 5 Z" fill="#fff"/></svg>',
+  'yotsumeyui':'<svg viewBox="0 0 30 30"><rect x="4" y="4" width="9" height="9" fill="none" stroke="#fff" stroke-width="2"/><rect x="17" y="4" width="9" height="9" fill="none" stroke="#fff" stroke-width="2"/><rect x="4" y="17" width="9" height="9" fill="none" stroke="#fff" stroke-width="2"/><rect x="17" y="17" width="9" height="9" fill="none" stroke="#fff" stroke-width="2"/></svg>',
+  'mitsudomoe':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M15 7 Q19 10 19 15 Q19 12 15 13 Q12 13 12 16 Q12 10 15 7 Z" fill="#fff"/><path d="M22 18 Q20 22 15 22 Q18 22 18 18 Q18 15 21 14 Q22 16 22 18 Z" fill="#fff" transform="rotate(120 15 15)"/><path d="M22 18 Q20 22 15 22 Q18 22 18 18 Q18 15 21 14 Q22 16 22 18 Z" fill="#fff" transform="rotate(240 15 15)"/></svg>',
+  'janome':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="2.5"/><circle cx="15" cy="15" r="6" fill="none" stroke="#fff" stroke-width="2"/><circle cx="15" cy="15" r="2" fill="#fff"/></svg>',
+  'daiichi':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="none" stroke="#fff" stroke-width="1.2"/><text x="15" y="20" text-anchor="middle" font-size="14" font-weight="900" font-family="serif" fill="#fff">大</text></svg>',
+  'kenkatabami':'<svg viewBox="0 0 30 30"><path d="M15 5 L18 13 L26 15 L18 17 L15 25 L12 17 L4 15 L12 13 Z" fill="#fff"/></svg>',
+  'gionmamori':'<svg viewBox="0 0 30 30"><rect x="10" y="4" width="10" height="22" fill="#fff"/><path d="M15 4 Q20 8 20 14 Q15 16 10 14 Q10 8 15 4 Z" fill="#fff"/><line x1="15" y1="14" x2="15" y2="26" stroke="#922b21" stroke-width="1.5"/></svg>',
+  'shimazu':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="2"/><line x1="15" y1="5" x2="15" y2="25" stroke="#fff" stroke-width="3"/><line x1="5" y1="15" x2="25" y2="15" stroke="#fff" stroke-width="3"/></svg>',
+  'mukaichou':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M10 12 Q5 8 8 15 Q5 18 12 16 Z" fill="#fff"/><path d="M20 12 Q25 8 22 15 Q25 18 18 16 Z" fill="#fff"/><circle cx="15" cy="15" r="1.5" fill="#fff"/></svg>',
+  'ichimonji_mitsuboshi':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.2"/><line x1="6" y1="11" x2="24" y2="11" stroke="#fff" stroke-width="2"/><circle cx="10" cy="19" r="2.2" fill="#fff"/><circle cx="15" cy="19" r="2.2" fill="#fff"/><circle cx="20" cy="19" r="2.2" fill="#fff"/></svg>',
+  'mitsuhikiryou':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.5"/><line x1="6" y1="10" x2="24" y2="10" stroke="#fff" stroke-width="2"/><line x1="6" y1="15" x2="24" y2="15" stroke="#fff" stroke-width="2"/><line x1="6" y1="20" x2="24" y2="20" stroke="#fff" stroke-width="2"/></svg>',
+  'nanatsukatabami':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="2.5" fill="#fff"/><g fill="#fff"><ellipse cx="15" cy="6" rx="2" ry="3"/><ellipse cx="22" cy="9" rx="2" ry="3" transform="rotate(51 22 9)"/><ellipse cx="24" cy="17" rx="2" ry="3" transform="rotate(103 24 17)"/><ellipse cx="19" cy="24" rx="2" ry="3" transform="rotate(154 19 24)"/><ellipse cx="11" cy="24" rx="2" ry="3" transform="rotate(206 11 24)"/><ellipse cx="6" cy="17" rx="2" ry="3" transform="rotate(257 6 17)"/><ellipse cx="8" cy="9" rx="2" ry="3" transform="rotate(309 8 9)"/></g></svg>',
+  'ankokuji':'<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="15" cy="15" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><line x1="15" y1="6" x2="15" y2="24" stroke="#fff" stroke-width="1.2"/><line x1="6" y1="15" x2="24" y2="15" stroke="#fff" stroke-width="1.2"/><line x1="9" y1="9" x2="21" y2="21" stroke="#fff" stroke-width="1.2"/><line x1="21" y1="9" x2="9" y2="21" stroke="#fff" stroke-width="1.2"/></svg>',
+  'cross':'<svg viewBox="0 0 30 30"><path d="M15 4 L15 26 M8 11 L22 11" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></svg>'
+};
+
+const PORTRAIT = {
+  ieyasu:'Tokugawa_Ieyasu2.JPG', fukushima:'Fukushima_Masanori.jpg', ii:'Ii_Naomasa2.jpg',
+  kuroda:'Kuroda_Nagamasa.jpg', hosokawa:'Hosokawa_Tadaoki.jpg', todo:'TodoTakatora.jpg',
+  kyogoku:'Kyogoku_Takatomo.jpg', tanaka:'Tanaka_Yoshimasa.jpg', kato_yoshiaki:'Kato_Yoshiakira.jpg',
+  ishida:'Ishida_Mitsunari.jpg', ukita:'Ukita_hideie.jpg', konishi:'Konishi_Yukinaga.jpg',
+  shimazu:'Shimazu_Yoshihiro.jpg', otani:'Otani_Yoshitsugu.jpg', kobayakawa:'Kobayakawa_Hideaki.jpg',
+  mori:'Mori_Hidemoto.jpg', kikkawa:'Kikkawa_Hiroie.jpg', chosokabe:'Chosokabe_Morichika.jpg',
+  ankokuji:'Ankokuji_Ekei.jpg'
+};
+function portraitUrl(id){
+  const f = PORTRAIT[id];
+  return f ? `https://commons.wikimedia.org/wiki/Special:FilePath/${f}?width=180` : null;
+}
+
+/* =========================================================
+   武将データ
+   ========================================================= */
+const TROOPS = [
+  {id:'ieyasu',side:'east',name:'徳川家康',soldiers:30000,kamon:'mitsubaaoi',
+   positions:{0:[35.3642,136.4785],1:[35.3642,136.4785],2:[35.3672,136.4628],3:[35.3672,136.4628],4:[35.3672,136.4628]},
+   info:'東軍総大将。桃配山に最初陣を構え、午前11時頃に陣場野へ前進（通説）。'},
+  {id:'fukushima',side:'east',name:'福島正則',soldiers:6000,kamon:'omodaka',
+   positions:{0:[35.3660,136.4650],1:[35.3668,136.4615],2:[35.3670,136.4595],3:[35.3675,136.4555],4:[35.3680,136.4530]},
+   info:'東軍先鋒。宇喜多秀家隊と正面から激突。井伊直政の抜け駆けに激怒した逸話が残る。'},
+  {id:'ii',side:'east',name:'井伊直政',soldiers:3600,kamon:'ii_tachibana',
+   positions:{0:[35.3640,136.4750],1:[35.3658,136.4625],2:[35.3660,136.4615],3:[35.3660,136.4615],4:[35.3580,136.4520]},
+   info:'「赤備え」の精鋭。松平忠吉と共に抜け駆けで宇喜多隊に先制攻撃。島津退き口の追撃で被弾。'},
+  {id:'kuroda',side:'east',name:'黒田長政',soldiers:5400,kamon:'fujidomoe',
+   positions:{0:[35.3693,136.4590],1:[35.3705,136.4575],2:[35.3705,136.4570],3:[35.3725,136.4530],4:[35.3730,136.4510]},
+   info:'岡山に布陣し石田隊と対峙。吉川広家への調略を担当し、毛利軍参戦を阻止した最大の功労者。'},
+  {id:'hosokawa',side:'east',name:'細川忠興',soldiers:5000,kamon:'kuyou',
+   positions:{0:[35.3695,136.4655],1:[35.3702,136.4585],2:[35.3702,136.4580],3:[35.3720,136.4540],4:[35.3725,136.4520]},
+   info:'妻ガラシャが三成の人質要求を拒否し自害した経緯から怨恨が深い。'},
+  {id:'todo',side:'east',name:'藤堂高虎',soldiers:2500,kamon:'tsuta',
+   positions:{0:[35.3555,136.4535],1:[35.3570,136.4515],2:[35.3578,136.4505],3:[35.3580,136.4500],4:[35.3580,136.4500]},
+   info:'大谷吉継方面を担当。京極高知と連携。築城の名手。'},
+  {id:'kyogoku',side:'east',name:'京極高知',soldiers:3000,kamon:'yotsumeyui',
+   positions:{0:[35.3565,136.4525],1:[35.3560,136.4520],2:[35.3570,136.4505],3:[35.3575,136.4495],4:[35.3575,136.4495]},
+   info:'藤堂と共に大谷方面を受け持つ。'},
+  {id:'tanaka',side:'east',name:'田中吉政',soldiers:3000,kamon:'mitsudomoe',
+   positions:{0:[35.3625,136.4720],1:[35.3635,136.4660],2:[35.3645,136.4630],3:[35.3700,136.4540],4:[35.3720,136.4490]},
+   info:'戦後、伊吹山中に逃亡した石田三成を捕縛。筑後柳川32万石を得る。'},
+  {id:'kato_yoshiaki',side:'east',name:'加藤嘉明',soldiers:3000,kamon:'janome',
+   positions:{0:[35.3650,136.4710],1:[35.3662,136.4630],2:[35.3665,136.4610],3:[35.3670,136.4570],4:[35.3675,136.4540]},
+   info:'福島正則に続き前線に展開。'},
+
+  {id:'ishida',side:'west',name:'石田三成',soldiers:6000,kamon:'daiichi',
+   positions:{0:[35.3712,136.4555],1:[35.3710,136.4555],2:[35.3710,136.4555],3:[35.3735,136.4510],4:[35.3760,136.4460]},
+   routedFrom:3,
+   info:'笹尾山に本陣。前衛に猛将・島左近を配置。敗走後、伊吹山中で田中吉政に捕縛。六条河原で斬首。'},
+  {id:'ukita',side:'west',name:'宇喜多秀家',soldiers:17000,kamon:'kenkatabami',
+   positions:{0:[35.3670,136.4570],1:[35.3668,136.4595],2:[35.3668,136.4595],3:[35.3680,136.4540],4:[35.3690,136.4510]},
+   routedFrom:3,
+   info:'西軍最大兵力。天満山南麓に展開し福島正則隊と激戦。戦後、八丈島に配流。'},
+  {id:'konishi',side:'west',name:'小西行長',soldiers:4000,kamon:'gionmamori',
+   positions:{0:[35.3615,136.4560],1:[35.3615,136.4560],2:[35.3615,136.4560],3:[35.3600,136.4530],4:[35.3580,136.4500]},
+   routedFrom:3,
+   info:'キリシタン大名。宇喜多隊の南方に布陣。戦後捕縛、六条河原で斬首。'},
+  {id:'shimazu',side:'west',name:'島津義弘',soldiers:1500,kamon:'shimazu',
+   positions:{0:[35.3640,136.4610],1:[35.3640,136.4610],2:[35.3640,136.4610],3:[35.3640,136.4610],4:[35.3470,136.4370]},
+   info:'西軍に属すも消極姿勢。最終局面で敵中正面突破（島津の退き口）を敢行。'},
+  {id:'otani',side:'west',name:'大谷吉継',soldiers:5000,kamon:'mukaichou',
+   positions:{0:[35.3575,136.4495],1:[35.3575,136.4498],2:[35.3573,136.4500],3:[35.3573,136.4500],4:[35.3573,136.4500]},
+   routedFrom:3, diedAt:3,
+   info:'藤川台に布陣。盟友・三成への義理で西軍に参加。小早川らの離反に備えたとされるが、四将の同時離反により壊滅。自刃。'},
+
+  {id:'kobayakawa',side:'turncoat',name:'小早川秀秋',soldiers:15600,kamon:'mitsudomoe', disputed:true,
+   positions:{0:[35.3490,136.4375],1:[35.3490,136.4375],2:[35.3555,136.4485],3:[35.3578,136.4505],4:[35.3580,136.4510]},
+   positions_rev:{0:[35.3490,136.4375],1:[35.3555,136.4485],2:[35.3578,136.4505],3:[35.3580,136.4510],4:[35.3580,136.4510]},
+   info:'松尾山に15,600の兵で布陣。離反時点は論争中。通説：正午頃に下山。一次史料重視説：開戦時点で東軍方として参戦。'},
+  {id:'shisho',side:'turncoat',name:'脇坂ら四将',soldiers:4200,kamon:'mitsudomoe', disputed:true,
+   positions:{0:[35.3545,136.4475],1:[35.3545,136.4475],2:[35.3570,136.4500],3:[35.3580,136.4505],4:[35.3580,136.4505]},
+   positions_rev:{0:[35.3545,136.4475],1:[35.3570,136.4500],2:[35.3580,136.4505],3:[35.3580,136.4505],4:[35.3580,136.4505]},
+   info:'脇坂安治・朽木元綱・小川祐忠・赤座直保の四将を代表表示。大谷吉継方面での離反時点は小早川秀秋と同じく争点。'},
+
+  {id:'mori',side:'inactive',name:'毛利秀元',soldiers:15000,kamon:'ichimonji_mitsuboshi',
+   positions:{0:[35.3445,136.4690]},info:'南宮山に布陣。吉川広家の内通・妨害により終日動けず。'},
+  {id:'kikkawa',side:'inactive',name:'吉川広家',soldiers:3000,kamon:'mitsuhikiryou',
+   positions:{0:[35.3470,136.4680]},info:'黒田長政を通じて東軍に内通。毛利軍の進路を物理的に封鎖。戦後、毛利本家の存続に貢献。'},
+  {id:'chosokabe',side:'inactive',name:'長宗我部盛親',soldiers:6600,kamon:'nanatsukatabami',
+   positions:{0:[35.3430,136.4710]},info:'南宮山に布陣。吉川に阻まれ最後まで不参戦。'},
+  {id:'ankokuji',side:'inactive',name:'安国寺恵瓊',soldiers:1800,kamon:'ankokuji',
+   positions:{0:[35.3450,136.4715]},info:'毛利家の外交僧。戦後捕縛、斬首。'},
+
+  {id:'toyohisa',side:'west',name:'島津豊久',soldiers:300,kamon:'shimazu', visibleFrom:3.7,
+   positions:{0:[35.3635,136.4615],3:[35.3635,136.4615],4:[35.3590,136.4480]}, diedAt:4,
+   info:'島津義弘の甥。退き口の殿戦（しんがり）で討死。義弘の身代わりとして敵陣に突撃。'}
+];
+
+const TROOP_META = {
+  ieyasu:{confidence:'高 / 最後陣は中高',sourceClass:'official',sourceLabel:'公式史跡ガイド + 参謀本部系布陣図',soldierLabel:'兵力 約30,000（名目）',soldierNote:'本隊名目。関ヶ原での実働・本陣周りの人数は研究上幅がある。',terrainNote:'桃配山を初期本陣、陣場野を前進本陣として分けて表示。',theoryNote:'陣場野前進時刻は通説に依存するため注記付き。'},
+  fukushima:{confidence:'中',sourceClass:'official',sourceLabel:'公式コース表示 + 参謀本部系布陣図',terrainNote:'福島正則陣跡・開戦地周辺を先鋒の進出線として表示。'},
+  ii:{confidence:'中',sourceClass:'official',sourceLabel:'公式史跡ガイド + 参謀本部系布陣図',terrainNote:'東軍先鋒から島津追撃線へ移る部隊として表現。'},
+  kuroda:{confidence:'高',sourceClass:'official',sourceLabel:'岡山烽火場・公式コース + 参謀本部系布陣図',terrainNote:'岡山（丸山）164mの高所。石田隊正面の東軍右翼。'},
+  hosokawa:{confidence:'中',sourceClass:'official',sourceLabel:'公式コース表示 + 参謀本部系布陣図',terrainNote:'黒田隊と連動し笹尾山正面へ圧力をかける位置。'},
+  todo:{confidence:'中',sourceClass:'official',sourceLabel:'公式史跡ガイド + 参謀本部系布陣図',terrainNote:'藤川台の大谷吉継方面を受け持つ東軍左翼。'},
+  kyogoku:{confidence:'中',sourceClass:'official',sourceLabel:'公式史跡ガイド + 参謀本部系布陣図',terrainNote:'藤堂隊と連携する大谷方面の東軍左翼。'},
+  tanaka:{confidence:'中',sourceClass:'official',sourceLabel:'参謀本部系布陣図 + 戦後捕縛伝承',terrainNote:'戦闘中の点位置より、石田追跡・捕縛の文脈が重要。'},
+  kato_yoshiaki:{confidence:'中',sourceClass:'official',sourceLabel:'参謀本部系布陣図',terrainNote:'福島隊後続の東軍前線として概略表示。'},
+  ishida:{confidence:'中高',sourceClass:'research',sourceLabel:'笹尾山198m・公式史跡ガイド + 参謀本部系布陣図',terrainNote:'笹尾山本陣は通説上の中核。ただし現在の陣跡比定自体は明治期推定に由来する点を明示。'},
+  ukita:{confidence:'中',sourceClass:'official',sourceLabel:'天満山南麓・公式コース + 参謀本部系布陣図',terrainNote:'西軍最大兵力。点ではなく南麓に展開した前線幅として理解。'},
+  konishi:{confidence:'中',sourceClass:'official',sourceLabel:'公式史跡ガイド + 参謀本部系布陣図',terrainNote:'宇喜多隊南方の局所拠点として概略表示。'},
+  shimazu:{confidence:'中',sourceClass:'primary',sourceLabel:'島津家文書・旧記雑録 + 公式史跡ガイド',soldierLabel:'兵力 約1,000〜1,500',soldierNote:'義弘自筆書状・島津側史料から、通説値1,500は幅を持つ推計として扱う。',terrainNote:'小池村周辺から敵中突破へ移る。退却経路は概略線。',theoryNote:'「捨て奸」の名称は一次史料に見えない後世語として注記。'},
+  otani:{confidence:'中',sourceClass:'research',sourceLabel:'藤川台・公式コース + 参謀本部系布陣図',soldierLabel:'本隊約600前後＋寄騎を含め約5,000',soldierNote:'5,000は大谷本隊単独ではなく、戸田・平塚・木下ら寄騎を含む通説的合算。',terrainNote:'小早川・四将の離反を受ける南西側の要点。'},
+  kobayakawa:{confidence:'高',sourceClass:'official',sourceLabel:'松尾山293m・公式スポット + 参謀本部系布陣図',terrainNote:'戦場を見下ろす決定的高所。',visibilityNote:'松尾山から関ケ原盆地を見渡せる前提で注記。',theoryNote:'離反時点は最大争点。通説は正午頃、一次史料重視説は開戦時点。'},
+  shisho:{confidence:'中',sourceClass:'primary',sourceLabel:'松平家乗宛連署状写 + 参謀本部系布陣図',soldierLabel:'兵力 約4,200（四将合算の推計）',soldierNote:'脇坂・朽木・小川・赤座を代表マーカー化。個別陣地ではなく大谷方面の離反圧力を示す。',terrainNote:'大谷吉継方面の南西側から攻撃した勢力として概略表示。',theoryNote:'通説では正午頃の連鎖的離反、一次史料重視説では開戦時から東軍方と見る。'},
+  mori:{confidence:'中',sourceClass:'research',sourceLabel:'南宮山可視性研究 + 参謀本部系布陣図',soldierLabel:'実数不明（通説 約15,000）',soldierNote:'南宮山勢の兵数は参謀本部系推計に依存し、実数は不確か。',terrainNote:'中央戦場ではなく大垣方面を意識した後詰め位置。',visibilityNote:'南宮山から関ケ原中央戦場は見えにくいとされるため、静観の見せ方に注意。'},
+  kikkawa:{confidence:'中',sourceClass:'research',sourceLabel:'南宮山可視性研究 + 参謀本部系布陣図',terrainNote:'毛利勢の進路をふさぐ位置として表示。',theoryNote:'不戦・内通の評価は同時代書状と後世叙述を分ける。'},
+  chosokabe:{confidence:'中',sourceClass:'research',sourceLabel:'南宮山方面・島津家文書の動員記事 + 参謀本部系布陣図',soldierLabel:'約5,000〜6,600（推計）',soldierNote:'島津義弘書状には長宗我部が要請2,000に対し5,000を率いた旨が見え、通説6,600は再検討余地あり。',terrainNote:'吉川広家に阻まれ不参戦。中央戦場を直接眺める配置としては描かない。'},
+  ankokuji:{confidence:'中',sourceClass:'research',sourceLabel:'南宮山方面・参謀本部系布陣図',terrainNote:'毛利外交僧として南宮山不参戦の文脈で表示。'},
+  toyohisa:{confidence:'中',sourceClass:'compiled',sourceLabel:'島津退き口の後世叙述 + 参謀本部系布陣図',terrainNote:'殿戦の討死位置は概略。史跡点ではなく退却戦の物語点として扱う。'}
+};
+TROOPS.forEach(t=>{
+  Object.assign(t,{
+    confidence:'中',
+    sourceClass:'official',
+    sourceLabel:'公式史跡ガイド + 参謀本部系布陣図',
+    terrainNote:'陣跡碑・史跡マーカーに基づく近似点。部隊全体は点ではなく前線幅を持つ。'
+  }, TROOP_META[t.id] || {});
+});
+
+/* 武将ごとの質問例（クリックで即送信） */
+const EXAMPLES = {
+  ieyasu:['東軍につく決断に至った経緯を教えてください','問鉄砲は本当に放ちましたか？真相は','三成をどう評価していましたか？','秀吉死後、なぜすぐ動かなかったのか'],
+  fukushima:['豊臣恩顧なのに東軍についた経緯を教えてください','井伊の抜け駆けに激怒したのは本当か','三成との確執はいつから始まったか'],
+  ii:['なぜ軍規を破り抜け駆けしたのか、その判断の経緯は','「赤備え」の由来と覚悟を教えてください','島津追撃で重傷を負った時、何を考えていたか'],
+  kuroda:['吉川広家への調略の経緯を教えてください','父・官兵衛と関ヶ原をどう議論したか','戦後の恩賞をどう受け止めたか'],
+  hosokawa:['妻ガラシャの最期をどう受け止めたか、その経緯は','三成への怨恨は戦場判断に影響したか','石田隊への攻撃に込めた思いは'],
+  todo:['豊臣から徳川へ転じた経緯を教えてください','築城の哲学を聞かせてください','大谷隊との交戦をどう振り返るか'],
+  kyogoku:['京極家の立場の苦しさ、東軍につくまでの経緯は','藤堂との連携をどう進めたか'],
+  tanaka:['伊吹山で三成を捕縛した時の状況の経緯を教えてください','捕らえた三成と何を話したか','筑後32万石への加増をどう感じたか'],
+  kato_yoshiaki:['朝鮮の役で共闘した三成への複雑な思いの経緯は','福島・加藤との関係を教えてください'],
+  ishida:['西軍を組織するに至った経緯を教えてください','大谷吉継への友情はどう育まれたか','七将襲撃事件をどう振り返るか','関ヶ原で勝てると本当に信じていたか','家康をどう評価していたか'],
+  ukita:['なぜ三成に味方したのか、その経緯を教えてください','八丈島での50年をどう過ごしたか','宇喜多騒動の影響はあったか'],
+  konishi:['キリシタンとして戦に臨んだ覚悟の経緯は','朝鮮で和平交渉を進めた経緯を教えてください','処刑前に祈ったことは何か'],
+  shimazu:['西軍につきながら消極的だった経緯を教えてください','敵中正面突破を決断した瞬間の心境は','甥・豊久を失った思いを聞かせてください'],
+  otani:['病身で参陣を決断した経緯を教えてください','小早川の裏切りをいつ確信したか','三成への遺言は何だったか'],
+  kobayakawa:['裏切りに至った経緯を本人の言葉で教えてください','家康と三成、どちらと迷ったか','戦後すぐに病死した理由は何か'],
+  shisho:['なぜ大谷隊へ向かったのか','小早川秀秋とは事前に申し合わせていたのか','開戦時から東軍方だったのか'],
+  mori:['南宮山で動けなかった経緯を教えてください','吉川の妨害をいつ察したか','戦後の毛利家の立場をどう見ているか'],
+  kikkawa:['毛利本家を守る決断に至った経緯を教えてください','黒田長政との交渉の中身は','本家を裏切ったとの批判をどう思うか'],
+  chosokabe:['関ヶ原に参戦できなかった経緯を教えてください','改易から大坂の陣まで14年、何を考えて生きたか'],
+  ankokuji:['僧侶でありながら戦に関わった経緯を教えてください','毛利家の外交を担った日々を聞かせてください'],
+  toyohisa:['殿戦を引き受けた覚悟の経緯を教えてください','叔父・義弘への思いを聞かせてください']
+};
+
+const PHASES = [
+  {id:0,time:'午前6時頃',title:'初期配置',
+   narration:'慶長5年9月15日早朝。東西両軍が関ヶ原盆地周辺に展開したとされる。現在の陣跡比定や兵力値は、明治期参謀本部系の布陣図と後世史料を含む推計であり、点ではなく「おおよその拠点」として見る必要がある。南宮山の毛利勢は中央戦場を見ながら静観したのではなく、吉川広家の内応・不戦工作により動けなかったと整理する。',
+   battles:[]},
+  {id:1,time:'午前8時頃<span class="dagger" title="開戦時刻は通説で午前8時頃。一次史料重視の研究者は午前10時頃を主張。">†</span>',time_rev:'午前10時頃',title:'開戦',
+   narration:'<b>【通説】</b>午前8時頃に開戦。井伊直政・松平忠吉が福島隊の脇を抜けて発砲し、福島正則も宇喜多隊へ攻めかかったとされる。黒田長政・細川忠興は石田隊方面、藤堂高虎・京極高知は大谷吉継方面と交戦。',
+   title_rev:'開戦・小早川ら離反',
+   narration_rev:'<b>【一次史料重視説】</b>慶長5年9月17日付の松平家乗宛連署状写などの読みから、午前10時頃に実戦が始まり、<b>小早川秀秋・脇坂安治らは開戦時点で東軍方として動いた</b>可能性が示される。問鉄砲を契機に正午離反した筋書きは後世軍記依存として分けて扱う。',
+   battles:[{east:'福島正則',west:'宇喜多秀家',result:'膠着',lat:35.3668,lng:136.4605},{east:'黒田・細川',west:'石田三成',result:'膠着',lat:35.3708,lng:136.4565},{east:'藤堂・京極',west:'大谷吉継',result:'膠着',lat:35.3572,lng:136.4505}],
+   battles_rev:[{east:'福島正則・井伊直政',west:'宇喜多秀家',result:'開戦',lat:35.3668,lng:136.4605},{east:'小早川・脇坂ら',west:'大谷吉継',result:'開戦時から東軍方として攻撃（説）',lat:35.3570,lng:136.4500,decisive:true},{east:'黒田・細川',west:'石田三成',result:'交戦',lat:35.3708,lng:136.4565}]},
+  {id:2,time:'正午頃<span class="dagger" title="問鉄砲と裏切りタイミングは学界で最も論争が活発な論点。">†</span>',title:'小早川離反（通説）',
+   narration:'<b>【通説】</b>正午頃、家康が松尾山へ問鉄砲を放ち、小早川秀秋が西軍を離反して大谷吉継隊へ向かったとされる。これは軍記・近世以降の叙述で強まった筋書きで、一次史料からそのまま確定できるものではない。',
+   title_rev:'問鉄砲説の再検討',
+   narration_rev:'<b>【一次史料重視説】</b>この時点を「問鉄砲で初めて寝返った瞬間」とは断定しない。一次史料に問鉄砲の記述は確認されず、後世の軍記・通説で強まった演出として表示する。',
+   battles:[{east:'小早川秀秋',west:'大谷吉継',result:'大谷敗北・自刃',lat:35.3570,lng:136.4500,decisive:true}],
+   battles_rev:[]},
+  {id:3,time:'午後2時頃',title:'西軍崩壊',
+   narration:'大谷隊壊滅により西軍は総崩れ。石田三成は笹尾山から伊吹山方面へ撤退。宇喜多秀家・小西行長も敗走。南宮山の毛利・長宗我部は最後まで戦闘に参加できないまま撤退を開始。',
+   battles:[{east:'黒田・細川',west:'石田三成',result:'三成敗走',lat:35.3722,lng:136.4525,decisive:true},{east:'福島正則',west:'宇喜多秀家',result:'宇喜多敗走',lat:35.3678,lng:136.4548,decisive:true}]},
+  {id:4,time:'午後3時以降',title:'島津の退き口',
+   narration:'島津義弘隊は敗勢の中で敵中突破を選ぶ。神戸久五郎覚書など島津側史料には、義弘が強勢の中へ掛かる判断をしたことが伝わる。ただし「捨て奸」という名称や細部の劇的表現は後世の叙述として扱う。甥・島津豊久、長寿院盛淳らは退却戦で討死した。',
+   battles:[{east:'井伊直政（追撃）',west:'島津義弘（退却）',result:'島津が突破に成功／井伊重傷',lat:35.3580,lng:136.4490}]}
+];
+
+const ADVANTAGE = {0:55,1:50,2:72,3:92,4:98};
+const ADVANTAGE_REV = {0:55,1:68,2:76,3:92,4:98};
+const SHIMAZU_ROUTE = [[35.3640,136.4610],[35.3672,136.4628],[35.3500,136.4350],[35.3200,136.4000],[35.2500,136.3500],[35.0600,136.6900],[34.5700,135.4800]];
+
+const COMBAT_LOG = [
+  {phase:0,time:'早朝',text:'東西両軍が関ヶ原周辺に展開。陣地点は後世比定を含む近似。'},
+  {phase:0,time:'早朝',text:'<b>西軍</b>は笹尾山・天満山・松尾山などの高所を押さえたとされる。'},
+  {phase:0,time:'早朝',text:'<b>南宮山</b>の毛利・長宗我部勢は、吉川広家の不戦工作により中央戦場へ出られなかった。'},
+  {phase:1,time:'08:00説',text:'通説では午前8時頃開戦。一次史料重視説では午前10時頃開戦。'},
+  {phase:1,time:'開戦',text:'井伊直政・松平忠吉が福島隊の脇を抜けて戦端を開いたとされる。'},
+  {phase:1,time:'午前',text:'福島正則は宇喜多隊、黒田長政・細川忠興は石田隊方面、藤堂・京極は大谷方面と交戦。'},
+  {phase:1,time:'10:00説',text:'松平家乗宛連署状写は、関ヶ原での実戦開始を午前10時頃と読む根拠になる。'},
+  {phase:2,time:'正午',text:'通説では家康が松尾山に向け<span class="impact">問鉄砲</span>を放ったとされる。一次史料では未確認。',telop:'問鉄砲ッ！'},
+  {phase:2,time:'争点',text:'小早川秀秋・脇坂安治らは、通説では正午頃、一次史料重視説では開戦時点に東軍方と見る。',telop:'小早川 離反'},
+  {phase:2,time:'争点',text:'大谷吉継隊の崩壊時刻や戦闘地点も、軍記叙述と一次史料の読みを分けて扱う。'},
+  {phase:2,time:'戦闘中',text:'<b>大谷吉継、自刃</b>。ただし辞世や細部の名場面は後世軍記・伝承として扱う。'},
+  {phase:3,time:'午後',text:'<b>石田三成</b>ら西軍主力は敗走。戦闘継続時間は通説の長時間説と短時間説がある。'},
+  {phase:3,time:'午後',text:'宇喜多秀家・小西行長も敗走。'},
+  {phase:3,time:'午後',text:'毛利・長宗我部勢は中央戦闘に参加できないまま撤退へ向かう。'},
+  {phase:4,time:'敗走時',text:'島津義弘隊は敵中突破を選ぶ。名称「捨て奸」は後世語として注記。',telop:'島津 退キ口！'},
+  {phase:4,time:'退却戦',text:'井伊直政らが追撃し、直政は銃創を負う。'},
+  {phase:4,time:'15:30',text:'<b>島津豊久</b>、義弘の身代わりに殿戦で討死。',telop:'豊久 討死'},
+  {phase:4,time:'15:40',text:'<b>井伊直政</b>、追撃中に被弾し重傷（後の死因）。'},
+  {phase:4,time:'16:00',text:'<span class="impact">天下分け目の合戦、ここに決す。</span>'}
+];
+
+const RELATIONS = [
+  {title:'東軍 主従・縁戚',items:[
+    '<b>徳川家康</b> <span class="rel-arrow">→ 家臣</span> <b>井伊直政</b>・本多忠勝・榊原康政',
+    '<b>家康</b> <span class="rel-arrow">→ 四男</span> <b>松平忠吉</b>（井伊の娘婿。抜け駆けに同行）',
+    '<b>福島正則・加藤嘉明</b> <span class="rel-arrow">— 同郷</span> 尾張出身、豊臣子飼いの武断派',
+    '<b>福島正則</b> <span class="rel-arrow">× 確執</span> <b>石田三成</b>（文治派・武断派の対立）',
+    '<b>細川忠興</b> <span class="rel-arrow">× 怨恨</span> <b>石田三成</b>（妻ガラシャを死に追いやられた）',
+    '<b>黒田長政</b> <span class="rel-arrow">→ 調略</span> <b>吉川広家</b>（南宮山の毛利軍を無力化）'
+  ]},
+  {title:'西軍 同盟・親友',items:[
+    '<b>石田三成</b> <span class="rel-arrow">⇄ 莫逆の友</span> <b>大谷吉継</b>（離反必至を覚悟で参加したと語られる）',
+    '<b>石田三成</b> <span class="rel-arrow">→ 家臣</span> <b>島左近</b>（「三成に過ぎたるものが二つあり、島の左近と佐和山の城」）',
+    '<b>毛利輝元</b>（西軍総大将） <span class="rel-arrow">→ 一族</span> <b>毛利秀元・吉川広家・小早川秀秋</b>',
+    '<b>宇喜多秀家</b> <span class="rel-arrow">— 養子</span> 豊臣秀吉の猶子。豪姫（前田利家娘）の婿',
+    '<b>小西行長</b> <span class="rel-arrow">⇄ 同盟</span> <b>石田三成</b>（朝鮮の役で和議派）'
+  ]},
+  {title:'離反・内通',items:[
+    '<b>小早川秀秋</b> <span class="rel-arrow">← 秀吉養子</span> 秀吉死後、家康に接近',
+    '<b>吉川広家</b> <span class="rel-arrow">→ 家康へ内通</span> 毛利本家の存続を条件に',
+    '脇坂安治・朽木元綱・小川祐忠・赤座直保 <span class="rel-arrow">→ 離反</span> 四将'
+  ]},
+  {title:'豊臣秀吉 — 大本の関係',items:[
+    '<b>秀吉</b>（1598没） <span class="rel-arrow">→ 五大老</span> 家康・前田・毛利・上杉・宇喜多',
+    '<b>秀吉</b> <span class="rel-arrow">→ 五奉行</span> <b>石田三成</b>・浅野長政・増田長盛・前田玄以・長束正家',
+    '関ヶ原は<b>五大老筆頭の家康</b>と<b>五奉行筆頭の三成</b>の権力闘争でもあった'
+  ]}
+];
+
+const FATES = [
+  {date:'1600.10.21',text:'慶長5年9月15日。<span class="name west">大谷吉継</span> 自刃、<span class="name west">島津豊久</span> 退却戦で討死。'},
+  {date:'1600.10.27',text:'慶長5年9月21日。<span class="name west">石田三成</span> 古橋村付近で田中吉政の追捕隊に捕縛。'},
+  {date:'1600.11.6',text:'慶長5年10月1日。<span class="name west">石田三成・小西行長・安国寺恵瓊</span> 京都六条河原で斬首。'},
+  {date:'1600秋',text:'<span class="name idle">毛利輝元</span> 周防・長門2か国に減封、<span class="name idle">長宗我部盛親</span> 改易。'},
+  {date:'1601',text:'<span class="name turn">小早川秀秋</span> 備前岡山55万石に加増'},
+  {date:'1602.3.24',text:'慶長7年2月1日。<span class="name east">井伊直政</span> 死去（享年42）。'},
+  {date:'1602.12.1',text:'慶長7年10月18日。<span class="name turn">小早川秀秋</span> 急死（享年21）。後継なく小早川家断絶。'},
+  {date:'1603.3.24',text:'慶長8年2月12日。<span class="name east">徳川家康</span> 征夷大将軍に任命、<b>江戸幕府</b>開府。'},
+  {date:'1606.5頃',text:'<span class="name west">宇喜多秀家</span> 八丈島に配流。'},
+  {date:'1608',text:'<span class="name east">藤堂高虎</span> 伊勢津22万石を拝領。'},
+  {date:'1615.6.11頃',text:'<span class="name idle">長宗我部盛親</span> 大坂落城後に捕縛、京都で斬首（享年41）。'},
+  {date:'1619.7.12',text:'<span class="name east">福島正則</span> 広島城修築問題で改易。信濃高井野・越後魚沼4万5千石へ。'},
+  {date:'1619.8.30',text:'<span class="name west">島津義弘</span> 加治木で死去（享年85）。'},
+  {date:'1630.11.9',text:'<span class="name east">藤堂高虎</span> 死去（享年75）。'},
+  {date:'1631.10.7',text:'<span class="name east">加藤嘉明</span> 死去（享年69）。'},
+  {date:'1646.1.18',text:'<span class="name east">細川忠興</span> 八代城で死去（享年83）。和暦正保2年12月2日は西暦1646年に当たる。'},
+  {date:'1655.12.17',text:'<span class="name west">宇喜多秀家</span> 八丈島で死去（享年84）。関ヶ原関係諸将の中でも長寿。'}
+];
+
+/* 史料。原文画像や所蔵情報が未確認の演出文は、一次史料として表示しない。 */
+const DOCS = [
+  {
+    kind:'一次資料',
+    sourceClass:'primary',
+    title:'内府ちかひの条々',
+    meta:'慶長5年7月17日／前田玄以・増田長盛・長束正家連署／毛利家文書本など',
+    summary:'家康の違背を弾劾し、豊臣方への参加を促した檄文。複数の伝来本があり、底本を明示して扱う必要がある。',
+    use:'西軍挙兵の大義名分を示す中核史料。掲載時は毛利家文書本など底本名を表示する。',
+    warning:'上杉版など異本があり、13ヶ条本・11ヶ条本の差を混同しない。'
+  },
+  {
+    kind:'一次資料',
+    sourceClass:'primary',
+    title:'真田昌幸宛 石田三成書状',
+    meta:'慶長5年7月晦日／真田家文書・真田宝物館蔵',
+    summary:'三成が挙兵の意図、秀頼への奉公、真田家人質の扱いなどを昌幸へ説明した書状。',
+    quote:'冒頭：「一先以今度之意趣、兼而御知せも不申儀…」',
+    use:'三成自身の言葉として、後世の辞世句や創作文より優先して表示する。'
+  },
+  {
+    kind:'一次資料',
+    sourceClass:'primary',
+    title:'本多忠勝・井伊直政連署起請文',
+    meta:'慶長5年9月14日／吉川広家・福原広俊宛／吉川家文書',
+    summary:'関ヶ原前日に、毛利氏の所領安堵などを条件として吉川広家らの不戦・内応を固めた起請文群の一つ。',
+    use:'南宮山勢が動かなかった理由を、家康直筆の黒田宛書状ではなく、吉川家文書の起請文群として説明する。',
+    warning:'吉川家のみに伝来する点などから偽文書説もあるため、確定断言ではなく異論併記が必要。'
+  },
+  {
+    kind:'一次資料（写）',
+    sourceClass:'primary',
+    title:'松平家乗宛 石川康通・彦坂元正連署書状写',
+    meta:'慶長5年9月17日／関ヶ原本戦2日後の戦況報告',
+    summary:'家康の赤坂着陣、午前10時頃の関ヶ原移動・合戦、小早川・脇坂らの「うらきり」を伝える同時代報告。',
+    use:'開戦午前10時説、小早川ら開戦時離反説の根拠として、通説モードと分けて表示する。',
+    warning:'写として伝来し、原本所在は未確認。白峰旬の翻刻などを介して扱う。'
+  },
+  {
+    kind:'一次資料',
+    sourceClass:'primary',
+    title:'吉川広家自筆覚書案',
+    meta:'慶長6年／吉川史料館蔵・吉川家文書／国指定重要文化財',
+    summary:'広家自身が、毛利方が西軍についた経緯と自分の東軍内応を釈明した覚書案。',
+    use:'「宰相殿の空弁当」や南宮山不戦を、9月15日午前の創作文ではなく翌年の自筆覚書案として説明する。'
+  },
+  {
+    kind:'一次資料・準一次資料',
+    sourceClass:'primary',
+    title:'島津義弘書状群・神戸久五郎覚書',
+    meta:'慶長5年7月〜9月／旧記雑録後編三・島津家文書',
+    summary:'義弘の増援要請、上杉景勝宛書状、撤退戦に関する神戸久五郎覚書など。島津隊の兵力と退却判断を見る基礎史料。',
+    quote:'覚書要旨：「猛勢の中へ相掛かるべし」',
+    use:'島津隊の兵力を1,000〜1,500程度の幅で示し、「敵中を真一文字に…」のような現代的文句は原文として扱わない。'
+  },
+  {
+    kind:'除外した伝承',
+    sourceClass:'story',
+    title:'辞世句・推定書状・劇的名場面',
+    meta:'同時代史料として採用しない',
+    summary:'大谷吉継の三成宛推定書状、細川ガラシャ辞世、石田三成辞世、島津退き口の劇的文面は、同時代の一次史料として確認できない。',
+    use:'必要な場合は伝承として別扱いにする。史料タブでは原文引用として表示しない。',
+    warning:'「散りぬべき…」「筑摩江や…」「天下の事、もはや家康公の手中に…」は一次史料欄から撤去。'
+  }
+];
+
+/* AI討論モード - お題 */
+const DEBATE_TOPICS = [
+  '天下を治めるべきは誰か',
+  '豊臣家の未来をどうすべきか',
+  '小早川秀秋の裏切りは是か非か',
+  '戦を避ける道はなかったのか',
+  '武士の義とは何か',
+  '関ヶ原の勝敗を分けたのは何か'
+];
+
+/* =========================================================
+   Leaflet
+   ========================================================= */
+const map = L.map('map',{zoomControl:true,scrollWheelZoom:true}).setView([35.3640,136.4620],14);
+
+const paleLayer = ()=>L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{attribution:'地図: 国土地理院',maxZoom:18});
+const hillshadeLayer = ()=>L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png',{attribution:'陰影起伏図: 国土地理院',maxZoom:16,opacity:0.55,className:'hillshade-layer'});
+
+const tileLayers = {
+  oldmap: {layers:[paleLayer()], sepia:true},
+  oldterrain: {layers:[paleLayer(), hillshadeLayer()], sepia:true},
+  terrain: {layers:[L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{attribution:'© OpenTopoMap (CC-BY-SA)',maxZoom:17})], sepia:false},
+  aerial: {layers:[L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',{attribution:'航空写真: 国土地理院',maxZoom:18})], sepia:false}
+};
+
+let currentTileKey = 'oldmap';
+tileLayers.oldmap.layers.forEach(l=>l.addTo(map));
+document.getElementById('map').classList.add('tile-sepia');
+
+document.getElementById('tile-switch').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  const key = e.target.dataset.tile;
+  document.querySelectorAll('#tile-switch button').forEach(b=>b.classList.toggle('active',b===e.target));
+  tileLayers[currentTileKey].layers.forEach(l=>map.removeLayer(l));
+  currentTileKey = key;
+  tileLayers[key].layers.forEach(l=>l.addTo(map));
+  document.getElementById('map').classList.toggle('tile-sepia', tileLayers[key].sepia);
+});
+
+const GEOGRAPHY_NOTES = [
+  {kind:'high',name:'笹尾山 198m',lat:35.3710,lng:136.4555,note:'石田三成本陣。高所で位置が安定し、コントロールポイントとして最優先。'},
+  {kind:'high',name:'岡山（丸山）164m',lat:35.3693,lng:136.4590,note:'黒田長政陣。東軍右翼の要点として公式コース・高所表示と整合。'},
+  {kind:'high',name:'松尾山 293m',lat:35.3490,lng:136.4375,note:'小早川秀秋陣。戦場を見下ろす決定的高地として表示。'},
+  {kind:'high',name:'南宮山方面',lat:35.3445,lng:136.4690,note:'毛利秀元らの後詰め位置。中央戦場を見ながら静観した表現は避ける。'},
+  {kind:'river',name:'藤古川・黒血川系',lat:35.3648,lng:136.4558,note:'河川改修差があるため概略点。水系は古地図照合の補助線として扱う。'},
+  {kind:'road',name:'旧中山道・関ケ原宿',lat:35.3655,lng:136.4685,note:'交通史レイヤーの軸。鉄道・高速道路は後代の参照物として分離。'},
+  {kind:'road',name:'小池村周辺',lat:35.3640,lng:136.4610,note:'島津義弘陣の近似点。地名は現代参照点として利用可能。'}
+];
+const geoLayer = L.layerGroup();
+GEOGRAPHY_NOTES.forEach(g=>{
+  const icon = L.divIcon({
+    className:'',
+    html:`<div class="geo-note-marker ${g.kind}">${g.name}</div>`,
+    iconSize:[120,22],
+    iconAnchor:[60,11]
+  });
+  L.marker([g.lat,g.lng],{icon,interactive:true})
+    .bindPopup(`<div class="popup-name">${g.name}</div><div class="popup-info">${g.note}</div><div class="popup-meta-grid"><div class="popup-meta-row"><b>階層</b><span><span class="source-badge official">公式</span>地理・地形注記</span></div></div>`)
+    .addTo(geoLayer);
+});
+geoLayer.addTo(map);
+document.getElementById('toggle-geo').addEventListener('click',e=>{
+  const on = map.hasLayer(geoLayer);
+  if(on) map.removeLayer(geoLayer);
+  else geoLayer.addTo(map);
+  e.currentTarget.classList.toggle('active', !on);
+});
+
+/* =========================================================
+   Grok 設定
+   ========================================================= */
+const GROK_KEY = 'sekigahara_grok_settings';
+function loadSettings(){
+  try{ return JSON.parse(localStorage.getItem(GROK_KEY)) || {}; }catch(e){ return {}; }
+}
+function saveSettings(s){ localStorage.setItem(GROK_KEY, JSON.stringify(s)); }
+let settings = loadSettings();
+
+function refreshKeyStatus(){
+  const badge = document.getElementById('key-status');
+  if(settings.apiKey){ badge.textContent='設定済'; badge.className='status-badge ok'; }
+  else { badge.textContent='未設定'; badge.className='status-badge ng'; }
+}
+refreshKeyStatus();
+
+document.getElementById('open-settings').addEventListener('click',()=>{
+  document.getElementById('grok-key').value = settings.apiKey || '';
+  document.getElementById('grok-model').value = settings.model || 'qwen/qwen3-next-80b-a3b-instruct:free';
+  document.getElementById('auto-speak').checked = !!settings.autoSpeak;
+  loadVoices();
+  document.getElementById('tts-voice').value = settings.ttsVoice || '';
+  document.getElementById('tts-rate').value = settings.ttsRate || 0.95;
+  document.getElementById('tts-rate-val').textContent = settings.ttsRate || 0.95;
+  document.getElementById('settings-modal').classList.add('show');
+});
+document.getElementById('tts-rate').addEventListener('input',(e)=>{
+  document.getElementById('tts-rate-val').textContent = e.target.value;
+});
+document.getElementById('tts-test').addEventListener('click',()=>{
+  const tmp = {ttsVoice: document.getElementById('tts-voice').value, ttsRate: parseFloat(document.getElementById('tts-rate').value)};
+  const save = {...settings}; settings = {...settings, ...tmp};
+  speak('我こそは関ヶ原に陣を構える武将なり。天下分け目の戦、いざ参らん。');
+  settings = save;
+});
+document.getElementById('close-settings').addEventListener('click',()=>{
+  document.getElementById('settings-modal').classList.remove('show');
+});
+document.getElementById('save-settings').addEventListener('click',()=>{
+  settings = {
+    apiKey: document.getElementById('grok-key').value.trim(),
+    model: document.getElementById('grok-model').value,
+    autoSpeak: document.getElementById('auto-speak').checked,
+    ttsVoice: document.getElementById('tts-voice').value,
+    ttsRate: parseFloat(document.getElementById('tts-rate').value)
+  };
+  saveSettings(settings);
+  refreshKeyStatus();
+  renderDebateTab();
+  document.getElementById('settings-modal').classList.remove('show');
+});
+document.getElementById('clear-key').addEventListener('click',()=>{
+  if(confirm('APIキーを削除しますか？')){
+    settings = {};
+    localStorage.removeItem(GROK_KEY);
+    refreshKeyStatus();
+    renderDebateTab();
+    document.getElementById('grok-key').value='';
+  }
+});
+
+/* OpenRouter API 呼び出し */
+async function askGrok(troop, question){
+  if(!settings.apiKey) throw new Error('APIキー未設定');
+  const sys = `あなたは関ヶ原の戦い（1600年10月21日）の${troop.name}本人として、一人称で日本語で答えてください。
+史実に基づきつつ、当時の武将の口調・価値観で答えてください。
+重要：質問に答える際は「結論だけでなく、そこに至った経緯・背景・心情の変化」を物語のように語ってください。出来事の順序や因果関係を明示し、なぜそう判断したのかが伝わるようにしてください。
+回答は250〜350字程度。漢字仮名混じり、武家言葉を適度に使用。
+あなたの基礎情報：${troop.info} 兵力：約${troop.soldiers.toLocaleString()}。陣営：${troop.side==='east'?'東軍':troop.side==='west'?'西軍':troop.side==='turncoat'?'寝返り組':'南宮山(不参戦)'}。`;
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+settings.apiKey,
+      'HTTP-Referer':'https://sekigahara.local',
+      'X-Title':'Sekigahara Battle Map'
+    },
+    body: JSON.stringify({
+      model: settings.model || 'qwen/qwen3-next-80b-a3b-instruct:free',
+      messages:[
+        {role:'system', content: sys},
+        {role:'user', content: question}
+      ],
+      max_tokens:1000,
+      temperature:0.85
+    })
+  });
+  if(!res.ok){
+    const t = await res.text();
+    throw new Error(`OpenRouter API ${res.status}: ${t.slice(0,200)}`);
+  }
+  const j = await res.json();
+  return j.choices?.[0]?.message?.content?.trim() || '(応答なし)';
+}
+
+/* 音声合成（Edge Natural音声優先） */
+let _voicesCache = [];
+function loadVoices(){
+  _voicesCache = window.speechSynthesis.getVoices().filter(v=>v.lang.startsWith('ja'));
+  const sel = document.getElementById('tts-voice');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">（自動：最高品質を選択）</option>';
+  _voicesCache.forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v.name;
+    const tag = /natural|neural|online/i.test(v.name) ? ' ★高品質' : '';
+    o.textContent = v.name + tag;
+    sel.appendChild(o);
+  });
+  if(current) sel.value = current;
+  else if(settings.ttsVoice) sel.value = settings.ttsVoice;
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+function pickBestVoice(){
+  if(settings.ttsVoice){
+    const v = _voicesCache.find(x=>x.name===settings.ttsVoice);
+    if(v) return v;
+  }
+  return _voicesCache.find(v=>/natural/i.test(v.name))
+    || _voicesCache.find(v=>/neural/i.test(v.name))
+    || _voicesCache.find(v=>/online/i.test(v.name))
+    || _voicesCache.find(v=>/google/i.test(v.name))
+    || _voicesCache[0]
+    || null;
+}
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP';
+  u.rate = settings.ttsRate || 0.95;
+  const v = pickBestVoice();
+  if(v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+
+/* =========================================================
+   マーカー作成
+   ========================================================= */
+function circleSize(s){ return Math.round(16 + Math.sqrt(s)/5.2); }
+
+function getPositionAtPhase(t,phase,theory){
+  let pm = t.positions;
+  if(t.disputed && theory==='revisionist' && t.positions_rev) pm = t.positions_rev;
+  if(pm[phase]) return pm[phase];
+  for(let p=phase-1;p>=0;p--){ if(pm[p]) return pm[p]; }
+  return pm[0];
+}
+function getInterpolatedPosition(t,sv,theory){
+  const f=Math.floor(sv), c=Math.min(4,f+1), tt=sv-f;
+  const p1=getPositionAtPhase(t,f,theory), p2=getPositionAtPhase(t,c,theory);
+  return [p1[0]+(p2[0]-p1[0])*tt, p1[1]+(p2[1]-p1[1])*tt];
+}
+function isDead(t,sv){ return t.diedAt!=null && sv>=t.diedAt-0.05; }
+
+function makeIcon(t, opts={}){
+  const dead = opts.dead;
+  const svg = dead ? KAMON.cross : (KAMON[t.kamon] || '<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="10" fill="#fff"/></svg>');
+  const size = circleSize(t.soldiers);
+  const svgSize = Math.round(size*0.7);
+  let badge = '';
+  if(t.disputed){
+    if(opts.compareTheory==='traditional') badge='<div class="theory-badge compare-trad">通説</div>';
+    else if(opts.compareTheory==='revisionist') badge='<div class="theory-badge compare-rev">新説</div>';
+    else if(opts.theory) badge=`<div class="theory-badge">${opts.theory==='revisionist'?'新説':'通説'}</div>`;
+  }
+  if(dead) badge='<div class="theory-badge" style="background:#3b3a37">戦死</div>';
+  const labelStyle = opts.compareTheory==='revisionist'?' style="background:rgba(255,235,225,0.92)"':'';
+  return L.divIcon({
+    className:'',
+    html:`<div class="kamon-marker${opts.compareTheory==='revisionist'?' compare-rev':''}" data-id="${t.id}">
+      ${badge}
+      <div class="kamon-circle ${dead?'dead':t.side}" style="width:${size}px;height:${size}px"><div style="width:${svgSize}px;height:${svgSize}px">${svg}</div></div>
+      <div class="kamon-label"${labelStyle}>${t.name}</div>
+    </div>`,
+    iconSize:[100, size+30],
+    iconAnchor:[50, Math.round(size/2)+(t.disputed||dead?14:0)]
+  });
+}
+
+function sourceBadge(t){
+  const labels = {primary:'一次', official:'公式', compiled:'軍記', research:'研究', story:'除外'};
+  const cls = t.sourceClass || 'official';
+  return `<span class="source-badge ${cls}">${labels[cls] || '資料'}</span>`;
+}
+
+function buildTroopMeta(t){
+  const rows = [
+    ['確度', t.confidence],
+    ['兵力注記', t.soldierNote],
+    ['史料階層', `${sourceBadge(t)}${t.sourceLabel || ''}`],
+    ['地形', t.terrainNote],
+    ['可視性', t.visibilityNote],
+    ['異説', t.theoryNote]
+  ].filter(([,v])=>v);
+  return rows.length ? `<div class="popup-meta-grid">${
+    rows.map(([k,v])=>`<div class="popup-meta-row"><b>${k}</b><span>${v}</span></div>`).join('')
+  }</div>` : '';
+}
+
+function buildPopup(t){
+  const url = portraitUrl(t.id);
+  const img = url
+    ? `<img class="popup-portrait" src="${url}" alt="${t.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const fb = `<div class="popup-portrait fallback" style="display:${url?'none':'flex'}">No image</div>`;
+  return `
+    <div class="popup-head">${img}${fb}
+      <div class="popup-meta">
+        <div class="popup-name ${t.side}">${t.name}</div>
+        <div class="popup-soldiers">${t.soldierLabel || `兵力 約${t.soldiers.toLocaleString()}`}</div>
+      </div>
+    </div>
+    <div class="popup-info">${t.info}</div>
+    ${buildTroopMeta(t)}
+    <div class="qna-box" data-troop-id="${t.id}">
+      <div class="qna-title">⚡ <b>${t.name}に質問する</b></div>
+      ${settings.apiKey
+        ? `<input class="qna-input" type="text" placeholder="質問例をクリック、または自由入力" maxlength="160">
+           <div class="qna-row">
+             <button class="qna-send">送信</button>
+             <button class="qna-speak" title="回答を読み上げ">🔊</button>
+           </div>
+           ${(EXAMPLES[t.id]||[]).length ? `<div class="qna-examples">${EXAMPLES[t.id].map(q=>`<button class="qna-chip" type="button">${q}</button>`).join('')}</div>` : ''}
+           <div class="qna-answer" style="display:none"></div>`
+        : `<div class="qna-nokey">⚙ AI設定でOpenRouter APIキーを登録すると、この武将本人に質問できます</div>`
+      }
+    </div>`;
+}
+
+const troopMarkers = {};
+const compareMarkers = {};
+const compareLines = {};
+
+TROOPS.forEach(t=>{
+  const pos = getPositionAtPhase(t,0,'traditional');
+  const m = L.marker(pos,{icon:makeIcon(t,{theory:'traditional'})}).addTo(map);
+  m.bindPopup(()=>buildPopup(t), {maxWidth:340});
+  m.on('popupopen', e=>bindQna(e.popup.getElement(), t));
+  troopMarkers[t.id]=m;
+  if(t.disputed){
+    const cm = L.marker(pos,{icon:makeIcon(t,{compareTheory:'revisionist'})});
+    cm.bindPopup(()=>buildPopup(t), {maxWidth:340});
+    cm.on('popupopen', e=>bindQna(e.popup.getElement(), t));
+    compareMarkers[t.id]=cm;
+    compareLines[t.id]=L.polyline([pos,pos],{color:'#a04000',weight:2,dashArray:'6,4',opacity:0.8});
+  }
+});
+
+function bindQna(popupEl, troop){
+  if(!popupEl) return;
+  const box = popupEl.querySelector('.qna-box');
+  if(!box) return;
+  const input = box.querySelector('.qna-input');
+  const send = box.querySelector('.qna-send');
+  const speakBtn = box.querySelector('.qna-speak');
+  const ans = box.querySelector('.qna-answer');
+  if(!send) return; // no key
+
+  async function doSend(){
+    const q = input.value.trim();
+    if(!q){ input.focus(); return; }
+    send.disabled = true;
+    ans.style.display='block';
+    ans.className='qna-answer loading';
+    ans.textContent='⏳ '+troop.name+'が考えています...';
+    try{
+      const reply = await askGrok(troop, q);
+      ans.className='qna-answer';
+      ans.textContent = reply;
+      if(settings.autoSpeak) speak(reply);
+    }catch(err){
+      ans.className='qna-answer error';
+      ans.textContent = '⚠ '+err.message+'\n\n（429ならモデルが混雑中。⚙設定で別の無料モデル or Claude Haikuに切り替えを）';
+    }finally{
+      send.disabled = false;
+    }
+  }
+  send.addEventListener('click', doSend);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  box.querySelectorAll('.qna-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      input.value = chip.textContent;
+      doSend();
+    });
+  });
+  speakBtn.addEventListener('click', ()=>{
+    if(ans.textContent && !ans.classList.contains('loading')) speak(ans.textContent);
+  });
+}
+
+/* 交戦バッジ */
+let battleMarkers=[];
+function clearBattles(){ battleMarkers.forEach(m=>map.removeLayer(m)); battleMarkers=[]; }
+function renderBattles(phase){
+  clearBattles();
+  const p=PHASES[phase];
+  if(!p) return;
+  const battles = (currentTheory==='revisionist' && p.battles_rev) ? p.battles_rev : p.battles;
+  if(!battles) return;
+  battles.forEach(b=>{
+    const icon = L.divIcon({
+      className:'battle-icon',
+      html:`<div class="battle-badge${b.decisive?' decisive':''}">⚔</div>`,
+      iconSize:[b.decisive?36:28,b.decisive?36:28],
+      iconAnchor:[b.decisive?18:14,b.decisive?18:14]
+    });
+    const m = L.marker([b.lat,b.lng],{icon}).addTo(map);
+    m.bindPopup(`<div class="popup-name">交戦</div><div class="popup-info"><b style="color:var(--east)">${b.east}</b><br>　vs<br><b style="color:var(--west)">${b.west}</b><br><br>結果：${b.result}</div>`);
+    battleMarkers.push(m);
+  });
+}
+
+const shimazuPolyline = L.polyline(SHIMAZU_ROUTE,{color:'#922b21',weight:3,dashArray:'8,4',opacity:0.7});
+
+/* =========================================================
+   状態
+   ========================================================= */
+let sliderValue=0, currentTheory='revisionist', lastIntPhase=-1;
+const combatLogShown = new Set();
+
+function update(){
+  TROOPS.forEach(t=>{
+    const m = troopMarkers[t.id];
+    const visible = t.visibleFrom==null || sliderValue>=t.visibleFrom;
+    if(!visible){ if(map.hasLayer(m)) map.removeLayer(m); return; }
+    if(!map.hasLayer(m)) m.addTo(map);
+    const dead = isDead(t,sliderValue);
+    const pos = getInterpolatedPosition(t,sliderValue, currentTheory==='compare'?'traditional':currentTheory);
+    m.setLatLng(pos);
+    const key = `${t.id}-${dead?'D':'L'}-${currentTheory}`;
+    if(m._lastKey!==key){
+      const opts = {dead, theory: currentTheory==='compare'?'traditional':currentTheory};
+      if(t.disputed && currentTheory==='compare') opts.compareTheory='traditional';
+      m.setIcon(makeIcon(t,opts));
+      m._lastKey = key;
+    }
+    const el = m.getElement();
+    if(el){
+      const inner = el.querySelector('.kamon-marker');
+      if(inner){
+        const routed = t.routedFrom!=null && sliderValue>=t.routedFrom-0.05 && !dead;
+        inner.classList.toggle('routed',routed);
+      }
+    }
+  });
+
+  TROOPS.filter(t=>t.disputed).forEach(t=>{
+    const cm=compareMarkers[t.id], ln=compareLines[t.id];
+    if(currentTheory==='compare'){
+      const pr = getInterpolatedPosition(t,sliderValue,'revisionist');
+      const pt = getInterpolatedPosition(t,sliderValue,'traditional');
+      cm.setLatLng(pr);
+      if(!map.hasLayer(cm)) cm.addTo(map);
+      ln.setLatLngs([pt,pr]);
+      if(!map.hasLayer(ln)) ln.addTo(map);
+    }else{
+      if(map.hasLayer(cm)) map.removeLayer(cm);
+      if(map.hasLayer(ln)) map.removeLayer(ln);
+    }
+  });
+
+  const ip = Math.round(sliderValue);
+  const p = PHASES[ip];
+  const useRev = currentTheory==='revisionist';
+  document.getElementById('tl-title').textContent = (useRev && p.title_rev) ? p.title_rev : p.title;
+  document.getElementById('tl-time').innerHTML = (useRev && p.time_rev) ? p.time_rev : p.time;
+  document.getElementById('narration').innerHTML = (useRev && p.narration_rev) ? p.narration_rev : p.narration;
+  document.querySelectorAll('#phase-labels span').forEach(s=>s.classList.toggle('active', Number(s.dataset.p)===ip));
+  renderBattles(ip);
+
+  if(sliderValue>=3.5){
+    if(!map.hasLayer(shimazuPolyline)) shimazuPolyline.addTo(map);
+    document.getElementById('shimazu-info').classList.add('show');
+  }else{
+    if(map.hasLayer(shimazuPolyline)) map.removeLayer(shimazuPolyline);
+    document.getElementById('shimazu-info').classList.remove('show');
+  }
+
+  const f=Math.floor(sliderValue), c=Math.min(4,f+1), tt=sliderValue-f;
+  const adv = currentTheory==='revisionist' ? ADVANTAGE_REV : ADVANTAGE;
+  const eastPct = adv[f] + (adv[c]-adv[f])*tt;
+  document.getElementById('east-bar').style.width = eastPct+'%';
+  document.getElementById('west-bar').style.width = (100-eastPct)+'%';
+  document.getElementById('east-pct').textContent = eastPct.toFixed(0);
+  document.getElementById('west-pct').textContent = (100-eastPct).toFixed(0);
+
+  if(ip!==lastIntPhase){ lastIntPhase=ip; showLogForPhase(ip); }
+}
+
+function renderLogTab(){ document.getElementById('tab-log').innerHTML='<div id="log-list"></div>'; }
+function showLogForPhase(phase){
+  const list = document.getElementById('log-list');
+  if(!list) return;
+  COMBAT_LOG.filter(l=>l.phase===phase && !combatLogShown.has(l)).forEach((l,i)=>{
+    combatLogShown.add(l);
+    setTimeout(()=>{
+      const d = document.createElement('div');
+      d.className='log-entry';
+      d.innerHTML = `<span class="log-time">${l.time}</span><span class="log-phase p${l.phase}">P${l.phase}</span><span class="log-text">${l.text}</span>`;
+      list.appendChild(d);
+      list.scrollTop = list.scrollHeight;
+      if(l.telop) showTelop(l.telop);
+    }, i*350);
+  });
+}
+function showTelop(text){
+  /* テロップ表示は無効化（演出オフ） */
+}
+
+function renderRelationsTab(){
+  document.getElementById('tab-relations').innerHTML = '<div class="relations">' +
+    RELATIONS.map(s=>`<div class="rel-section"><div class="rel-title">${s.title}</div>`+
+      s.items.map(i=>`<div class="rel-item">${i}</div>`).join('')+
+    '</div>').join('') + '</div>';
+}
+function renderFatesTab(){
+  document.getElementById('tab-fates').innerHTML = '<div class="fates"><div class="fates-note">日付はグレゴリオ暦。必要な箇所のみ和暦を本文中に併記。</div>' +
+    FATES.map(f=>`<div class="fate-entry"><span class="fate-date">${f.date}</span><span class="fate-text">${f.text}</span></div>`).join('') +
+    '</div>';
+}
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderDocsTab(){
+  document.getElementById('tab-docs').innerHTML = '<div class="docs-list"><div class="fates-note">実在史料を優先。後世軍記・辞世句・現代的な再構成文は、原文引用として採用しない。</div>' +
+    DOCS.map(d=>`<div class="doc">
+      <div class="doc-head">
+        <div class="doc-title">${sourceBadge(d)}${d.title}</div>
+        <div class="doc-meta">${d.kind} / ${d.meta}</div>
+      </div>
+      <div class="doc-summary">${d.summary}</div>
+      ${d.quote ? `<div class="doc-use">${d.quote}</div>` : ''}
+      <div class="doc-use"><b>実装での扱い：</b>${d.use}</div>
+      ${d.warning ? `<div class="doc-warning">${d.warning}</div>` : ''}
+      ${d.url ? `<div class="doc-link"><a href="${d.url}" target="_blank" rel="noopener">出典ページを開く</a></div>` : ''}
+    </div>`).join('') +
+    '</div>';
+}
+function renderDebateTab(){
+  const troopOptions = TROOPS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  const topicOptions = DEBATE_TOPICS.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('tab-debate').innerHTML = `
+    <div class="debate-controls">
+      <select id="debate-left">${troopOptions}</select>
+      <span class="vs">vs</span>
+      <select id="debate-right">${troopOptions}</select>
+      <select id="debate-topic">${topicOptions}</select>
+      <button class="debate-start" id="debate-start">開始</button>
+    </div>
+    <div class="debate-log" id="debate-log">
+      <div class="debate-empty">${settings.apiKey ? '武将と論点を選んで開始してください。' : 'AI設定でOpenRouter APIキーを登録すると討論できます。'}</div>
+    </div>`;
+  document.getElementById('debate-left').value = 'ieyasu';
+  document.getElementById('debate-right').value = 'ishida';
+  document.getElementById('debate-start').addEventListener('click', runDebate);
+}
+async function runDebate(){
+  const log = document.getElementById('debate-log');
+  const start = document.getElementById('debate-start');
+  const left = TROOPS.find(t=>t.id===document.getElementById('debate-left').value);
+  const right = TROOPS.find(t=>t.id===document.getElementById('debate-right').value);
+  const topic = document.getElementById('debate-topic').value;
+  if(!settings.apiKey){
+    log.innerHTML = '<div class="debate-empty">先にAI設定でOpenRouter APIキーを登録してください。</div>';
+    return;
+  }
+  if(!left || !right || left.id===right.id){
+    log.innerHTML = '<div class="debate-empty">異なる武将を2人選んでください。</div>';
+    return;
+  }
+  start.disabled = true;
+  log.innerHTML = '<div class="debate-loading">討論を生成しています...</div>';
+  const messages = [];
+  function addMsg(troop, text){
+    messages.push({name:troop.name, side:troop.side, text});
+    log.innerHTML = messages.map(m=>`<div class="debate-msg ${m.side}"><span class="speaker ${m.side}">${m.name}</span><span>${escapeHTML(m.text)}</span></div>`).join('');
+  }
+  try{
+    const q1 = `討論テーマ「${topic}」。相手は${right.name}。自分の立場を、関ヶ原に至る経緯を含めて120字程度で主張してください。`;
+    addMsg(left, await askGrok(left, q1));
+    const q2 = `討論テーマ「${topic}」。相手の${left.name}は「${messages[0].text}」と述べた。反論を120字程度で述べてください。`;
+    addMsg(right, await askGrok(right, q2));
+    const q3 = `討論テーマ「${topic}」。相手の${right.name}は「${messages[1].text}」と述べた。最後に自説を補強して100字程度でまとめてください。`;
+    addMsg(left, await askGrok(left, q3));
+    const q4 = `討論テーマ「${topic}」。相手の${left.name}は「${messages[2].text}」と述べた。最後に自説を補強して100字程度でまとめてください。`;
+    addMsg(right, await askGrok(right, q4));
+  }catch(err){
+    log.innerHTML += `<div class="qna-answer error">⚠ ${err.message}</div>`;
+  }finally{
+    start.disabled = false;
+  }
+}
+
+document.querySelector('.tab-nav').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  const t = e.target.dataset.tab;
+  document.querySelectorAll('.tab-nav button').forEach(b=>b.classList.toggle('active',b===e.target));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='tab-'+t));
+});
+
+const speakBtn = document.getElementById('speak-btn');
+let speaking=false;
+speakBtn.addEventListener('click',()=>{
+  if(!('speechSynthesis' in window)){ alert('音声合成非対応のブラウザです'); return; }
+  window.speechSynthesis.cancel();
+  if(speaking){ speaking=false; speakBtn.classList.remove('active'); speakBtn.textContent='🔊'; return; }
+  const ip = Math.round(sliderValue);
+  const p = PHASES[ip];
+  const text = (currentTheory==='revisionist' && p.narration_rev ? p.narration_rev : p.narration).replace(/<[^>]+>/g,'').replace(/†/g,'');
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='ja-JP'; u.rate=0.95; u.pitch=0.95;
+  u.onend = ()=>{ speaking=false; speakBtn.classList.remove('active'); speakBtn.textContent='🔊'; };
+  speaking=true; speakBtn.classList.add('active'); speakBtn.textContent='⏹';
+  window.speechSynthesis.speak(u);
+});
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input',e=>{ sliderValue = Number(e.target.value); update(); });
+document.querySelectorAll('#phase-labels span').forEach(s=>s.addEventListener('click',()=>animateTo(Number(s.dataset.p))));
+
+document.getElementById('theory-switch').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  currentTheory = e.target.dataset.theory;
+  document.querySelectorAll('#theory-switch button').forEach(b=>b.classList.toggle('active',b===e.target));
+  TROOPS.filter(t=>t.disputed).forEach(t=>{ troopMarkers[t.id]._lastKey=null; });
+  update();
+});
+
+const playBtn=document.getElementById('play-btn');
+let playing=false, playRAF=null, lastTime=0;
+const PLAY_SPEED=0.35;
+
+function animateTo(target){
+  const start=sliderValue, dist=target-start;
+  const duration=Math.max(300,Math.abs(dist)*700);
+  const t0=performance.now();
+  function step(now){
+    const t=Math.min(1,(now-t0)/duration);
+    const eased = t<0.5? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+    sliderValue = start + dist*eased;
+    slider.value = sliderValue;
+    update();
+    if(t<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function playLoop(now){
+  if(!playing) return;
+  const dt=(now-lastTime)/1000; lastTime=now;
+  sliderValue += PLAY_SPEED*dt;
+  if(sliderValue>=4){ sliderValue=4; playing=false; playBtn.textContent='▶'; }
+  slider.value=sliderValue; update();
+  if(playing) playRAF = requestAnimationFrame(playLoop);
+}
+playBtn.addEventListener('click',()=>{
+  if(playing){ playing=false; playBtn.textContent='▶'; cancelAnimationFrame(playRAF); }
+  else{
+    if(sliderValue>=4){ sliderValue=0; combatLogShown.clear(); lastIntPhase=-1; const ll=document.getElementById('log-list'); if(ll) ll.innerHTML=''; }
+    playing=true; playBtn.textContent='⏸'; lastTime=performance.now();
+    playRAF = requestAnimationFrame(playLoop);
+  }
+});
+
+renderLogTab(); renderRelationsTab(); renderFatesTab(); renderDocsTab(); renderDebateTab();
+update();
+</script>
+</body>
+</html>
