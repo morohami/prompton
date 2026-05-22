@@ -4206,6 +4206,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn secondary" id="forkBtn">⑂ Fork</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">⇄ Compare with original</button>` : ''}
         ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">✎ Save new version</button>` : ''}
+        ${isOwner() ? `<button class="btn secondary" id="editMetadataBtn" title="Edit title / description / tags / license">✎ Edit metadata</button>` : ''}
         ${isOwner() ? `<button class="btn danger" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">🗑 Delete</button>` : ''}
       </div>
     </div>
@@ -4457,6 +4458,12 @@ function renderDetail(id, viewingVersionNum) {
   const saveVersionBtn = document.getElementById('saveVersionBtn');
   if (saveVersionBtn) {
     saveVersionBtn.addEventListener('click', () => openVersionEditor(p.id));
+  }
+
+  // Edit metadata (owner only) — opens inline editor for title / description / tags / license / model.
+  const editMetaBtn = document.getElementById('editMetadataBtn');
+  if (editMetaBtn) {
+    editMetaBtn.addEventListener('click', () => openMetadataEditor(p.id));
   }
 
   // Delete prompt (owner only) — removes from GitHub then from local state.
@@ -4786,6 +4793,93 @@ function openVersionEditor(promptId) {
   });
 
   mount.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function openMetadataEditor(promptId) {
+  const p = prompts.find(x => x.id === promptId);
+  if (!p) return;
+  const mount = document.getElementById('versionEditorMount');
+  if (!mount) return;
+  const modelOpts = ['Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other'];
+  mount.innerHTML = `
+    <div class="version-editor" id="metadataEditor">
+      <h2>Edit metadata</h2>
+      <div class="editor-tagline">Title, description, tags, license, model. Prompt body and HTML are not touched — use "Save new version" for those.</div>
+      <div class="field">
+        <label>Title <span class="req">*</span></label>
+        <input type="text" name="title" value="${escapeAttr(p.title)}">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea name="description">${escapeHtml(p.description || '')}</textarea>
+      </div>
+      <div class="field">
+        <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
+        <input type="text" name="tags" value="${escapeAttr((p.tags || []).join(', '))}">
+      </div>
+      <div class="field">
+        <label>License</label>
+        <input type="text" name="license" value="${escapeAttr(p.license || '')}">
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <select name="model">
+          ${modelOpts.map(m => `<option ${m === p.model ? 'selected' : ''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="editor-actions">
+        <button type="button" class="btn" id="metadataSaveBtn">Save metadata</button>
+        <button type="button" class="btn-cancel" id="metadataCancelBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('metadataCancelBtn').addEventListener('click', () => { mount.innerHTML = ''; });
+  document.getElementById('metadataSaveBtn').addEventListener('click', () => {
+    const editor = document.getElementById('metadataEditor');
+    const title = editor.querySelector('[name="title"]').value.trim();
+    if (!title) {
+      toast('Title is required.');
+      return;
+    }
+    const tagsRaw = editor.querySelector('[name="tags"]').value;
+    const tags = tagsRaw.split(',').map(s => s.trim()).filter(Boolean);
+    saveMetadata(promptId, {
+      title: title,
+      description: editor.querySelector('[name="description"]').value,
+      tags: tags,
+      license: editor.querySelector('[name="license"]').value.trim() || p.license,
+      model: editor.querySelector('[name="model"]').value
+    });
+  });
+  mount.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function saveMetadata(promptId, fields) {
+  const p = prompts.find(x => x.id === promptId);
+  if (!p) return;
+  // Apply locally first so the UI feels instant; revert on failure.
+  const prev = { title: p.title, description: p.description, tags: p.tags, license: p.license, model: p.model, tag: p.tag };
+  p.title = fields.title;
+  p.description = fields.description;
+  p.tags = fields.tags;
+  p.tag = fields.tags[0] || p.tag;
+  p.license = fields.license;
+  p.model = fields.model;
+  saveData(prompts);
+  const saveBtn = document.getElementById('metadataSaveBtn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Saving…'; }
+  try {
+    await updatePromptMetadataOnGitHub(p);
+    toast('Saved metadata — Pages may take a minute to refresh');
+    renderDetail(promptId);
+  } catch (err) {
+    console.error('Metadata save failed:', err);
+    // Revert local state
+    Object.assign(p, prev);
+    saveData(prompts);
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save metadata'; }
+    alert('Save failed: ' + err.message);
+  }
 }
 
 function saveNewVersion(promptId, fields) {
@@ -5993,6 +6087,28 @@ async function deletePromptFromGitHub(prompt) {
     if (sIdx >= 0) seedPrompts.splice(sIdx, 1);
   }
 }
+// Update only the manifest entry for an existing prompt — HTML files are untouched.
+async function updatePromptMetadataOnGitHub(prompt) {
+  const cfg = getSyncConfig();
+  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+  const manText = b64ToUtf8(manRaw.content);
+  let manifest;
+  try { manifest = JSON.parse(manText); }
+  catch (e) { manifest = []; }
+  const meta = JSON.parse(JSON.stringify(prompt));
+  delete meta.html;
+  if (meta.versions) meta.versions = meta.versions.map(v => { const c = {...v}; delete c.html; return c; });
+  const idx = manifest.findIndex(p => p.id === prompt.id);
+  if (idx >= 0) manifest[idx] = meta;
+  else manifest.unshift(meta);
+  await ghPutFile('manifest.json', JSON.stringify(manifest, null, 2), 'Prompton: edit metadata for ' + prompt.id, manRaw.sha);
+  if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+    const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
+    if (sIdx >= 0) seedPrompts[sIdx] = JSON.parse(JSON.stringify(prompt));
+    else seedPrompts.unshift(JSON.parse(JSON.stringify(prompt)));
+  }
+}
+
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';
