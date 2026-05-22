@@ -766,6 +766,34 @@
   .alias-list .alias-row .x:hover { color: #d04848; }
   .alias-list .empty { color: var(--text-muted); font-style: italic; font-size: 12px; }
 
+  /* Share popover */
+  .share-popover {
+    position: absolute;
+    background: var(--bg-elevated);
+    border: 1px solid rgba(127,127,127,0.25);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+    padding: 6px;
+    z-index: 1000;
+    display: flex; flex-direction: column;
+    min-width: 200px;
+  }
+  .share-popover button, .share-popover a {
+    background: transparent; border: 0;
+    color: var(--text);
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .share-popover button:hover, .share-popover a:hover {
+    background: var(--bg-card-hover, rgba(127,127,127,0.12));
+  }
+
   /* Draft badge in the detail header */
   .draft-badge {
     display: inline-block; vertical-align: middle;
@@ -3995,6 +4023,8 @@ function titleWithEmphasis(title) {
 }
 
 function renderGallery() {
+  setRoute('');
+  showView('gallery');
   renderTagChips();
   // ── Public list excludes private forks (your forks live in Library) ──
   const publicPrompts = prompts.filter(p => !(p.author === 'you' && p.parentId));
@@ -4294,6 +4324,7 @@ document.getElementById('compareClearBtn').addEventListener('click', () => clear
 function renderDetail(id, viewingVersionNum) {
   const p = prompts.find(x => x.id === id);
   if (!p) return;
+  setRoute('p/' + id);
   p.downloads = p.downloads; // (counts updated on actual download)
 
   const parent = p.parentId ? prompts.find(x => x.id === p.parentId) : null;
@@ -4370,6 +4401,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">↗ Open in Claude.ai</button>
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">⎘ Copy</button>
         <button class="btn secondary" id="downloadBtn">↓ Download HTML</button>
+        <button class="btn secondary" id="shareBtn" title="Share this prompt">↗ Share</button>
         <button class="btn secondary" id="forkBtn">⑂ Fork</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">⇄ Compare with original</button>` : ''}
         ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">✎ Save new version</button>` : ''}
@@ -4549,6 +4581,15 @@ function renderDetail(id, viewingVersionNum) {
   document.getElementById('forkBtn').addEventListener('click', () => {
     forkPrompt(p);
   });
+
+  // Share button — opens a small popover with native share / copy link / LINE / X.
+  const shareBtn = document.getElementById('shareBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSharePopover(shareBtn, p);
+    });
+  }
 
   // Fullscreen — request fullscreen on the live preview iframe so the HTML
   // takes over the screen. Esc / browser UI returns the user to the detail view.
@@ -5242,6 +5283,7 @@ function getMostProlificAuthor() {
 function renderProfile(handle, tab) {
   const profile = getProfile(handle);
   if (!profile) return;
+  setRoute('profile/' + handle);
   window._currentProfileHandle = handle;
   const mine = prompts.filter(p => p.author === handle);
   const isYou = handle === 'you';
@@ -6175,16 +6217,97 @@ function renderCompare(idLeft, idRight, returnTo) {
   showView('compare');
 }
 
-// ─── Hash routing for compare links ───
-function handleCompareHash() {
-  const m = location.hash.match(/^#compare\/([^/]+)\/([^/]+)$/);
-  if (m) {
-    renderCompare(m[1], m[2], null);
-    return true;
+// ─── Share popover ───
+function shareLinkFor(prompt) {
+  // Strip any existing #hash, then add the deep-link form.
+  const base = location.origin + location.pathname.replace(/#.*$/, '');
+  return base + '#/p/' + encodeURIComponent(prompt.id);
+}
+function openSharePopover(anchorBtn, prompt) {
+  // Close any existing popover first
+  document.querySelectorAll('.share-popover').forEach(el => el.remove());
+  const url = shareLinkFor(prompt);
+  const title = prompt.title || 'Prompton';
+  const text = (prompt.description || '').slice(0, 200);
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const pop = document.createElement('div');
+  pop.className = 'share-popover';
+  pop.innerHTML = `
+    ${canNativeShare ? `<button type="button" data-act="native">📤 Share via…</button>` : ''}
+    <button type="button" data-act="copy">⎘ Copy link</button>
+    <a target="_blank" rel="noopener" href="https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}">💬 Share on LINE</a>
+    <a target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}">𝕏 Share on X</a>
+  `;
+  document.body.appendChild(pop);
+
+  // Position below the anchor button
+  const rect = anchorBtn.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let left = rect.left + window.scrollX;
+  // Keep within viewport on the right edge
+  if (left + popRect.width > window.scrollX + document.documentElement.clientWidth - 8) {
+    left = rect.right + window.scrollX - popRect.width;
   }
+  pop.style.left = left + 'px';
+  pop.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+
+  pop.addEventListener('click', async (e) => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'native') {
+      try {
+        await navigator.share({ title, text, url });
+      } catch (err) { /* user cancelled or share failed; silent */ }
+      pop.remove();
+    } else if (act === 'copy') {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast('Link copied');
+      } catch (err) { toast('Copy failed — link: ' + url); }
+      pop.remove();
+    }
+  });
+
+  // Close on outside click or Escape
+  const onOutside = (e) => { if (!pop.contains(e.target) && e.target !== anchorBtn) { pop.remove(); cleanup(); } };
+  const onEsc = (e) => { if (e.key === 'Escape') { pop.remove(); cleanup(); } };
+  const cleanup = () => { document.removeEventListener('click', onOutside); document.removeEventListener('keydown', onEsc); };
+  setTimeout(() => { document.addEventListener('click', onOutside); document.addEventListener('keydown', onEsc); }, 0);
+}
+
+// ─── Hash routing ───
+// Routes:
+//   #/                        → gallery (default)
+//   #/p/<id>                  → prompt detail
+//   #/profile/<handle>        → profile
+//   #/settings                → settings
+//   #compare/<a>/<b>          → compare (legacy form, kept for backward compat)
+function handleHashRoute() {
+  const h = location.hash || '';
+  const compareM = h.match(/^#compare\/([^/]+)\/([^/]+)$/);
+  if (compareM) { renderCompare(compareM[1], compareM[2], null); return true; }
+  const detailM = h.match(/^#\/p\/([^/]+)$/);
+  if (detailM) {
+    const id = detailM[1];
+    if (prompts.find(x => x.id === id)) { renderDetail(id); return true; }
+  }
+  const profileM = h.match(/^#\/profile\/([^/]+)$/);
+  if (profileM) { renderProfile(profileM[1]); return true; }
+  if (h === '#/settings') { renderSettings(); return true; }
+  if (h === '' || h === '#' || h === '#/') { renderGallery(); return true; }
   return false;
 }
-window.addEventListener('hashchange', () => { handleCompareHash(); });
+// Backward-compatible alias used at bootstrap.
+function handleCompareHash() { return handleHashRoute(); }
+// Update the URL hash without firing hashchange (replaceState is silent for
+// hash-only updates, so internal navigation doesn't re-trigger the router).
+function setRoute(path) {
+  const target = '#/' + path.replace(/^#?\/?/, '');
+  if (location.hash !== target) {
+    try { history.replaceState(null, '', target); } catch (e) { location.hash = target; }
+  }
+}
+window.addEventListener('hashchange', () => { handleHashRoute(); });
 
 // ─── Issue date (daily, newspaper-style) ───
 document.getElementById('issueDate').textContent =
@@ -6397,6 +6520,7 @@ async function pushPromptToGitHub(prompt) {
   }
 }
 function renderSettings() {
+  setRoute('settings');
   const cfg = getSyncConfig();
   document.getElementById('syncRepo').value = cfg.repo || '';
   document.getElementById('syncBranch').value = cfg.branch || 'main';
