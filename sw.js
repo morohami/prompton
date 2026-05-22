@@ -5,7 +5,7 @@
 //   - Cache-first for htmls/* and other static assets
 //   - Bypass GitHub API requests entirely (writes must always hit the network)
 
-const VERSION = 'prompton-v2';
+const VERSION = 'prompton-v3';
 const SHELL = ['./', './index.html', './404.html', './manifest.json', './profiles.json', './tags.json'];
 
 self.addEventListener('install', (e) => {
@@ -36,8 +36,9 @@ self.addEventListener('fetch', (e) => {
 
   // Network-first for JSON and for the app shell (index.html and friends).
   // We only fall back to cache when offline — otherwise edits show up immediately.
-  // Cache-first only for /htmls/* (write-once prompt outputs).
+  // Cache-first for /htmls/* and /thumbs/* (write-once-ish prompt outputs).
   const isPromptHtml = path.includes('/htmls/');
+  const isThumb = path.includes('/thumbs/');
   if (isJson || (isHtml && !isPromptHtml)) {
     e.respondWith((async () => {
       try {
@@ -56,7 +57,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  if (isPromptHtml) {
+  if (isPromptHtml || isThumb) {
     e.respondWith((async () => {
       const cached = await caches.match(req);
       if (cached) {

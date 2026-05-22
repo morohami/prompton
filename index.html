@@ -938,6 +938,19 @@
     border: 0;
     background: white;
   }
+  /* Static JPG snapshots — replace the iframe entirely when available */
+  .thumb-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+    background: white;
+    pointer-events: none;
+  }
+  .album-card .album-thumb .thumb-img { object-fit: cover; }
   /* Lazy-mount placeholder for grid cards. Fills the .thumb-wrap and
      animates a subtle shimmer until the iframe is attached. */
   .card .card-thumb-mount {
@@ -3835,6 +3848,15 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       </div>
       <div class="settings-status" id="tagSaveStatus"></div>
     </div>
+
+    <div class="tag-curation" id="thumbnailPanel">
+      <h2>Thumbnails</h2>
+      <p class="lede">Static JPG thumbnails replace the live iframes on cards — much faster, especially on mobile. Regenerate them when you change a prompt's first-paint look.</p>
+      <div class="settings-actions">
+        <button type="button" id="thumbRegenBtn" class="btn-secondary">Regenerate all thumbnails</button>
+      </div>
+      <div class="settings-status" id="thumbStatus"></div>
+    </div>
   </div>
 </section>
 
@@ -4331,7 +4353,9 @@ function renderGallery() {
     const albumCardHtml = (p) =>
       '<div class="album-card" data-news-go="' + p.id + '">' +
         '<div class="album-thumb">' +
-          '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>' +
+          (p.thumb
+            ? '<img class="thumb-img" loading="lazy" decoding="async" src="' + escapeAttr(p.thumb) + '" alt="">'
+            : '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>') +
           '<button type="button" class="album-fullscreen" data-fullscreen-id="' + p.id + '" title="View this HTML fullscreen" aria-label="View fullscreen">⛶</button>' +
           '<div class="album-play" title="Open prompt">▶</div>' +
         '</div>' +
@@ -4486,10 +4510,13 @@ function renderGallery() {
     const ribbonText = p.forks > 50 ? 'Popular' : (p.parentId ? 'Fork' : p.model.split(' ')[0]);
     const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} knobs</span>` : '';
     const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
+    const thumbInner = p.thumb
+      ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(p.thumb)}" alt="">`
+      : `<div class="thumb-mount card-thumb-mount" data-thumb-id="${p.id}"></div>`;
     card.innerHTML = `
       <div class="thumb-wrap">
         <span class="ribbon ${ribbonClass}">${ribbonText}</span>
-        <div class="thumb-mount card-thumb-mount" data-thumb-id="${p.id}"></div>
+        ${thumbInner}
       </div>
       <div class="meta-top">
         <span>${formatDate(p.date)}</span>
@@ -5483,6 +5510,13 @@ async function syncVersionsToGitHub(prompt) {
   const topPath = 'htmls/' + prompt.id + '.html';
   const topSha = await ghGetSha(topPath);
   await ghPutFile(topPath, latestHtml, 'Prompton: refresh top-level html for ' + prompt.id, topSha);
+  // The visible thumbnail represents the latest version — regenerate it.
+  try {
+    const thumbPath = await pushThumbnailToGitHub(prompt, latestHtml);
+    prompt.thumb = thumbPath;
+  } catch (e) {
+    console.warn('Thumbnail refresh failed for ' + prompt.id + ':', e);
+  }
   await updatePromptMetadataOnGitHub(prompt);
 }
 
@@ -6847,6 +6881,12 @@ async function deletePromptFromGitHub(prompt) {
   }
   // Also delete the OG card page if present.
   try { await deleteOGPageFromGitHub(prompt); } catch (e) { /* best effort */ }
+  // Delete the JPG thumbnail too, if one was generated.
+  try {
+    const thumbPath = 'thumbs/' + prompt.id + '.jpg';
+    const tSha = await ghGetSha(thumbPath);
+    if (tSha) await ghDeleteFile(thumbPath, 'Prompton: delete ' + thumbPath, tSha);
+  } catch (e) { /* best effort */ }
   // 2. Remove from manifest.json and re-PUT
   const cfg = getSyncConfig();
   const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
@@ -6902,6 +6942,120 @@ function cleanupHtml(raw) {
   return s;
 }
 
+// ─── Thumbnail snapshots ───
+// Load html2canvas from CDN once. Returns a promise resolved to window.html2canvas.
+function loadHtml2Canvas() {
+  if (window.html2canvas) return Promise.resolve(window.html2canvas);
+  if (window._h2cLoading) return window._h2cLoading;
+  window._h2cLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.onload = () => resolve(window.html2canvas);
+    s.onerror = () => reject(new Error('html2canvas failed to load'));
+    document.head.appendChild(s);
+  });
+  return window._h2cLoading;
+}
+
+// Render the prompt HTML offscreen at 1280×1280 and snapshot to a JPG Blob.
+// Sandbox is `allow-scripts allow-same-origin` because we need to read the
+// iframe's DOM from html2canvas — only safe because this is owner-triggered on
+// their own content (the PAT is already in this browser's localStorage).
+async function generateThumbnail(html, opts) {
+  opts = opts || {};
+  const size = opts.size || 480;        // output JPG dimensions (square)
+  const quality = opts.quality || 0.82;
+  const settleMs = opts.settleMs || 1500;
+  await loadHtml2Canvas();
+  return new Promise((resolve, reject) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;left:-99999px;top:0;width:1280px;height:1280px;pointer-events:none;visibility:hidden;';
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'width:1280px;height:1280px;border:0;background:#fff;';
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.srcdoc = html;
+    wrap.appendChild(iframe);
+    document.body.appendChild(wrap);
+    const cleanup = () => { try { wrap.remove(); } catch (e) {} };
+    const timeout = setTimeout(() => { cleanup(); reject(new Error('thumbnail iframe load timeout')); }, 15000);
+    iframe.onload = async () => {
+      // Let scripts inside the prompt settle (e.g. canvas/SVG drawn after DOMContentLoaded).
+      await new Promise(r => setTimeout(r, settleMs));
+      try {
+        const doc = iframe.contentDocument;
+        const target = (doc && doc.body) || iframe;
+        const canvas = await window.html2canvas(target, {
+          width: 1280, height: 1280,
+          windowWidth: 1280, windowHeight: 1280,
+          backgroundColor: '#ffffff',
+          useCORS: true, allowTaint: true,
+          logging: false, scale: 1
+        });
+        // Downscale to `size` square for storage
+        const out = document.createElement('canvas');
+        out.width = size; out.height = size;
+        const ctx = out.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(canvas, 0, 0, size, size);
+        out.toBlob((blob) => {
+          clearTimeout(timeout);
+          cleanup();
+          if (!blob) return reject(new Error('toBlob returned null'));
+          resolve(blob);
+        }, 'image/jpeg', quality);
+      } catch (e) {
+        clearTimeout(timeout);
+        cleanup();
+        reject(e);
+      }
+    };
+  });
+}
+
+// Convert a Blob to a base64 string (no data: prefix) for the GitHub API.
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const s = String(r.result || '');
+      const i = s.indexOf(',');
+      resolve(i >= 0 ? s.slice(i + 1) : s);
+    };
+    r.onerror = () => reject(r.error || new Error('FileReader failed'));
+    r.readAsDataURL(blob);
+  });
+}
+
+// PUT a binary file (e.g. a JPG thumbnail) to the GitHub Contents API.
+async function ghPutBinaryFile(path, blob, message, sha) {
+  const cfg = getSyncConfig();
+  const body = {
+    message: message,
+    content: await blobToBase64(blob),
+    branch: cfg.branch
+  };
+  if (sha) body.sha = sha;
+  return ghFetch('/contents/' + encodeURIComponent(path), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+// Generate + upload the JPG thumbnail for a prompt; returns the repo-relative path.
+// Failures are non-fatal: the caller treats this as best-effort.
+async function pushThumbnailToGitHub(prompt, html) {
+  const blob = await generateThumbnail(html);
+  const path = 'thumbs/' + prompt.id + '.jpg';
+  const sha = await ghGetSha(path);
+  await ghPutBinaryFile(path, blob, 'Prompton: thumbnail for ' + prompt.id, sha);
+  return path;
+}
+
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';
@@ -6909,6 +7063,13 @@ async function pushPromptToGitHub(prompt) {
   const cleanedHtml = cleanupHtml(prompt.html);
   prompt.html = cleanedHtml; // also persist the cleaned version in-memory
   await ghPutFile(htmlPath, cleanedHtml, 'Prompton: add ' + prompt.id + ' html', htmlSha);
+  // 1b. Generate + upload the JPG thumbnail (best-effort; manifest references it on success).
+  try {
+    const thumbPath = await pushThumbnailToGitHub(prompt, cleanedHtml);
+    prompt.thumb = thumbPath;
+  } catch (e) {
+    console.warn('Thumbnail generation failed for ' + prompt.id + ':', e);
+  }
   // 2. Update manifest.json — read fresh then append/replace this prompt
   const cfg = getSyncConfig();
   const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
@@ -7048,6 +7209,42 @@ document.getElementById('aliasList').addEventListener('click', (e) => {
   if (!btn) return;
   delete tagConfig.aliases[btn.dataset.rmAlias];
   renderTagCurationPanel();
+});
+document.getElementById('thumbRegenBtn').addEventListener('click', async () => {
+  const status = document.getElementById('thumbStatus');
+  const btn = document.getElementById('thumbRegenBtn');
+  if (!isOwner()) {
+    status.className = 'settings-status err';
+    status.textContent = 'Configure GitHub above first — regen needs to upload to the repo.';
+    return;
+  }
+  const list = prompts.filter(p => p && p.html && !isDraft(p));
+  if (!list.length) {
+    status.className = 'settings-status info';
+    status.textContent = 'No published prompts to thumbnail.';
+    return;
+  }
+  btn.disabled = true;
+  let done = 0, failed = 0;
+  for (const p of list) {
+    status.className = 'settings-status info';
+    status.textContent = `Generating ${done + 1}/${list.length} — ${p.id} …`;
+    try {
+      const path = await pushThumbnailToGitHub(p, p.html);
+      p.thumb = path;
+      const seed = seedPrompts.find(x => x.id === p.id);
+      if (seed) seed.thumb = path;
+      await updatePromptMetadataOnGitHub(p);
+      done++;
+    } catch (e) {
+      console.warn('Thumb failed for ' + p.id + ':', e);
+      failed++;
+    }
+  }
+  btn.disabled = false;
+  status.className = failed ? 'settings-status info' : 'settings-status ok';
+  status.textContent = `✓ Regenerated ${done} thumbnail${done === 1 ? '' : 's'}` + (failed ? ` · ${failed} failed (see console).` : '.');
+  renderGallery();
 });
 document.getElementById('tagSaveBtn').addEventListener('click', async () => {
   const status = document.getElementById('tagSaveStatus');
