@@ -1767,6 +1767,9 @@
   }
   .grid.compare-mode .card { position: relative; }
   .compare-pill {
+    /* Hidden — compare now auto-triggers when 2 cards are selected.
+       Kept in DOM for backward compat; never displayed. */
+    display: none !important;
     position: fixed;
     bottom: 30px;
     left: 50%;
@@ -3886,26 +3889,30 @@ function normalizeTag(t) {
 // excluding tags already present in the linked input. Clicking a chip
 // appends the tag to the input and re-renders.
 // `excludeTags` (optional) hides those tags from the suggestions even if
-// they're "past" tags — used by the metadata editor so removing a tag
-// from the input doesn't re-suggest it as a chip.
+// they're "past" tags — used by the metadata editor for the prompt's
+// existing tags.
+// Tags the user explicitly removes from the input mid-session are tracked
+// in `removed` and stay excluded until they re-add them via a chip click
+// or by typing the tag back in.
 function mountCuratedTagChips(inputId, mountId, excludeTags) {
   const input = document.getElementById(inputId);
   const mount = document.getElementById(mountId);
   if (!input || !mount) return;
   const excluded = new Set((excludeTags || []).map(normalizeTag).filter(Boolean));
+  const removed = new Set();
+  const parseTags = (val) => new Set((val || '').split(',').map(s => normalizeTag(s.trim())).filter(Boolean));
+  let lastTags = parseTags(input.value);
   const refresh = () => {
-    const present = new Set(input.value.split(',').map(s => normalizeTag(s.trim())).filter(Boolean));
-    // Past tags: any tag that appears on at least one prompt.
+    const present = parseTags(input.value);
     const past = new Set();
     prompts.forEach(p => {
       if (p.tag) past.add(normalizeTag(p.tag));
       if (Array.isArray(p.tags)) p.tags.forEach(t => past.add(normalizeTag(t)));
     });
     const curatedSet = new Set(tagConfig.curated || []);
-    // Show curated first, then any past tags not in curated; skip whatever is already in the input or in excludeTags.
     const ordered = [
-      ...(tagConfig.curated || []).filter(t => !present.has(t) && !excluded.has(t)),
-      ...[...past].filter(t => t && !curatedSet.has(t) && !present.has(t) && !excluded.has(t)).sort()
+      ...(tagConfig.curated || []).filter(t => !present.has(t) && !excluded.has(t) && !removed.has(t)),
+      ...[...past].filter(t => t && !curatedSet.has(t) && !present.has(t) && !excluded.has(t) && !removed.has(t)).sort()
     ];
     mount.innerHTML = ordered.map(t => {
       const isCurated = curatedSet.has(t);
@@ -3918,9 +3925,20 @@ function mountCuratedTagChips(inputId, mountId, excludeTags) {
     const tag = chip.dataset.tag;
     const cur = input.value.trim();
     input.value = cur ? (cur.replace(/,\s*$/, '') + ', ' + tag) : tag;
+    // Re-adding via chip click clears the "I removed this" memory for that tag.
+    removed.delete(tag);
+    lastTags = parseTags(input.value);
     refresh();
   });
-  input.addEventListener('input', refresh);
+  input.addEventListener('input', () => {
+    const cur = parseTags(input.value);
+    // Anything that was in the input before and isn't now → user just removed it.
+    for (const t of lastTags) if (!cur.has(t)) removed.add(t);
+    // Anything in the input now that wasn't before → user just added it (typing).
+    for (const t of cur) if (!lastTags.has(t)) removed.delete(t);
+    lastTags = cur;
+    refresh();
+  });
   refresh();
 }
 
@@ -4266,10 +4284,19 @@ function renderGallery() {
         } else if (compareSelection.length < 2) {
           compareSelection.push(p.id);
           card.classList.add('selected');
-        } else {
-          toast('Already have 2 selected — clear to pick others.');
         }
         updateComparePill();
+        // Auto-trigger when 2 selected — no floating bottom pill needed.
+        if (compareSelection.length === 2) {
+          const sel = compareSelection.slice();
+          compareMode = false;
+          compareSelection = [];
+          const toggle = document.getElementById('compareToggle');
+          if (toggle) { toggle.classList.remove('active'); toggle.textContent = '⇄ Compare'; }
+          const gridEl = document.getElementById('cardGrid');
+          if (gridEl) gridEl.classList.remove('compare-mode');
+          renderCompare(sel[0], sel[1], null);
+        }
         return;
       }
       if (e.target.dataset.author) {

@@ -5,7 +5,7 @@
 //   - Cache-first for htmls/* and other static assets
 //   - Bypass GitHub API requests entirely (writes must always hit the network)
 
-const VERSION = 'prompton-v1';
+const VERSION = 'prompton-v2';
 const SHELL = ['./', './index.html', './404.html', './manifest.json', './profiles.json', './tags.json'];
 
 self.addEventListener('install', (e) => {
@@ -34,13 +34,18 @@ self.addEventListener('fetch', (e) => {
   const isJson = /\.(json)$/.test(path);
   const isHtml = /\.html?$/.test(path) || path === '/' || path.endsWith('/');
 
-  if (isJson) {
-    // Network-first: keep manifest/profiles/tags fresh, fall back to cache.
+  // Network-first for JSON and for the app shell (index.html and friends).
+  // We only fall back to cache when offline — otherwise edits show up immediately.
+  // Cache-first only for /htmls/* (write-once prompt outputs).
+  const isPromptHtml = path.includes('/htmls/');
+  if (isJson || (isHtml && !isPromptHtml)) {
     e.respondWith((async () => {
       try {
         const fresh = await fetch(req);
-        const cache = await caches.open(VERSION);
-        cache.put(req, fresh.clone());
+        if (fresh && fresh.ok) {
+          const cache = await caches.open(VERSION);
+          cache.put(req, fresh.clone());
+        }
         return fresh;
       } catch (_) {
         const cached = await caches.match(req);
@@ -51,12 +56,10 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  if (isHtml || path.includes('/htmls/')) {
-    // Cache-first for shell + prompt HTML files.
+  if (isPromptHtml) {
     e.respondWith((async () => {
       const cached = await caches.match(req);
       if (cached) {
-        // Refresh in background so the next visit gets new content.
         fetch(req).then(r => { if (r && r.ok) caches.open(VERSION).then(c => c.put(req, r)); }).catch(() => {});
         return cached;
       }
