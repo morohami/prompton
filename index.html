@@ -863,17 +863,6 @@
     color: var(--text-secondary, var(--text));
   }
 
-  /* Draft badge in the detail header */
-  .draft-badge {
-    display: inline-block; vertical-align: middle;
-    margin-left: 10px;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
-    padding: 3px 8px; border-radius: 4px;
-    background: rgba(232,137,58,0.18);
-    color: #b8651e;
-    border: 1px solid rgba(232,137,58,0.4);
-  }
-
   .sort-label {
     color: var(--text-muted);
     margin-right: -4px;
@@ -4312,8 +4301,8 @@ function renderGallery() {
   setRoute('');
   showView('gallery');
   renderTagChips();
-  // ── Public list excludes private forks (your forks live in Library) ──
-  const publicPrompts = prompts.filter(p => !(p.author === 'you' && p.parentId));
+  // All prompts are published once they're in the manifest — no local-only drafts.
+  const publicPrompts = prompts.slice();
 
   // ── Spotify-style home (only when not filtering/searching) ──
   const magazineEl = document.getElementById('magazineSection');
@@ -4326,8 +4315,8 @@ function renderGallery() {
     const trending = [...picks.major, ...picks.briefs];
     const leadExcerpt = lead.editorsNote || lead.description || '';
 
-    // "Made for you" = your forks (private)
-    const yourForks = prompts.filter(p => p.author === 'you' && p.parentId);
+    // "Made for you" = prompts you authored (yours, including remixes)
+    const yourForks = prompts.filter(p => p.author === 'you');
     // "By <top author>" = prompts from author with most published
     const authorCounts = {};
     publicPrompts.forEach(p => { authorCounts[p.author] = (authorCounts[p.author] || 0) + 1; });
@@ -4475,8 +4464,8 @@ function renderGallery() {
     archiveEl.innerHTML = '';
   }
 
-  // ── Filtered / sorted list (excluding your unpublished drafts) ──
-  let list = prompts.filter(p => !isDraft(p));
+  // ── Filtered / sorted list ──
+  let list = prompts.slice();
   if (currentFilter !== 'all') {
     list = list.filter(p => {
       if (normalizeTag(p.tag) === currentFilter) return true;
@@ -4568,8 +4557,7 @@ function renderGallery() {
   });
   // Apply compare-mode class
   grid.classList.toggle('compare-mode', compareMode);
-  const publicCount = prompts.filter(p => !(p.author === 'you' && p.parentId)).length;
-  document.getElementById('issueCount').textContent = `${publicCount} prompts in circulation`;
+  document.getElementById('issueCount').textContent = `${prompts.length} prompts in circulation`;
   // Lazy-mount the grid's iframe thumbnails — only what enters the viewport.
   mountAlbumThumbs(grid);
   showView('gallery');
@@ -4688,7 +4676,7 @@ function renderDetail(id, viewingVersionNum) {
 
     <div class="detail-header">
       <div>
-        <h1>${escapeHtml(p.title)}${isDraft(p) ? ' <span class="draft-badge">Draft</span>' : ''}</h1>
+        <h1>${escapeHtml(p.title)}</h1>
         <div class="detail-byline">
           by <span class="author-link" data-author="${p.author}">${escapeHtml(p.authorName)}</span>
           &nbsp;·&nbsp; ${formatDate(p.date)}
@@ -4699,7 +4687,6 @@ function renderDetail(id, viewingVersionNum) {
         </div>
       </div>
       <div class="detail-actions">
-        ${isDraft(p) && isOwner() ? `<button class="btn primary" id="publishDraftBtn" title="Push this draft to GitHub — appears in the public gallery after Pages refresh">↑ Publish</button>` : ''}
         <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">↗ Open in Claude.ai</button>
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">⎘ Copy</button>
         <button class="btn secondary" id="downloadBtn">↓ Download HTML</button>
@@ -4980,22 +4967,6 @@ function renderDetail(id, viewingVersionNum) {
   const saveVersionBtn = document.getElementById('saveVersionBtn');
   if (saveVersionBtn) {
     saveVersionBtn.addEventListener('click', () => openVersionEditor(p.id));
-  }
-
-  // Publish draft → push to GitHub (only visible when draft + owner)
-  const publishBtn = document.getElementById('publishDraftBtn');
-  if (publishBtn) {
-    publishBtn.addEventListener('click', async () => {
-      const original = publishBtn.innerHTML;
-      publishBtn.disabled = true;
-      publishBtn.innerHTML = '↑ Publishing…';
-      await publishDraft(p.id);
-      // publishDraft re-renders on success; if we get here on failure, restore button.
-      if (document.getElementById('publishDraftBtn')) {
-        publishBtn.disabled = false;
-        publishBtn.innerHTML = original;
-      }
-    });
   }
 
   // Edit metadata (owner only) — opens inline editor for title / description / tags / license / model.
@@ -5557,53 +5528,55 @@ function renderTemplate(text, variables) {
 }
 
 // ─── Fork ───
+// Forks no longer create local drafts. Instead: download the parent HTML so
+// the user can edit it in their own editor, then come back and Upload the
+// edited file as a new prompt. The parent id is stashed in sessionStorage so
+// the next successful upload picks it up as parentId.
 function forkPrompt(parent) {
-  const newPrompt = {
-    ...JSON.parse(JSON.stringify(parent)),
-    id: 'p' + Date.now(),
-    title: parent.title + ' (forked)',
-    author: 'you', authorName: (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You'),
-    date: new Date().toISOString().slice(0,10),
-    downloads: 0, forks: 0,
-    parentId: parent.id,
-    status: 'draft'
-  };
-  prompts.unshift(newPrompt);
-  parent.forks++;
-  saveData(prompts);
-  toast(`Drafted · edit & click Publish to share "${parent.title}" remix`);
-  renderDetail(newPrompt.id);
-}
-
-// A prompt is a draft if status === 'draft', or (legacy) if it's a private
-// fork that predates the status field (author === 'you' with a parentId).
-function isDraft(p) {
-  if (!p) return false;
-  if (p.status === 'draft') return true;
-  if (!p.status && p.author === 'you' && p.parentId) return true;
-  return false;
-}
-
-async function publishDraft(promptId) {
-  const p = prompts.find(x => x.id === promptId);
-  if (!p) return;
-  if (!isOwner()) {
-    alert('Configure GitHub in Settings before publishing.');
-    return;
-  }
-  const prevStatus = p.status;
-  p.status = 'published';
-  saveData(prompts);
+  if (!parent) return;
+  // 1. Download the parent's HTML
   try {
-    await pushPromptToGitHub(p);
-    toast(`Published "${p.title}" — Pages may take a minute to refresh`);
-    renderDetail(promptId);
-  } catch (err) {
-    console.error('Publish failed:', err);
-    p.status = prevStatus || 'draft';
-    saveData(prompts);
-    alert('Publish failed: ' + err.message);
+    const blob = new Blob([parent.html || ''], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = safeFilename(parent);
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) { console.warn('Fork download failed:', e); }
+  // 2. Stash parent for the upcoming upload + pre-fill the form
+  try { sessionStorage.setItem('prompton_fork_parent', parent.id); } catch (e) {}
+  prefillUploadFormFromParent(parent);
+  // 3. Switch to upload view
+  showView('upload');
+  setRoute('upload');
+  toast(`Downloaded "${parent.title}" — edit it, then drop the new file above to publish your remix.`);
+}
+
+// Pre-fill the upload form with the parent's prompt text, description, tags,
+// model, and a "(remix)" title suffix. Called after `forkPrompt`.
+function prefillUploadFormFromParent(parent) {
+  const titleInput = document.getElementById('titleInput');
+  if (titleInput) titleInput.value = (parent.title || '') + ' (remix)';
+  const descInput = document.querySelector('#uploadForm input[name="description"]');
+  if (descInput) descInput.value = parent.description || '';
+  const modelSel = document.querySelector('#uploadForm select[name="model"]');
+  if (modelSel && parent.model) modelSel.value = parent.model;
+  const licSel = document.querySelector('#uploadForm select[name="license"]');
+  if (licSel && parent.license) licSel.value = parent.license;
+  const promptTA = document.getElementById('quickPromptField');
+  if (promptTA) {
+    const parts = [];
+    if (parent.systemPrompt) parts.push('[SYSTEM]\n' + parent.systemPrompt);
+    if (parent.userPrompt)   parts.push('[USER]\n'   + parent.userPrompt);
+    if (parent.context)      parts.push('[CONTEXT]\n'+ parent.context);
+    promptTA.value = parts.join('\n\n');
   }
+  if (window._uploadTagPicker && Array.isArray(parent.tags)) {
+    window._uploadTagPicker.setTags(parent.tags);
+  }
+  // Open the Advanced details so the pre-filled tags/description are visible.
+  const adv = document.querySelector('.upload-advanced');
+  if (adv) adv.open = true;
 }
 
 // ─── Profile ───
@@ -6108,6 +6081,15 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
   const tags = normalizeTagList(window._uploadTagPicker ? window._uploadTagPicker.getTags() : []);
 
+  // If this upload started from a Fork, pick up the stashed parent id and
+  // bump the parent's fork count.
+  let parentId = null;
+  try { parentId = sessionStorage.getItem('prompton_fork_parent') || null; } catch (e) {}
+  if (parentId) {
+    const parent = prompts.find(x => x.id === parentId);
+    if (parent) parent.forks++;
+  }
+
   const newPrompt = {
     id: 'p' + Date.now(),
     title: title,
@@ -6121,7 +6103,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     tag: tags[0] || 'other',
     author: 'you', authorName: (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You'),
     date: new Date().toISOString().slice(0,10),
-    downloads: 0, forks: 0, parentId: null,
+    downloads: 0, forks: 0, parentId: parentId,
     usage: [],
     variables: variables,
     html: uploadedHtml
@@ -6149,6 +6131,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   }
 
   e.target.reset();
+  try { sessionStorage.removeItem('prompton_fork_parent'); } catch (e) {}
   if (window._uploadTagPicker) window._uploadTagPicker.setTags([]);
   uploadedHtml = '';
   fileDrop.classList.remove('has-file');
@@ -6165,7 +6148,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 function renderTagChips() {
   const counts = {};
   prompts.forEach(p => {
-    if (isDraft(p)) return; // drafts aren't in public view yet
     const tagSet = new Set();
     if (p.tag) tagSet.add(normalizeTag(p.tag));
     if (Array.isArray(p.tags)) p.tags.forEach(t => tagSet.add(normalizeTag(t)));
@@ -7218,7 +7200,7 @@ document.getElementById('thumbRegenBtn').addEventListener('click', async () => {
     status.textContent = 'Configure GitHub above first — regen needs to upload to the repo.';
     return;
   }
-  const list = prompts.filter(p => p && p.html && !isDraft(p));
+  const list = prompts.filter(p => p && p.html);
   if (!list.length) {
     status.className = 'settings-status info';
     status.textContent = 'No published prompts to thumbnail.';
