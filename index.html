@@ -8,8 +8,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    /* Spotify-inspired dark palette */
+  /* ─── Theme variables ─── */
+  /* Default (no data-theme yet): light palette — readability first */
+  :root, :root[data-theme="light"] {
+    --bg: #fafaf7;
+    --bg-2: #f1efea;
+    --bg-elevated: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f3f1ec;
+    --bg-top: rgba(255,255,255,0.85);
+    --text: #1a1a1a;
+    --text-secondary: #555a5e;
+    --text-muted: #8a8e93;
+    --accent: #1db954;
+    --accent-hover: #169c46;
+    --accent-deep: #0e7a37;
+    --accent-on: #ffffff;        /* color of text on top of --accent surface */
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --hover: rgba(0,0,0,0.04);
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.06);
+    --overlay-strong: rgba(0,0,0,0.55);
+    --surface-tint: rgba(0,0,0,0.04);   /* generic dim/hover */
+    --input-bg: #ffffff;
+    --input-focus-bg: #f3f1ec;
+    --kbd-bg: rgba(0,0,0,0.06);
+    --kbd-border: rgba(0,0,0,0.12);
+    --iframe-frame: rgba(0,0,0,0.10);
+  }
+  :root[data-theme="dark"] {
     --bg: #121212;
     --bg-2: #181818;
     --bg-elevated: #1a1a1a;
@@ -22,10 +49,21 @@
     --accent: #1db954;
     --accent-hover: #1ed760;
     --accent-deep: #169c46;
+    --accent-on: #000000;
     --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
     --hover: rgba(255,255,255,0.06);
-    --shadow: rgba(0,0,0,0.4);
+    --shadow: 0 4px 16px rgba(0,0,0,0.4);
+    --overlay-strong: rgba(0,0,0,0.75);
+    --surface-tint: rgba(255,255,255,0.06);
+    --input-bg: #1f1f1f;
+    --input-focus-bg: #2a2a2a;
+    --kbd-bg: rgba(255,255,255,0.08);
+    --kbd-border: rgba(255,255,255,0.12);
+    --iframe-frame: rgba(255,255,255,0.10);
+  }
 
+  :root {
     /* Legacy variable remapping so old selectors still work */
     --paper: var(--bg);
     --paper-2: var(--bg-2);
@@ -37,6 +75,11 @@
     --olive: var(--accent);
     --mustard: #f0c245;
     --card: var(--bg-card);
+  }
+
+  /* Smooth color transitions on theme switch */
+  html, body, header, .card, .album-card, input, textarea, button {
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -131,13 +174,17 @@
     color: var(--bg);
     transform: scale(1.04);
   }
-  .nav-actions .nav-settings {
+  .nav-actions .nav-settings,
+  .nav-actions .nav-theme {
     font-size: 18px;
     line-height: 1;
     padding: 6px 10px;
     color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
   }
-  .nav-actions .nav-settings:hover { color: var(--text); }
+  .nav-actions .nav-settings:hover,
+  .nav-actions .nav-theme:hover { color: var(--text); }
   .nav-actions .nav-settings.connected { color: var(--accent); }
 
   /* ── Settings view ── */
@@ -397,7 +444,7 @@
   .row-scroll::-webkit-scrollbar { height: 6px; }
   .row-scroll::-webkit-scrollbar-track { background: transparent; }
   .row-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .row-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  .row-scroll::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
   /* ─── Spotify Album Card ─── */
   .album-card {
@@ -405,13 +452,14 @@
     padding: 16px;
     border-radius: 8px;
     cursor: pointer;
-    transition: background .2s;
+    transition: background .2s, box-shadow .2s, transform .2s;
     scroll-snap-align: start;
     position: relative;
     display: flex;
     flex-direction: column;
+    box-shadow: var(--shadow);
   }
-  .album-card:hover { background: var(--bg-card-hover); }
+  .album-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
   .album-card .album-thumb {
     position: relative;
     aspect-ratio: 1 / 1;
@@ -564,7 +612,7 @@
     background-position: 16px center;
     transition: background-color .15s;
   }
-  .filter-bar input.search:focus { background-color: #2a2a2a; }
+  .filter-bar input.search:focus { background-color: var(--input-focus-bg); }
   .filter-bar input.search::placeholder { color: var(--text-muted); font-style: normal; }
   .filter-bar .chip {
     background: var(--bg-elevated);
@@ -584,7 +632,7 @@
   .chip.active { background: var(--text); color: var(--bg); border-color: transparent; }
   .chip .chip-count {
     display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px;
-    background: rgba(255,255,255,0.08); color: var(--text-muted); font-size: 10px; font-weight: 700;
+    background: var(--surface-tint); color: var(--text-muted); font-size: 10px; font-weight: 700;
     font-family: 'JetBrains Mono', monospace; vertical-align: 1px;
   }
   .chip.active .chip-count { background: rgba(0,0,0,0.18); color: rgba(0,0,0,0.6); }
@@ -625,10 +673,11 @@
     background: var(--bg-card);
     padding: 14px;
     border-radius: 8px;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     position: relative;
+    box-shadow: var(--shadow);
   }
-  .card:hover { background: var(--bg-card-hover); transform: none; }
+  .card:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
   .card .thumb-wrap {
     position: relative;
     aspect-ratio: 1 / 1;
@@ -2517,7 +2566,7 @@
     border-radius: 4px;
     transition: border-color 0.15s, background 0.15s;
   }
-  .upload-block input:focus, .upload-block textarea:focus { background: #2a2a2a; }
+  .upload-block input:focus, .upload-block textarea:focus { background: var(--input-focus-bg); }
   .upload-block textarea {
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
@@ -2531,41 +2580,68 @@
   }
 
   .file-drop.large {
-    padding: 60px 30px;
-    border: 2px dashed rgba(255,255,255,0.2);
-    border-radius: 8px;
+    display: block;
+    width: 100%;
+    min-height: 240px;
+    padding: 64px 30px;
+    border: 2px dashed var(--border-strong);
+    border-radius: 10px;
     background: var(--bg-elevated);
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.18s;
   }
   .file-drop.large .drop-title {
     font-family: 'Fraunces', serif;
     font-size: 32px;
     font-weight: 400;
     font-style: italic;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: var(--ink);
     letter-spacing: -0.01em;
+    pointer-events: none;
   }
   .file-drop.large .drop-hint {
     color: var(--ink-soft);
     font-size: 14px;
+    line-height: 1.7;
+    pointer-events: none;
+  }
+  .file-drop.large .drop-hint .sep {
+    opacity: 0.4;
+    margin: 0 6px;
+  }
+  .file-drop.large .drop-hint kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--kbd-bg);
+    border: 1px solid var(--kbd-border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--text);
   }
   .file-drop.large:hover {
-    border-color: var(--ink);
-    background: rgba(26,22,18,0.03);
+    border-color: var(--accent);
+    background: rgba(29,185,84,0.04);
+  }
+  .file-drop.large.dragover {
+    border-color: var(--accent);
+    border-style: solid;
+    background: rgba(29,185,84,0.10);
+    transform: scale(1.01);
   }
   .file-drop.large.has-file {
-    border-color: var(--olive);
+    border-color: var(--accent);
     border-style: solid;
-    background: rgba(107,106,58,0.06);
+    background: rgba(29,185,84,0.06);
     padding: 30px;
+    min-height: 0;
   }
   .file-drop.large.has-file .drop-title {
     font-size: 22px;
     font-style: normal;
-    color: var(--olive);
+    color: var(--accent);
   }
 
   .html-preview {
@@ -3192,6 +3268,7 @@
   <nav class="nav-actions">
     <a data-nav="gallery">Browse</a>
     <a data-nav="profile">Profile</a>
+    <a id="themeToggle" class="nav-theme" title="Toggle light/dark theme" aria-label="Toggle theme">☀</a>
     <a data-nav="settings" class="nav-settings" title="GitHub sync settings">⚙</a>
     <button class="btn-upload" data-nav="upload">＋ Share a prompt</button>
   </nav>
@@ -3252,7 +3329,9 @@
         <p class="upload-help">Drop the file your AI generated. We'll grab the title from the &lt;title&gt; tag and show you a live preview.</p>
         <label class="file-drop large" id="fileDrop">
           <div class="drop-title" id="dropTitle">Drop .html here</div>
-          <div class="drop-hint" id="dropHint">or click to browse</div>
+          <div class="drop-hint" id="dropHint">
+            click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>
+          </div>
           <input type="file" name="htmlFile" accept=".html,text/html" required style="display:none" id="htmlFile" />
         </label>
         <div class="html-preview" id="htmlPreview" style="display:none">
@@ -3390,6 +3469,55 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 /* ════════════════════════════════════════════════════════
    PromptShare prototype — single-file, localStorage-backed
    ════════════════════════════════════════════════════════ */
+
+// ─── Theme (light / dark) ───
+const THEME_KEY = 'prompton_theme_v1';
+function getStoredTheme() {
+  try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+}
+function resolveInitialTheme() {
+  const stored = getStoredTheme();
+  if (stored === 'light' || stored === 'dark') return stored;
+  // Default to light. Respect prefers-color-scheme only if user has explicitly set dark.
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+  } catch (e) {}
+  return 'light';
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const t = document.getElementById('themeToggle');
+  if (t) {
+    t.textContent = theme === 'dark' ? '☾' : '☀';
+    t.title = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  }
+}
+// Apply immediately so first paint matches
+(function bootTheme() {
+  applyTheme(resolveInitialTheme());
+})();
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  applyTheme(next);
+}
+// Re-bind after DOM is ready (toggle button exists)
+document.addEventListener('DOMContentLoaded', () => {
+  const t = document.getElementById('themeToggle');
+  if (t) {
+    t.addEventListener('click', (e) => { e.preventDefault(); toggleTheme(); });
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+  }
+});
+
+// ─── Feature flags ───
+// Social/discovery rows from the prototype era. Off by default in personal-vault mode;
+// flip to true when the collection is opened up for browsing by others.
+const FEATURES = {
+  spotlight: false,   // big "Today's Lead" hero
+  trending: false,    // "Trending today" album row
+};
 
 // ─── Seed data (loaded from manifest.json + htmls/*.html at boot) ───
 let seedPrompts = [];
@@ -3619,30 +3747,49 @@ function renderGallery() {
         '<div class="album-stats">' + formatNum(p.downloads) + ' · ⑂ ' + p.forks + '</div>' +
       '</div>';
 
+    // "Recently added" — by date desc, the freshest 8 entries in the collection
+    const recentlyAdded = publicPrompts.slice().sort((a, b) =>
+      (b.date || '').localeCompare(a.date || '')
+    ).slice(0, 8);
+
     magazineEl.innerHTML =
       '<div class="greeting">' + greeting + ', ' + escapeHtml(youName === 'You' ? 'reader' : youName.split(' ')[0]) + '.</div>' +
-      '<div class="greeting-sub">Daily edition · Issue ' + getIssueNumber() + '</div>' +
-
-      '<div class="spotlight">' +
-        '<div class="spotlight-gradient"></div>' +
-        '<div class="spotlight-grid">' +
-          '<div class="spotlight-preview" data-news-go="' + lead.id + '">' +
-            '<iframe srcdoc="' + escapeAttr(lead.html) + '" sandbox="allow-scripts allow-same-origin"></iframe>' +
-          '</div>' +
-          '<div class="spotlight-editorial">' +
-            '<div class="spotlight-kicker">TODAY\'S LEAD</div>' +
-            '<h2 class="spotlight-title" data-news-go="' + lead.id + '">' + titleWithEmphasis(lead.title) + '</h2>' +
-            (leadExcerpt ? '<div class="spotlight-excerpt">' + escapeHtml(leadExcerpt) + '</div>' : '') +
-            '<div class="spotlight-byline">by <span class="author-link" data-author="' + lead.author + '">' + escapeHtml(lead.authorName) + '</span> · ' + formatNum(lead.downloads) + ' downloads · ' + lead.forks + ' forks</div>' +
-            '<div class="spotlight-actions">' +
-              '<button class="btn-play" data-news-go="' + lead.id + '">Open prompt</button>' +
-              '<button class="btn-ghost" data-news-fork="' + lead.id + '">⑂ Fork</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
+      '<div class="greeting-sub">' +
+        (FEATURES.spotlight ? 'Daily edition · Issue ' + getIssueNumber() : 'Your collection · ' + publicPrompts.length + ' prompt' + (publicPrompts.length === 1 ? '' : 's')) +
       '</div>' +
 
-      (trending.length ? (
+      (FEATURES.spotlight && lead ? (
+        '<div class="spotlight">' +
+          '<div class="spotlight-gradient"></div>' +
+          '<div class="spotlight-grid">' +
+            '<div class="spotlight-preview" data-news-go="' + lead.id + '">' +
+              '<iframe srcdoc="' + escapeAttr(lead.html) + '" sandbox="allow-scripts allow-same-origin"></iframe>' +
+            '</div>' +
+            '<div class="spotlight-editorial">' +
+              '<div class="spotlight-kicker">TODAY\'S LEAD</div>' +
+              '<h2 class="spotlight-title" data-news-go="' + lead.id + '">' + titleWithEmphasis(lead.title) + '</h2>' +
+              (leadExcerpt ? '<div class="spotlight-excerpt">' + escapeHtml(leadExcerpt) + '</div>' : '') +
+              '<div class="spotlight-byline">by <span class="author-link" data-author="' + lead.author + '">' + escapeHtml(lead.authorName) + '</span> · ' + formatNum(lead.downloads) + ' downloads · ' + lead.forks + ' forks</div>' +
+              '<div class="spotlight-actions">' +
+                '<button class="btn-play" data-news-go="' + lead.id + '">Open prompt</button>' +
+                '<button class="btn-ghost" data-news-fork="' + lead.id + '">⑂ Fork</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      ) : '') +
+
+      (recentlyAdded.length ? (
+        '<div class="row-section">' +
+          '<div class="row-header">' +
+            '<h2>Recently added</h2>' +
+            '<a class="show-all" data-go-sort="new">Show all</a>' +
+          '</div>' +
+          '<div class="row-scroll">' + recentlyAdded.map(albumCardHtml).join('') + '</div>' +
+        '</div>'
+      ) : '') +
+
+      (FEATURES.trending && trending.length ? (
         '<div class="row-section">' +
           '<div class="row-header">' +
             '<h2>Trending today</h2>' +
@@ -4050,7 +4197,7 @@ function renderDetail(id, viewingVersionNum) {
     const blob = new Blob([view.html], {type: 'text/html'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = (p.title.replace(/[^a-z0-9]+/gi,'-').toLowerCase()) + '.html';
+    a.href = url; a.download = safeFilename(p);
     a.click();
     URL.revokeObjectURL(url);
     p.downloads++;
@@ -4856,42 +5003,123 @@ function parsePromptBlocks(text) {
   return result;
 }
 
-fileDrop.addEventListener('click', () => htmlFile.click());
-htmlFile.addEventListener('change', (e) => {
-  const f = e.target.files[0];
+function applyUploadedHtml(html, displayName, sizeBytes) {
+  uploadedHtml = html;
+  const size = sizeBytes != null ? sizeBytes : new Blob([html]).size;
+  fileDrop.classList.add('has-file');
+  fileDrop.classList.remove('dragover');
+  document.getElementById('dropTitle').textContent = '✓ ' + (displayName || 'pasted.html');
+  document.getElementById('dropHint').innerHTML = (size/1024).toFixed(1) + ' KB · ready to publish · <span style="opacity:.7">click to replace</span>';
+
+  // Auto-fill title from <title> tag if user hasn't typed one yet
+  const meta = extractHtmlMeta(html);
+  const titleInput = document.getElementById('titleInput');
+  if (meta.title && titleInput && !titleInput.value.trim()) {
+    titleInput.value = meta.title;
+  }
+  const descInput = document.querySelector('[name="description"]');
+  if (meta.description && descInput && !descInput.value.trim()) {
+    descInput.value = meta.description;
+    const adv = document.querySelector('.upload-advanced');
+    if (adv) adv.open = true;
+  }
+
+  // Show live preview
+  const preview = document.getElementById('htmlPreview');
+  const iframe = document.getElementById('previewIframe');
+  const sizeEl = document.getElementById('previewSize');
+  if (preview && iframe) {
+    iframe.srcdoc = html;
+    if (sizeEl) sizeEl.textContent = (size/1024).toFixed(1) + ' KB';
+    preview.style.display = '';
+  }
+}
+
+function handleHtmlFile(f) {
   if (!f) return;
+  const looksLikeHtml = /\.html?$/i.test(f.name) || (f.type && /html/i.test(f.type));
+  if (!looksLikeHtml) { toast('That doesn\'t look like an HTML file.'); return; }
   const reader = new FileReader();
-  reader.onload = () => {
-    uploadedHtml = reader.result;
-    fileDrop.classList.add('has-file');
-    document.getElementById('dropTitle').textContent = '✓ ' + f.name;
-    document.getElementById('dropHint').textContent = (f.size/1024).toFixed(1) + ' KB · ready to publish';
-
-    // Auto-fill title from <title> tag if user hasn't typed one yet
-    const meta = extractHtmlMeta(uploadedHtml);
-    const titleInput = document.getElementById('titleInput');
-    if (meta.title && titleInput && !titleInput.value.trim()) {
-      titleInput.value = meta.title;
-    }
-    const descInput = document.querySelector('[name="description"]');
-    if (meta.description && descInput && !descInput.value.trim()) {
-      descInput.value = meta.description;
-      // Auto-open advanced section so the user sees what was filled
-      const adv = document.querySelector('.upload-advanced');
-      if (adv) adv.open = true;
-    }
-
-    // Show live preview
-    const preview = document.getElementById('htmlPreview');
-    const iframe = document.getElementById('previewIframe');
-    const sizeEl = document.getElementById('previewSize');
-    if (preview && iframe) {
-      iframe.srcdoc = uploadedHtml;
-      if (sizeEl) sizeEl.textContent = (f.size/1024).toFixed(1) + ' KB';
-      preview.style.display = '';
-    }
-  };
+  reader.onload = () => applyUploadedHtml(reader.result, f.name, f.size);
+  reader.onerror = () => toast('Could not read that file.');
   reader.readAsText(f);
+}
+
+fileDrop.addEventListener('click', () => htmlFile.click());
+htmlFile.addEventListener('change', (e) => handleHtmlFile(e.target.files[0]));
+
+// Drag & drop on the drop zone
+;['dragenter', 'dragover'].forEach(evt => {
+  fileDrop.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    fileDrop.classList.add('dragover');
+  });
+});
+;['dragleave', 'dragend'].forEach(evt => {
+  fileDrop.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    // Only remove highlight when leaving the dropzone itself, not its children
+    if (evt === 'dragleave' && fileDrop.contains(e.relatedTarget)) return;
+    fileDrop.classList.remove('dragover');
+  });
+});
+fileDrop.addEventListener('drop', (e) => {
+  e.preventDefault(); e.stopPropagation();
+  fileDrop.classList.remove('dragover');
+  const dt = e.dataTransfer;
+  if (!dt) return;
+  if (dt.files && dt.files.length) { handleHtmlFile(dt.files[0]); return; }
+  // Some apps drop text/html or text/plain instead of a file
+  const html = dt.getData('text/html') || dt.getData('text/plain');
+  if (html && /<\s*html|<\s*!DOCTYPE/i.test(html)) {
+    applyUploadedHtml(html, 'dropped.html');
+  } else {
+    toast('Drop an HTML file (or paste raw HTML with Ctrl+V).');
+  }
+});
+
+// Window-level dragover suppression so accidental drops outside the zone
+// don't navigate the browser away from the page.
+window.addEventListener('dragover', (e) => {
+  const view = document.getElementById('view-upload');
+  if (view && view.classList.contains('active')) e.preventDefault();
+});
+window.addEventListener('drop', (e) => {
+  const view = document.getElementById('view-upload');
+  if (view && view.classList.contains('active') && !fileDrop.contains(e.target)) {
+    e.preventDefault();
+    // If file was dropped anywhere on the upload page, route it to the dropzone
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      handleHtmlFile(e.dataTransfer.files[0]);
+    }
+  }
+});
+
+// Ctrl+V paste — accept HTML text or file from clipboard
+document.addEventListener('paste', (e) => {
+  const view = document.getElementById('view-upload');
+  if (!view || !view.classList.contains('active')) return;
+  // Don't hijack paste into the prompt textarea or title field
+  const target = e.target;
+  if (target && (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) return;
+  const cd = e.clipboardData;
+  if (!cd) return;
+  // 1) File in clipboard?
+  if (cd.files && cd.files.length) {
+    const f = cd.files[0];
+    if (/\.html?$/i.test(f.name) || /html/i.test(f.type || '')) {
+      e.preventDefault();
+      handleHtmlFile(f);
+      return;
+    }
+  }
+  // 2) HTML text?
+  const html = cd.getData('text/html') || cd.getData('text/plain');
+  if (html && /<\s*html|<\s*!DOCTYPE/i.test(html)) {
+    e.preventDefault();
+    applyUploadedHtml(html, 'pasted.html');
+  }
 });
 
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
@@ -5018,6 +5246,13 @@ document.getElementById('sortSelect').addEventListener('change', (e) => {
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
 function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
+function safeFilename(prompt) {
+  // Preserve unicode (Japanese OK). Strip only chars OSes refuse in filenames.
+  const rawTitle = (prompt.title || '').replace(/[\\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().slice(0, 80);
+  const id = prompt.id || 'prompt';
+  if (!rawTitle || rawTitle === id) return id + '.html';
+  return id + '_' + rawTitle + '.html';
+}
 function formatDate(s) {
   const d = new Date(s);
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
