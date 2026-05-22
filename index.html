@@ -1013,20 +1013,20 @@
   .detail-header {
     grid-column: 1 / -1;
     border-bottom: 2px solid var(--rule);
-    padding-bottom: 30px;
+    padding-bottom: 24px;
     margin-bottom: 20px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 24px;
-    align-items: end;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
   .detail-header h1 {
     font-family: 'Fraunces', serif;
     font-weight: 400;
-    font-size: clamp(26px, 3.4vw, 44px);
-    line-height: 1.1;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1.05;
     letter-spacing: -0.02em;
-    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
   }
   .detail-header h1 em { font-style: italic; color: var(--tomato); }
   .detail-byline {
@@ -1035,7 +1035,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-soft);
-    margin-top: 14px;
+    margin-top: 4px;
   }
   .detail-byline .author-link {
     color: var(--ink);
@@ -1043,7 +1043,8 @@
     border-bottom: 1px solid var(--ink);
   }
   .detail-actions {
-    display: flex; gap: 10px;
+    display: flex; gap: 8px;
+    flex-wrap: wrap;
   }
   .btn {
     background: var(--text);
@@ -3562,6 +3563,45 @@
   }
   @media (max-width: 500px) {
     .briefs-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── Phone layout (≤ 600px) — tighten the desktop chrome ─── */
+  @media (max-width: 600px) {
+    header.masthead { padding: 10px 14px; gap: 8px; }
+    .brand { font-size: 16px; gap: 6px; }
+    .brand::before { width: 20px; height: 20px; }
+    .brand em { display: none; }
+    .nav-actions { gap: 6px; }
+    .nav-actions a[data-nav="gallery"],
+    .nav-actions a[data-nav="profile"] { display: none; }
+    .nav-actions .btn-upload { padding: 8px 14px; font-size: 13px; }
+    .nav-actions .nav-settings,
+    .nav-actions .nav-theme { padding: 6px 6px; font-size: 16px; }
+    .issue-line { padding: 4px 14px; font-size: 9px; }
+    .issue-line span:last-child { display: none; }
+    .view { padding: 16px !important; }
+    .filter-bar input.search { min-width: 0; width: 100%; padding: 10px 14px 10px 38px; }
+    .filter-bar { gap: 6px 8px; margin-bottom: 16px; }
+    .detail-header { padding-bottom: 18px; gap: 14px; }
+    .detail-header h1 { font-size: clamp(26px, 8vw, 38px); }
+    .detail-byline { font-size: 11px; line-height: 1.5; }
+    .detail-actions { gap: 6px; }
+    .detail-actions .btn,
+    .detail-actions .btn.secondary,
+    .detail-actions .btn.danger { padding: 9px 14px; font-size: 13px; min-height: 40px; }
+    .preview-wrap { aspect-ratio: 16 / 10; }
+    .anatomy h2, .meta-block h2, .usage h2, .fork-tree h2 { font-size: 18px; }
+    .anatomy pre { font-size: 12px; padding: 10px 12px; }
+    .tag-picker-pills { padding: 6px 8px; min-height: 40px; }
+    .tag-picker-pills .tag-pill { font-size: 11px; padding: 3px 5px 3px 9px; }
+    .tag-picker-pills .tag-picker-input { font-size: 12px; }
+    .settings-wrap { padding: 0 14px; margin-top: 16px; }
+    .settings-wrap h1 { font-size: 26px; }
+    .upload-block { padding: 16px; }
+    .upload-block .upload-label { font-size: 16px !important; }
+    .file-drop.large { padding: 28px 14px; }
+    .file-drop.large .drop-title { font-size: 18px !important; }
+    .upload-advanced > summary { padding: 10px 0; }
   }
 </style>
 </head>
