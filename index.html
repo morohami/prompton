@@ -6287,8 +6287,14 @@ function renderCompare(idLeft, idRight, returnTo) {
 
 // ─── Share popover ───
 function shareLinkFor(prompt) {
-  // Strip any existing #hash, then add the deep-link form.
-  const base = location.origin + location.pathname.replace(/#.*$/, '');
+  // Prefer the static OG card page (better link unfurl on LINE / X / Discord).
+  // Strip any hash from current pathname, then append p/<id>/.
+  // Local dev (file:// or http://localhost) doesn't have the static page yet,
+  // so fall back to the SPA hash form there.
+  const base = location.origin + location.pathname.replace(/#.*$/, '').replace(/[^/]*$/, '');
+  if (location.hostname && location.hostname.endsWith('.github.io')) {
+    return base + 'p/' + encodeURIComponent(prompt.id) + '/';
+  }
   return base + '#/p/' + encodeURIComponent(prompt.id);
 }
 function openSharePopover(anchorBtn, prompt) {
@@ -6510,6 +6516,69 @@ async function ghDeleteFile(path, message, sha) {
     body: JSON.stringify({ message: message, branch: cfg.branch, sha: sha })
   });
 }
+// Generate the static OG/Twitter-card page that lives at p/<id>/index.html.
+// Crawlers (LINE/X/Discord/Slack) read the meta tags from the initial HTML;
+// human visitors get a JS redirect to the SPA detail view.
+function generateOGPageHtml(prompt) {
+  const cfg = getSyncConfig();
+  const baseUrl = cfg.repo
+    ? 'https://' + cfg.repo.split('/')[0] + '.github.io/' + cfg.repo.split('/')[1] + '/'
+    : '';
+  const canonical = baseUrl + 'p/' + prompt.id + '/';
+  const title = (prompt.title || 'Prompton') + ' — Prompton';
+  const desc = (prompt.description || prompt.title || '').slice(0, 280);
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // Build the closing tag at runtime so the outer HTML parser doesn't see it
+  // inside this script's template literal.
+  const SC = '<' + '/script>';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(desc)}">
+<meta property="og:title" content="${esc(prompt.title || 'Prompton')}">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:url" content="${esc(canonical)}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Prompton">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="${esc(prompt.title || 'Prompton')}">
+<meta name="twitter:description" content="${esc(desc)}">
+<link rel="canonical" href="${esc(canonical)}">
+<meta http-equiv="refresh" content="0; url=../../#/p/${esc(prompt.id)}">
+<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:40px;max-width:640px;margin:0 auto;color:#555;line-height:1.6}h1{color:#1a1a1a;margin-bottom:8px}a{color:#e8893a;text-decoration:none}a:hover{text-decoration:underline}.byline{color:#999;font-size:13px;margin-bottom:24px}</style>
+<script>
+(function(){
+  var base = location.pathname.split('/p/')[0] || '/';
+  if (!base.endsWith('/')) base += '/';
+  location.replace(base + '#/p/' + ${JSON.stringify(prompt.id)});
+})();
+${SC}
+</head>
+<body>
+<h1>${esc(prompt.title || 'Prompton')}</h1>
+<div class="byline">by ${esc(prompt.authorName || prompt.author || 'unknown')} · Prompton</div>
+<p>${esc(desc)}</p>
+<p><a href="../../#/p/${esc(prompt.id)}">Open in Prompton →</a></p>
+</body>
+</html>
+`;
+}
+
+async function pushOGPageToGitHub(prompt) {
+  const path = 'p/' + prompt.id + '/index.html';
+  const html = generateOGPageHtml(prompt);
+  const sha = await ghGetSha(path);
+  await ghPutFile(path, html, 'Prompton: refresh OG card for ' + prompt.id, sha);
+}
+
+async function deleteOGPageFromGitHub(prompt) {
+  const path = 'p/' + prompt.id + '/index.html';
+  const sha = await ghGetSha(path);
+  if (sha) await ghDeleteFile(path, 'Prompton: remove OG card for ' + prompt.id, sha);
+}
+
 async function deletePromptFromGitHub(prompt) {
   // 1. Delete the HTML file (and any per-version HTMLs) if they exist
   const htmlPaths = ['htmls/' + prompt.id + '.html'];
@@ -6523,6 +6592,8 @@ async function deletePromptFromGitHub(prompt) {
     const sha = await ghGetSha(path);
     if (sha) await ghDeleteFile(path, 'Prompton: delete ' + path, sha);
   }
+  // Also delete the OG card page if present.
+  try { await deleteOGPageFromGitHub(prompt); } catch (e) { /* best effort */ }
   // 2. Remove from manifest.json and re-PUT
   const cfg = getSyncConfig();
   const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
@@ -6558,6 +6629,8 @@ async function updatePromptMetadataOnGitHub(prompt) {
     if (sIdx >= 0) seedPrompts[sIdx] = JSON.parse(JSON.stringify(prompt));
     else seedPrompts.unshift(JSON.parse(JSON.stringify(prompt)));
   }
+  // Refresh OG card so social previews show the updated title/description.
+  try { await pushOGPageToGitHub(prompt); } catch (e) { console.warn('OG page refresh failed:', e); }
 }
 
 async function pushPromptToGitHub(prompt) {
@@ -6586,6 +6659,8 @@ async function pushPromptToGitHub(prompt) {
     if (sIdx >= 0) seedPrompts[sIdx] = JSON.parse(JSON.stringify(prompt));
     else seedPrompts.unshift(JSON.parse(JSON.stringify(prompt)));
   }
+  // Push the OG card page so the prompt has a proper unfurl on LINE/X/Discord.
+  try { await pushOGPageToGitHub(prompt); } catch (e) { console.warn('OG page push failed:', e); }
 }
 function renderSettings() {
   setRoute('settings');
