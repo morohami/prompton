@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08080a">
+<title>カクテルブック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}:root{--bg:#08080a;--s1:#111116;--s2:#18181f;--s3:#24232b;--line:rgba(255,255,255,.075);--line2:rgba(255,255,255,.14);--tx:#fbf7ef;--tx2:#b8b0a3;--tx3:#756d61;--ac:#d8b864;--ac2:#8c7540;--rd:#ef7676;--gn:#9ac36f;--glass:rgba(18,18,23,.68);--r:14px;--r2:24px;--ease:cubic-bezier(.22,.61,.36,1);--easeo:cubic-bezier(.4,0,.2,1)}html,body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}body{min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom);background:linear-gradient(180deg,#08080a 0%,#0e0d10 54%,#09090b 100%)}body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(216,184,100,.04),transparent),repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 28px);mask-image:linear-gradient(180deg,#000 0%,transparent 82%)}.serif{font-family:'Fraunces','Times New Roman',serif;font-optical-sizing:auto}button{background:none;border:none;color:inherit;font:inherit;cursor:pointer}button:focus-visible{outline:2px solid var(--ac);outline-offset:3px}a{color:inherit;text-decoration:none}::-webkit-scrollbar{width:0;height:0}nav.bar{position:fixed;top:0;left:0;right:0;z-index:50;height:64px;display:flex;align-items:center;padding:0 max(16px,calc((100vw - 760px)/2+16px));padding-top:env(safe-area-inset-top);background:rgba(8,8,10,.7);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-bottom:1px solid transparent;transition:border-color .25s var(--ease),background .25s var(--ease)}nav.bar.scrolled{border-bottom-color:var(--line)}nav.bar .back{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:18px;color:var(--tx2);transition:all .2s var(--ease);opacity:0;pointer-events:none;transform:translateX(-4px)}nav.bar.canback .back{opacity:1;pointer-events:auto;transform:none}nav.bar .back:active{background:var(--s2);color:var(--tx);transform:scale(.94)}nav.bar .ttl{flex:1;text-align:center;font-size:12px;letter-spacing:.08em;color:var(--tx2);font-weight:500}nav.bar .sp{width:40px}main{padding-top:64px;max-width:760px;margin:0 auto;position:relative}.v{display:none;animation:viewin .42s var(--ease)}.v.on{display:block}@keyframes viewin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes floatglass{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}.hero{padding:58px 22px 30px;position:relative;overflow:hidden;min-height:378px}.hero>*{position:relative;z-index:1}.hero::before{content:'';position:absolute;right:16px;top:24px;width:156px;height:228px;border:1px solid var(--line);border-radius:32px;background:linear-gradient(160deg,rgba(216,184,100,.18),rgba(255,255,255,.03) 45%,rgba(255,255,255,.01));box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.08);transform:rotate(7deg)}.hero::after{content:'';position:absolute;right:64px;top:78px;width:64px;height:132px;border-radius:28px 28px 10px 10px;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.04) 26%,rgba(216,184,100,.28) 66%,rgba(216,184,100,.08));border:1px solid rgba(255,255,255,.16);box-shadow:0 22px 46px rgba(0,0,0,.45),0 0 38px rgba(216,184,100,.18);opacity:.86}.hero .kicker{font-size:11px;letter-spacing:.24em;color:var(--ac);margin-bottom:24px;font-weight:500}.hero h1{font-family:'Fraunces','Noto Sans JP',serif;font-weight:300;font-size:58px;line-height:.96;letter-spacing:0;margin-bottom:18px;text-wrap:balance}.hero h1 em{font-style:italic;font-weight:400}.hero .sub{font-size:14px;color:var(--tx2);line-height:1.8;max-width:344px}.modes{padding:4px 16px 34px;display:flex;flex-direction:column;gap:12px}.mode{position:relative;background:linear-gradient(145deg,rgba(28,28,35,.92),rgba(14,14,18,.96));border:1px solid var(--line);border-radius:var(--r2);padding:26px 22px;overflow:hidden;transition:transform .22s var(--ease),border-color .22s var(--ease),background .22s var(--ease);box-shadow:0 18px 46px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.055);min-height:146px}.mode::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(216,184,100,.09),transparent 58%);opacity:0;transition:opacity .22s var(--ease)}.mode:nth-child(1){--tone:#d8b864}.mode:nth-child(2){--tone:#b66e52}.mode:nth-child(3){--tone:#6d89b7}.mode::after{content:'';position:absolute;right:22px;bottom:20px;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle,var(--tone),transparent 68%);opacity:.18;filter:blur(2px)}.mode:active{transform:scale(.985);border-color:var(--line2);background:linear-gradient(145deg,rgba(35,34,41,.96),rgba(15,15,20,.98))}.mode:active::before{opacity:1}.mode .n{position:absolute;top:20px;right:22px;font-family:'Fraunces',serif;font-size:20px;color:rgba(251,247,239,.22);font-weight:300}.mode .lbl{font-size:10px;letter-spacing:.18em;color:var(--tx3);margin-bottom:14px;font-weight:500}.mode .ttl{font-family:'Fraunces','Noto Sans JP',serif;font-size:31px;font-weight:400;line-height:1.08;letter-spacing:0;margin-bottom:8px}.mode .ttl em{font-style:italic}.mode .ja{font-size:12px;color:var(--tx2);margin-bottom:18px;letter-spacing:.04em}.mode .arr{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ac);letter-spacing:.06em;font-weight:500}.mode .arr svg{transition:transform .25s var(--ease)}.mode:active .arr svg{transform:translateX(4px)}.mode .deco{position:absolute;right:-20px;bottom:-30px;width:140px;height:140px;opacity:.08;pointer-events:none}.foot{padding:4px 16px 50px;margin-top:4px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.foot .row{min-height:74px;padding:16px 16px 14px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.025);display:flex;justify-content:space-between;align-items:flex-end;box-shadow:inset 0 1px rgba(255,255,255,.04)}.foot .k{font-size:10px;letter-spacing:.16em;color:var(--tx3)}.foot .v{font-family:'Fraunces',serif;font-size:27px;font-weight:300;color:var(--tx)}.sec-head{padding:36px 24px 20px}.sec-head .kicker{font-size:11px;letter-spacing:.2em;color:var(--ac);margin-bottom:12px;font-weight:500}.sec-head h2{font-family:'Fraunces','Noto Sans JP',serif;font-weight:300;font-size:38px;letter-spacing:0;line-height:1.15;text-wrap:balance}.sec-head h2 em{font-style:italic;font-weight:400}.sec-head .sub{margin-top:12px;font-size:13px;color:var(--tx2);line-height:1.7;max-width:420px}.chips{display:flex;flex-wrap:wrap;gap:9px;padding:8px 24px 24px}.chip{display:inline-flex;align-items:center;gap:8px;padding:12px 15px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:100px;font-size:13px;color:var(--tx2);transition:all .18s var(--ease);min-height:48px;box-shadow:inset 0 1px rgba(255,255,255,.04)}.chip:active{transform:scale(.96)}.chip.on{background:var(--ac);color:#16130d;border-color:var(--ac);font-weight:700;box-shadow:0 10px 30px rgba(216,184,100,.18)}.chip .e{font-size:14px;opacity:.8}.chip.on .e{opacity:1}.chips-meta{padding:0 24px 18px;font-size:12px;color:var(--tx3);display:flex;justify-content:space-between;align-items:center}.chips-meta button{min-height:36px;font-size:12px;color:var(--tx2);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line2)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:8px 16px 52px}.card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;position:relative;transition:transform .22s var(--ease),border-color .22s var(--ease),box-shadow .22s var(--ease);display:flex;flex-direction:column;min-height:248px;box-shadow:0 16px 42px rgba(0,0,0,.26),inset 0 1px rgba(255,255,255,.05)}.card::after{content:'';position:absolute;inset:0;background:linear-gradient(130deg,rgba(255,255,255,.08),transparent 36%);opacity:.22;pointer-events:none}.card:active{transform:scale(.975);border-color:var(--line2);box-shadow:0 12px 32px rgba(0,0,0,.34)}.card .glass-wrap{aspect-ratio:1/1;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.card .glass-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 82%,var(--c,#888) 0%,transparent 58%);opacity:.24;pointer-events:none}.card .glass-wrap::after{content:'';position:absolute;left:18%;right:18%;bottom:18%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent)}.card svg.glass{width:60%;height:80%;filter:drop-shadow(0 16px 26px rgba(0,0,0,.5));animation:floatglass 5.5s var(--ease) infinite}.card .body{padding:15px 14px 16px;flex:1;display:flex;flex-direction:column;position:relative;z-index:1}.card .name{font-family:'Fraunces',serif;font-size:17px;font-weight:400;line-height:1.2;letter-spacing:0;margin-bottom:4px}.card .name em{font-style:italic}.card .nj{font-size:11px;color:var(--tx3);letter-spacing:.04em;margin-bottom:auto;padding-bottom:10px;line-height:1.5}.card .meta{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}.card .abv{font-family:'Fraunces',serif;font-size:13px;color:var(--tx2);font-weight:300}.card .abv b{color:var(--tx);font-weight:500;font-family:inherit}.card .badge{font-size:10px;padding:3px 8px;border-radius:100px;letter-spacing:.04em;font-weight:500}.card .badge.rd{background:rgba(226,109,109,.12);color:var(--rd)}.card .badge.gn{background:rgba(127,176,105,.14);color:var(--gn)}.empty{grid-column:1/-1;margin:8px 0 0;padding:34px 18px;text-align:center;color:var(--tx3);font-size:13px;border:1px dashed var(--line);border-radius:22px;background:rgba(255,255,255,.018)}.fam-list{padding:0 0 52px;position:relative}.fam-list::before{content:'';position:absolute;left:30px;top:8px;bottom:48px;width:1px;background:linear-gradient(180deg,transparent,var(--ac2),transparent);opacity:.5}.fam{padding:26px 0 12px;border-top:1px solid var(--line);position:relative}.fam:first-child{border-top:none}.fam::before{content:'';position:absolute;left:25px;top:39px;width:11px;height:11px;border-radius:50%;background:var(--ac);box-shadow:0 0 20px rgba(216,184,100,.34)}.fam .hd{padding:0 24px 16px 50px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}.fam .hd .l{flex:1;min-width:0}.fam .hd .n{font-size:11px;color:var(--ac);font-weight:500;letter-spacing:.08em;margin-bottom:6px}.fam .hd h3{font-family:'Fraunces',serif;font-weight:400;font-size:27px;line-height:1.12;letter-spacing:0;margin-bottom:8px}.fam .hd h3 em{font-style:italic}.fam .hd .fm{font-size:11px;color:var(--tx2);letter-spacing:.04em;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.fam .hd .fm span:not(.pl){display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03)}.fam .hd .fm .pl{color:var(--tx3);font-weight:300}.fam .hd .ct{font-family:'Fraunces',serif;font-size:34px;font-weight:300;color:var(--tx3);line-height:1}.fam .row{display:flex;gap:12px;padding:4px 24px 8px 50px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;position:relative}.fam .row::before{content:'';position:absolute;left:50px;right:24px;top:44%;height:1px;background:linear-gradient(90deg,rgba(216,184,100,.24),transparent)}.fam .row::after{content:'';flex:0 0 8px}.fam .pill{flex:0 0 170px;scroll-snap-align:start;background:rgba(17,17,22,.9);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;transition:transform .2s var(--ease),border-color .2s var(--ease);position:relative;box-shadow:0 14px 34px rgba(0,0,0,.22)}.fam .pill:active{transform:scale(.96)}.fam .pill .gw{aspect-ratio:5/4;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.012));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.fam .pill .gw::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,var(--c,#888),transparent 60%);opacity:.24}.fam .pill .gw svg{width:50%;height:75%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}.fam .pill .b{padding:12px}.fam .pill .nm{font-family:'Fraunces',serif;font-size:15px;font-weight:400;line-height:1.18;margin-bottom:3px}.fam .pill .nm em{font-style:italic}.fam .pill .nj{font-size:10px;color:var(--tx3);letter-spacing:.04em}.dt-hero{padding:14px 24px 30px;position:relative;overflow:hidden}.dt-hero::before{content:'';position:absolute;left:16px;right:16px;top:10px;height:58%;border:1px solid var(--line);border-radius:34px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.012));box-shadow:inset 0 1px rgba(255,255,255,.06),0 24px 64px rgba(0,0,0,.32)}.dt-hero .glass-stage{aspect-ratio:1/1.05;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:26px}.dt-hero .glass-stage::before{content:'';position:absolute;inset:4% 0 0;background:radial-gradient(ellipse at 50% 65%,var(--c,#888) 0%,transparent 60%);opacity:.28;pointer-events:none;filter:blur(10px)}.dt-hero svg.glass{width:62%;height:90%;filter:drop-shadow(0 34px 54px rgba(0,0,0,.56)) drop-shadow(0 0 34px var(--c-glow,transparent));z-index:1;animation:floatglass 6s var(--ease) infinite}.dt-hero .lbl{font-size:10px;letter-spacing:.22em;color:var(--ac);margin-bottom:14px;display:flex;align-items:center;gap:10px;font-weight:500}.dt-hero .lbl::before,.dt-hero .lbl::after{content:'';flex:1;height:1px;background:var(--line)}.dt-hero .lbl::before{flex:0 0 16px}.dt-hero h1{font-family:'Fraunces',serif;font-weight:300;font-size:44px;line-height:1.04;letter-spacing:0;text-align:center;margin-bottom:10px;position:relative;z-index:1;text-wrap:balance}.dt-hero h1 em{font-style:italic;font-weight:400}.dt-hero .nj{font-size:13px;color:var(--tx2);text-align:center;letter-spacing:.06em;position:relative;z-index:1}.specs{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin:10px 16px 0;box-shadow:0 16px 42px rgba(0,0,0,.22)}.specs .spec{background:rgba(10,10,13,.9);padding:18px 18px}.specs .k{font-size:10px;letter-spacing:.18em;color:var(--tx3);margin-bottom:8px}.specs .v{font-family:'Fraunces','Noto Sans JP',serif;font-size:18px;font-weight:400;color:var(--tx);letter-spacing:0;line-height:1.25}.specs .v em{font-style:italic}.specs .v small{font-size:13px;color:var(--tx2);font-weight:300;margin-left:2px}.story{padding:34px 24px 12px}.story .pull{font-family:'Fraunces','Noto Sans JP',serif;font-style:italic;font-size:22px;line-height:1.45;color:var(--tx);font-weight:300;letter-spacing:0;margin-bottom:18px;position:relative;padding-left:18px;border-left:1px solid var(--ac2)}.story .body{font-size:14px;line-height:1.75;color:var(--tx2);max-height:0;overflow:hidden;transition:max-height .4s var(--ease),margin .4s var(--ease);margin-top:0}.story.open .body{max-height:600px;margin-top:6px}.story button.tg{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:12px;letter-spacing:.08em;color:var(--ac);margin-top:14px;padding:8px 0;font-weight:500}.story button.tg svg{transition:transform .3s var(--ease)}.story.open button.tg svg{transform:rotate(180deg)}.block{padding:30px 24px 8px}.block .bh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}.block .bh h3{font-family:'Fraunces','Noto Sans JP',serif;font-weight:400;font-size:22px;letter-spacing:0}.block .bh h3 em{font-style:italic}.block .bh .n{font-family:'Fraunces',serif;font-size:13px;color:var(--tx3);font-weight:300}.ings{list-style:none;display:flex;flex-direction:column}.ings li{display:flex;align-items:center;gap:14px;min-height:54px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:opacity .2s var(--ease),transform .2s var(--ease)}.ings li:active{transform:translateX(2px)}.ings li:last-child{border-bottom:none}.ings li .cb{width:22px;height:22px;border:1.5px solid var(--line2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 22px;transition:all .2s var(--ease)}.ings li .cb svg{opacity:0;transform:scale(.5);transition:all .2s var(--ease)}.ings li.chk .cb{background:var(--ac);border-color:var(--ac)}.ings li.chk .cb svg{opacity:1;transform:none}.ings li .lab{flex:1;font-size:15px;color:var(--tx);font-weight:400;transition:color .2s var(--ease)}.ings li .amt{font-family:'Fraunces',serif;font-size:14px;color:var(--tx2);letter-spacing:0;font-weight:300}.ings li.chk .lab,.ings li.chk .amt{color:var(--tx3);text-decoration:line-through;text-decoration-color:var(--line2)}.steps{counter-reset:s;list-style:none;padding:4px 0}.steps li{counter-increment:s;padding:18px 0 18px 48px;position:relative;font-size:14px;line-height:1.7;color:var(--tx2);border-bottom:1px solid var(--line)}.steps li:last-child{border-bottom:none}.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:18px;font-family:'Fraunces',serif;font-size:13px;color:var(--tx3);font-weight:400;font-style:italic;letter-spacing:.04em}.tip{margin:22px 24px 0;padding:22px;background:linear-gradient(145deg,rgba(216,184,100,.1),rgba(255,255,255,.025));border:1px solid rgba(216,184,100,.18);border-radius:var(--r2);position:relative;box-shadow:inset 0 1px rgba(255,255,255,.055)}.tip .k{font-size:10px;letter-spacing:.22em;color:var(--ac);margin-bottom:10px;font-weight:500}.tip .v{font-family:'Fraunces',serif;font-style:italic;font-size:16px;line-height:1.55;color:var(--tx);font-weight:300}.sim{padding:36px 0 28px;border-top:1px solid var(--line);margin:34px 0 0;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}.sim .sh{padding:0 24px 18px;display:flex;justify-content:space-between;align-items:flex-end}.sim .sh .l{flex:1;min-width:0}.sim .sh .kicker{font-size:10px;letter-spacing:.2em;color:var(--ac);margin-bottom:8px;font-weight:500}.sim .sh h3{font-family:'Fraunces','Noto Sans JP',serif;font-weight:300;font-size:26px;letter-spacing:0}.sim .sh h3 em{font-style:italic;font-weight:400}.sim .row{display:flex;gap:12px;padding:0 24px;overflow-x:auto;scroll-snap-type:x mandatory}.sim .row::after{content:'';flex:0 0 12px}.sim .it{flex:0 0 158px;scroll-snap-align:start;background:rgba(17,17,22,.92);border:1px solid var(--line);border-radius:20px;overflow:hidden;transition:transform .2s var(--ease),border-color .2s var(--ease);box-shadow:0 16px 40px rgba(0,0,0,.24)}.sim .it:active{transform:scale(.96)}.sim .it .g{aspect-ratio:1/1;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.012));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.sim .it .g::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,var(--c),transparent 60%);opacity:.24}.sim .it .g svg{width:55%;height:75%;z-index:1}.sim .it .g .sc{position:absolute;top:9px;right:9px;font-family:'Fraunces',serif;font-size:11px;color:#16130d;background:var(--ac);padding:3px 7px;border-radius:100px;backdrop-filter:blur(8px)}.sim .it .b{padding:10px 12px 12px}.sim .it .n{font-family:'Fraunces',serif;font-size:13px;font-weight:400;line-height:1.2;letter-spacing:0;margin-bottom:2px}.sim .it .n em{font-style:italic}.sim .it .nj{font-size:10px;color:var(--tx3);letter-spacing:.03em}.fam-link{margin:24px 24px 54px;padding:20px 22px;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.018));border:1px solid var(--line);border-radius:var(--r2);display:flex;align-items:center;justify-content:space-between;gap:14px;transition:transform .2s var(--ease),border-color .2s var(--ease);box-shadow:0 16px 42px rgba(0,0,0,.2)}.fam-link:active{transform:scale(.98);border-color:var(--line2)}.fam-link .l{flex:1;min-width:0}.fam-link .k{font-size:10px;letter-spacing:.18em;color:var(--ac);margin-bottom:8px;font-weight:500}.fam-link .t{font-family:'Fraunces','Noto Sans JP',serif;font-size:18px;font-weight:400;letter-spacing:0}.fam-link .t em{font-style:italic}.fam-link .arr{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;flex:0 0 40px;background:rgba(216,184,100,.08);color:var(--ac)}@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}.hero{padding-top:72px;min-height:430px}.hero h1{font-size:82px}.hero::before{right:48px;width:188px;height:266px}.hero::after{right:108px;top:96px}.dt-hero h1{font-size:56px}.dt-hero .glass-stage{aspect-ratio:1/.78}}@media(max-width:360px){.hero h1{font-size:50px}.mode .ttl{font-size:27px}.grid{gap:10px;padding-left:12px;padding-right:12px}.card{min-height:232px}.card .name{font-size:15px}}.hide{display:none!important}</style>
+<style>
+.foot .v,.specs .v{display:block}.card .glass-wrap,.fam .pill .gw,.sim .it .g{background:linear-gradient(180deg,#17151a,#0c0b0d)}.card svg.glass.art{width:100%;height:100%;filter:none;animation:none}.fam .pill .gw svg.glass.art,.sim .it .g svg.glass.art{width:100%;height:100%;filter:none}.dt-hero .glass-stage{height:min(42vh,340px);aspect-ratio:auto;margin-bottom:18px}.dt-hero svg.glass.art{width:min(78%,360px);height:100%;filter:drop-shadow(0 32px 58px rgba(0,0,0,.58));animation:none}.card .year{font-family:'Fraunces',serif;font-size:16px;line-height:1;color:var(--ac);margin:0 0 7px}.dt-hero .hero-year{font-family:'Fraunces',serif;font-size:24px;color:var(--ac);text-align:center;margin:-2px 0 8px;position:relative;z-index:1}.chip{align-items:center}.chip .e{min-width:34px;height:24px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid var(--line);font-family:'Fraunces',serif;font-size:10px;letter-spacing:.04em;color:var(--ac);opacity:1}.chip.on .e{background:rgba(22,19,13,.14);border-color:rgba(22,19,13,.18);color:#16130d}.chip .ct{white-space:nowrap}.grid.split{padding-top:0}.result-head{grid-column:1/-1;padding:18px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);margin-top:8px}.result-head:first-child{margin-top:0}.result-head .t{font-size:12px;letter-spacing:.16em;color:var(--ac);font-weight:700}.result-head .n{font-family:'Fraunces',serif;font-size:18px;color:var(--tx3)}.card .meta{align-items:flex-end;gap:8px}.card .badge{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:3px 5px;max-width:122px;line-height:1.15;text-align:right;white-space:normal}.card .badge b{font-size:10px;font-weight:700}.card .badge small{font-size:9px;line-height:1.2;color:currentColor;opacity:.9}.ings li{align-items:flex-start}.ings li .lab small{display:block;margin-top:5px;font-size:11px;line-height:1.45;color:var(--ac);font-weight:400;text-decoration:none}.ings li.chk .lab small{color:var(--tx3);text-decoration:none}.tip .tiptext{font-family:'Fraunces','Noto Sans JP',serif;font-style:italic;font-size:16px;line-height:1.65;color:var(--tx);font-weight:300}.sim .it .g .sc{font-family:'Noto Sans JP',sans-serif;font-weight:700}.sec-head .sub strong{color:var(--ac);font-weight:500}@media(max-width:360px){.chip{padding:10px 12px}.chip .e{min-width:30px}.dt-hero svg.glass.art{width:92%}.dt-hero .glass-stage{height:300px}.card .badge{max-width:96px}}
+</style>
+<style>
+:root{--bg:#050509;--s1:#090910;--s2:#11101b;--s3:#1b1830;--line:rgba(120,238,255,.13);--line2:rgba(255,92,214,.28);--tx:#fff8f0;--tx2:#c8c2d1;--tx3:#807991;--ac:#ffe16b;--ac2:#00e5ff;--rd:#ff5cae;--gn:#58ffbd;--glass:rgba(8,8,14,.72)}
+html,body{background:#050509}
+body{background:linear-gradient(180deg,#050509 0%,#0b0814 46%,#050509 100%)}
+body::before{background:linear-gradient(90deg,rgba(0,229,255,.1),transparent 18%,transparent 82%,rgba(255,92,214,.09)),repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 34px);opacity:.9;mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.7) 58%,transparent 100%)}
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 82px,rgba(0,229,255,.045) 82px 83px,transparent 83px 164px),repeating-linear-gradient(180deg,transparent 0 118px,rgba(255,92,214,.04) 118px 119px,transparent 119px 236px),linear-gradient(125deg,transparent 0 52%,rgba(255,225,107,.035) 52.2%,transparent 54%);opacity:.76}
+nav.bar{background:rgba(5,5,9,.78);border-bottom-color:rgba(0,229,255,.12);box-shadow:0 18px 48px rgba(0,0,0,.46),0 0 36px rgba(0,229,255,.08)}
+nav.bar.scrolled{border-bottom-color:rgba(0,229,255,.32);background:rgba(5,5,9,.9)}
+nav.bar .ttl{color:rgba(255,248,240,.82);text-shadow:0 0 14px rgba(0,229,255,.38)}
+nav.bar .back{color:var(--ac2)}
+.hero{min-height:402px}
+.hero::before{border-color:rgba(0,229,255,.35);background:linear-gradient(160deg,rgba(0,229,255,.18),rgba(14,11,26,.72) 44%,rgba(255,92,214,.14));box-shadow:0 26px 76px rgba(0,0,0,.62),0 0 42px rgba(0,229,255,.24),inset 0 0 34px rgba(255,92,214,.13)}
+.hero::after{background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(0,229,255,.14) 24%,rgba(255,225,107,.36) 68%,rgba(255,92,214,.13));border-color:rgba(255,255,255,.28);box-shadow:0 24px 52px rgba(0,0,0,.54),0 0 32px rgba(0,229,255,.34),0 0 54px rgba(255,92,214,.2)}
+.hero .kicker,.sec-head .kicker,.fam .hd .n,.dt-hero .lbl,.sim .sh .kicker,.fam-link .k,.tip .k{color:var(--ac2);text-shadow:0 0 13px rgba(0,229,255,.62)}
+.hero h1{color:#fffaf5;text-shadow:0 0 10px rgba(0,229,255,.58),0 0 30px rgba(255,92,214,.36),0 18px 44px rgba(0,0,0,.6)}
+.hero .sub,.sec-head .sub{color:#c9c3d4}
+.mode{background:linear-gradient(145deg,rgba(12,12,22,.96),rgba(7,7,12,.98));border-color:rgba(0,229,255,.18);box-shadow:0 20px 52px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.06),0 0 30px rgba(0,229,255,.06)}
+.mode:nth-child(1){--tone:#00e5ff}.mode:nth-child(2){--tone:#ff5cd6}.mode:nth-child(3){--tone:#ffe16b}
+.mode::before{opacity:1;background:linear-gradient(108deg,transparent 0 46%,rgba(0,229,255,.14) 47%,rgba(255,92,214,.12) 49%,transparent 53% 100%)}
+.mode::after{right:22px;bottom:25px;width:72px;height:2px;border-radius:0;background:linear-gradient(90deg,transparent,var(--tone),transparent);box-shadow:0 0 18px var(--tone);opacity:.68;filter:none}
+.mode .lbl{color:#7f7a91}.mode .arr{color:var(--ac);text-shadow:0 0 11px rgba(255,225,107,.48)}
+.foot .row,.specs,.fam-link,.tip{background:linear-gradient(145deg,rgba(13,13,24,.82),rgba(6,6,11,.86));border-color:rgba(0,229,255,.16);box-shadow:0 18px 48px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.055)}
+.foot .v,.specs .v,.card .year,.dt-hero .hero-year{color:var(--ac);text-shadow:0 0 14px rgba(255,225,107,.34)}
+.chips{gap:10px}
+.chip{min-height:70px;padding:8px 13px 8px 8px;border-radius:18px;background:linear-gradient(145deg,rgba(13,13,24,.86),rgba(5,5,10,.94));border-color:rgba(120,238,255,.17);box-shadow:0 14px 34px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.06)}
+.chip .e{width:46px;height:56px;min-width:46px;padding:0;border:0;background:transparent;overflow:visible}
+.chip .e .bottle-art{width:46px;height:58px;filter:drop-shadow(0 9px 14px rgba(0,0,0,.48)) drop-shadow(0 0 10px rgba(255,225,107,.18))}
+.chip .ct{font-size:12px;line-height:1.32;white-space:normal;max-width:108px;color:#ddd8e8}
+.chip.on{background:linear-gradient(145deg,rgba(0,229,255,.2),rgba(255,92,214,.14) 55%,rgba(255,225,107,.12));border-color:rgba(0,229,255,.58);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 24px rgba(0,229,255,.24),0 18px 38px rgba(0,0,0,.36)}
+.chip.on .e{background:transparent;border:0;color:inherit}.chip.on .e .bottle-art{filter:drop-shadow(0 10px 18px rgba(0,0,0,.5)) drop-shadow(0 0 16px var(--b))}
+.chip.on .ct{color:#fff;text-shadow:0 0 10px rgba(0,229,255,.45)}
+.card,.fam .pill,.sim .it{position:relative;background:linear-gradient(180deg,rgba(14,14,27,.9),rgba(6,6,11,.97));border-color:rgba(0,229,255,.16);box-shadow:0 22px 54px rgba(0,0,0,.38),0 0 26px rgba(0,229,255,.055),inset 0 1px rgba(255,255,255,.06)}
+.card::before,.fam .pill::before,.sim .it::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.8),rgba(255,92,214,.6),transparent);opacity:.7;pointer-events:none}
+.card:active,.fam .pill:active,.sim .it:active{border-color:rgba(255,92,214,.42);box-shadow:0 14px 40px rgba(0,0,0,.48),0 0 32px rgba(255,92,214,.14)}
+.card .glass-wrap,.fam .pill .gw,.sim .it .g{background:linear-gradient(180deg,#12101d,#050509 80%),repeating-linear-gradient(90deg,transparent 0 31px,rgba(0,229,255,.06) 31px 32px)}
+.card .glass-wrap::before,.fam .pill .gw::before,.sim .it .g::before{opacity:.46;background:radial-gradient(ellipse at 50% 88%,var(--c,#888) 0%,transparent 60%),linear-gradient(140deg,transparent 0 46%,rgba(255,255,255,.12) 47%,transparent 52%)}
+.card .glass-wrap::after{background:linear-gradient(90deg,transparent,rgba(0,229,255,.7),rgba(255,92,214,.45),transparent);box-shadow:0 0 18px rgba(0,229,255,.24)}
+.card svg.glass.art,.fam .pill .gw svg.glass.art,.sim .it .g svg.glass.art{filter:drop-shadow(0 18px 34px rgba(0,0,0,.65)) drop-shadow(0 0 20px var(--c))}
+.card .name,.dt-hero h1,.sec-head h2,.fam .hd h3,.sim .sh h3,.block .bh h3{color:#fffaf5;text-shadow:0 0 16px rgba(255,92,214,.12)}
+.card .nj,.fam .pill .nj,.sim .it .nj{color:#8e879d}
+.card .meta{border-top-color:rgba(120,238,255,.13)}
+.card .badge.gn{background:rgba(88,255,189,.13);color:var(--gn);border:1px solid rgba(88,255,189,.32);box-shadow:0 0 16px rgba(88,255,189,.12)}
+.card .badge.rd{background:rgba(255,92,174,.13);color:var(--rd);border:1px solid rgba(255,92,174,.32);box-shadow:0 0 16px rgba(255,92,174,.1)}
+.result-head{border-bottom-color:rgba(0,229,255,.24);background:linear-gradient(90deg,rgba(0,229,255,.05),transparent 58%,rgba(255,92,214,.04));border-radius:12px 12px 0 0}
+.result-head .t{color:var(--ac2);text-shadow:0 0 12px rgba(0,229,255,.55)}.result-head .n{color:#ff5cd6;text-shadow:0 0 12px rgba(255,92,214,.45)}
+.empty{border-color:rgba(0,229,255,.2);background:rgba(10,10,18,.55);color:#90899b}
+.fam-list::before{background:linear-gradient(180deg,transparent,var(--ac2),var(--rd),transparent);opacity:.72}.fam::before{background:var(--ac2);box-shadow:0 0 18px rgba(0,229,255,.7),0 0 34px rgba(255,92,214,.18)}
+.fam .hd .fm span:not(.pl){border-color:rgba(120,238,255,.16);background:rgba(0,229,255,.045)}
+.dt-hero::before{border-color:rgba(0,229,255,.2);background:linear-gradient(160deg,rgba(0,229,255,.1),rgba(8,8,15,.9) 48%,rgba(255,92,214,.08));box-shadow:0 28px 70px rgba(0,0,0,.42),0 0 34px rgba(0,229,255,.12),inset 0 1px rgba(255,255,255,.08)}
+.dt-hero .glass-stage::before{opacity:.45;filter:blur(18px)}
+.specs{background:rgba(0,229,255,.14)}.specs .spec{background:rgba(7,7,13,.93)}
+.ings li{border-bottom-color:rgba(120,238,255,.12)}.ings li .cb{border-color:rgba(0,229,255,.32)}.ings li.chk .cb{background:var(--gn);border-color:var(--gn);box-shadow:0 0 16px rgba(88,255,189,.28)}
+.tip{border-color:rgba(255,225,107,.22);background:linear-gradient(145deg,rgba(255,225,107,.1),rgba(255,92,214,.07) 54%,rgba(0,229,255,.055))}
+.fam-link .arr{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.08);color:var(--ac2);box-shadow:0 0 18px rgba(0,229,255,.12)}
+@media(min-width:560px){.hero{min-height:452px}.chip .ct{max-width:124px}}
+@media(max-width:360px){.chip{min-height:62px;padding-right:10px}.chip .e{width:38px;min-width:38px}.chip .e .bottle-art{width:38px;height:52px}.chip .ct{font-size:11px;max-width:86px}}
+</style>
+</head>
+<body>
+
+<nav class="bar" id="nav">
+  <button class="back" id="back" aria-label="戻る">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="ttl" id="navTitle">カクテルブック</div>
+  <div class="sp"></div>
+</nav>
+
+<main>
+
+<section class="v v-home on" id="vHome">
+  <div class="hero">
+    <div class="kicker">ホームバーの設計図</div>
+    <h1>Cocktail<br><em>Book</em>.</h1>
+    <p class="sub">クラシックから現代のスタンダードまで。家庭の道具で再現できる20杯を、味の系譜から選べるレシピ帳。</p>
+  </div>
+  <div class="modes">
+    <button class="mode" data-go="spirit">
+      <span class="n">01</span>
+      <div class="lbl">01 手持ちのボトル</div>
+      <div class="ttl">お酒から<em>探す</em></div>
+      <div class="ja">ベースになる酒だけで探す</div>
+      <div class="arr">ボトルを選ぶ <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </button>
+    <button class="mode" data-go="menu">
+      <span class="n">02</span>
+      <div class="lbl">02 レシピ一覧</div>
+      <div class="ttl">20杯を<em>見る</em></div>
+      <div class="ja">20杯のレシピを一覧</div>
+      <div class="arr">カタログを開く <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </button>
+    <button class="mode" data-go="family">
+      <span class="n">03</span>
+      <div class="lbl">03 味の系譜</div>
+      <div class="ttl">系譜で<em>読む</em></div>
+      <div class="ja">7つの系譜で読み解く</div>
+      <div class="arr">ファミリーへ進む <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </button>
+  </div>
+  <div class="foot">
+    <div class="row"><span class="k">レシピ</span><span class="v">20</span></div>
+    <div class="row"><span class="k">系譜</span><span class="v">07</span></div>
+    <div class="row"><span class="k">ボトル</span><span class="v">16</span></div>
+    <div class="row"><span class="k">版</span><span class="v"><em>2026</em></span></div>
+  </div>
+</section>
+
+<section class="v v-spirit" id="vSpirit">
+  <div class="sec-head">
+    <div class="kicker">手持ちのボトルから</div>
+    <h2>棚にあるもので、<em>何を作る?</em></h2>
+    <p class="sub">選ぶのは今持っているお酒だけ。まず作れる一杯を出し、その下に追加で必要なボトルを表示します。</p>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="chips-meta">
+    <span id="chipsCt">0本を選択中</span>
+    <button id="chipsClear">選択を解除</button>
+  </div>
+  <div class="grid" id="spiritGrid"></div>
+</section>
+
+<section class="v v-menu" id="vMenu">
+  <div class="sec-head">
+    <div class="kicker">全レシピ</div>
+    <h2>まず押さえたい、<em>20杯</em>。</h2>
+    <p class="sub">古典から現代まで、押さえておきたい20杯。</p>
+  </div>
+  <div class="grid" id="menuGrid"></div>
+</section>
+
+<section class="v v-family" id="vFamily">
+  <div class="sec-head">
+    <div class="kicker">味の系譜</div>
+    <h2>7つの<em>ファミリー</em>。</h2>
+    <p class="sub">長い/短いではなく、どのボトルを使うかで分類します。</p>
+  </div>
+  <div class="fam-list" id="famList"></div>
+</section>
+
+<section class="v v-detail" id="vDetail"></section>
+
+<section class="v v-similar" id="vSimilar"></section>
+
+</main>
+
+<script>const SP = [
+  ['gin','GIN','ジン','Gin','base'],
+  ['vodka','VOD','ウォッカ','Vodka','base'],
+  ['rum_white','RUM','ホワイトラム','White Rum','base'],
+  ['rum_dark','AGED','ダークラム','Dark / Aged Rum','base'],
+  ['tequila','TQL','テキーラ','Tequila','base'],
+  ['whiskey','WHS','ウイスキー','Whiskey','base'],
+  ['bourbon','BRB','バーボン','Bourbon','base'],
+  ['rye','RYE','ライウイスキー','Rye Whiskey','base'],
+  ['brandy','BRD','ブランデー','Brandy','base'],
+  ['campari','BIT','カンパリ','Campari','liqueur'],
+  ['aperol','APR','アペロール','Aperol','liqueur'],
+  ['vermouth_s','SVM','スイートベルモット','Sweet Vermouth','wine'],
+  ['vermouth_d','DVM','ドライベルモット','Dry Vermouth','wine'],
+  ['champagne','CHM','シャンパン','Champagne','wine'],
+  ['prosecco','PRS','プロセッコ','Prosecco','wine'],
+  ['lillet','LIL','リレ・ブラン','Lillet Blanc','wine'],
+];
+
+const FAMILIES = [
+  {id:'rum', n:'Rum', nj:'ラムベース', keys:['rum_white','rum_dark'], f:['ホワイトラム','ダークラム'], d:'ラムを使う一杯。オレンジ、パイン、ライムなど果実との相性がよい。'},
+  {id:'gin', n:'Gin', nj:'ジンベース', keys:['gin'], f:['ジン'], d:'ジンを使う一杯。柑橘、ベルモット、ビター系と組み合わせやすい。'},
+  {id:'whiskey', n:'Whiskey', nj:'ウイスキーベース', keys:['whiskey','bourbon','rye'], f:['ウイスキー','バーボン','ライ'], d:'ウイスキー系を使う一杯。甘味、ビター、ベルモットと合わせるものが多い。'},
+  {id:'tequila', n:'Tequila', nj:'テキーラベース', keys:['tequila'], f:['テキーラ'], d:'テキーラを使う一杯。ライムや塩と合わせると輪郭が出る。'},
+  {id:'vodka', n:'Vodka', nj:'ウォッカベース', keys:['vodka'], f:['ウォッカ'], d:'ウォッカを使う一杯。味を邪魔しないのでジンジャーや柑橘と合わせやすい。'},
+  {id:'bitter', n:'Bitter & Vermouth', nj:'ビター/ベルモット', keys:['campari','aperol','vermouth_s','vermouth_d','lillet'], f:['カンパリ','アペロール','ベルモット'], d:'苦味酒やベルモットを持っている人向け。食前酒系の中心。'},
+  {id:'sparkling', n:'Sparkling Wine', nj:'発泡ワイン', keys:['champagne','prosecco'], f:['シャンパン','プロセッコ'], d:'発泡ワインを使う一杯。泡が主役なので長くても短くても温度管理が大切。'},
+];
+const D = [
+  ['daiquiri','Daiquiri','ダイキリ',['rum_white'],'White Rum',20,'Shake','Coupe','#f3ead4','Cuba, 1898',['classic','citrus'],
+    [['ホワイトラム','60ml'],['ライムジュース','20ml'],['シンプルシロップ','10ml']],
+    ['ライムを絞り、シロップ、ラムをシェイカーへ。','氷を加え、強く速く15秒シェイク。','冷やしたクープグラスへダブルストレイン。'],
+    'ライムは絞りたて。瓶入りは別物と心得る。',
+    'ヘミングウェイが愛したことで知られるが、起源は鉱山技師ジェニングス・コックスがキューバの鉱山「ダイキリ」近郊で作った一杯。サワー族の最も削ぎ落とされた形であり、3要素のバランスを覚えるための基礎教材でもある。',
+    'sour'],
+  ['whiskey_sour','Whiskey Sour','ウイスキー・サワー',['whiskey','bourbon'],'Bourbon / Whiskey',18,'Shake','Rocks','#d99858','USA, 19c.',['classic','citrus','foam'],
+    [['バーボン','60ml'],['レモンジュース','25ml'],['シンプルシロップ','15ml'],['卵白','15ml']],
+    ['卵白を含む全材料をシェイカーへ。氷なしで10秒ドライシェイク。','氷を加え本シェイク15秒。','氷を入れたロックスへストレイン。アンゴスチュラ3滴で模様を描く。'],
+    'ドライシェイクを省くと泡が立たない。順序が結果を決める。',
+    '禁酒法以前から愛されてきた古典サワー。卵白による絹のような口当たりはこのカクテルの署名であり、19世紀のジェリー・トーマスのレシピ集にも記載されている。ボストン・サワー（卵白入り）／ニューヨーク・サワー（赤ワインフロート）など派生も多い。',
+    'sour'],
+  ['margarita','Margarita','マルガリータ',['tequila'],'Tequila',24,'Shake','Coupe','#c8e0c4','Mexico, 1940s',['classic','citrus','salt'],
+    [['テキーラ','45ml'],['コアントロー','20ml'],['ライムジュース','20ml'],['塩（リム用）','適量']],
+    ['グラスのリムをライムで濡らし、塩をつける。','全材料を氷とともにシェイク。','ダブルストレインで注ぐ。'],
+    'テキーラはブランコ100%アガベを。塩はマルドンが粒感良し。',
+    '誕生譚は諸説あり、1948年テキサスの社交界の女性「マルガリータ・サメス」説が最も知られる。サワー族のテキーラ版だが、塩がもたらすミネラル感が独自の食事適性を生む。',
+    'sour'],
+  ['gimlet','Gimlet','ギムレット',['gin'],'Gin',28,'Stir/Shake','Coupe','#dde8b8','UK Navy, 1890s',['classic','citrus','dry'],
+    [['ジン','60ml'],['ライムコーディアル','15ml'],['ライムジュース','5ml']],
+    ['ミキシンググラスに全材料と氷。','15回ステアで希釈と冷却。','ストレインしてクープへ。'],
+    'コーディアルは Rose\'s が古典。自作するなら砂糖：ライム果汁=1:1。',
+    '英国海軍の軍医ギムレット卿が壊血病対策にライムコーディアルとジンを兵に勧めたことに由来。レイモンド・チャンドラー『長いお別れ』の「ギムレットには早すぎる」で文学的地位を得た。',
+    'sour'],
+  ['old_fashioned','Old Fashioned','オールド・ファッションド',['bourbon','rye'],'Bourbon / Rye',32,'Build/Stir','Rocks','#a9551a','USA, 1880s',['classic','spirit-forward'],
+    [['バーボン','60ml'],['角砂糖','1個'],['アンゴスチュラ・ビターズ','3dash'],['オレンジピール','1片']],
+    ['角砂糖にビターズを染み込ませ、グラス内で潰す。','少量の水で溶かし、バーボンを注ぐ。','大きな氷を1個入れ、15回ステア。オレンジピールでオイルを移す。'],
+    '氷は溶けにくい大粒を1個。希釈速度がこのカクテルの命。',
+    'カクテルの語源そのものとなった一杯。19世紀末、複雑化する酒場メニューに辟易した客が「昔ながらの作り方で」と注文したことが名前の由来。スピリッツ＋糖＋ビターという最も古い定義を守り続ける家族の長。',
+    'old'],
+  ['sazerac','Sazerac','サゼラック',['rye'],'Rye',32,'Stir','Rocks','#b85a2e','New Orleans, 1850',['classic','spirit-forward','absinthe'],
+    [['ライウイスキー','60ml'],['角砂糖','1個'],['ペイショーズ・ビターズ','3dash'],['アブサン','リンス用']],
+    ['ロックスグラスをアブサンでリンス、捨てる。','別のグラスで砂糖をビターズで潰し、ライを加えて氷とステア。','リンス済みグラスへストレイン。レモンピール。'],
+    'アブサンは香り付け。捨てる勇気が決め手。',
+    'ニューオーリンズ公認のカクテル。19世紀の薬剤師アントワーヌ・ペイショーが処方した強壮剤が起源で、当初はコニャックベースだった。フィロキセラ禍でブドウが壊滅した後、ライウイスキーに置き換わったという歴史的経緯を持つ。',
+    'old'],
+  ['manhattan','Manhattan','マンハッタン',['rye','bourbon','vermouth_s'],'Rye + Sweet Vermouth',30,'Stir','Coupe','#7a2828','New York, 1870s',['classic','spirit-forward'],
+    [['ライウイスキー','60ml'],['スイートベルモット','30ml'],['アンゴスチュラ・ビターズ','2dash'],['マラスキーノチェリー','1個']],
+    ['ミキシンググラスに全材料と氷。','20回ステア。','ストレインしてクープへ。チェリーを沈める。'],
+    '2:1が現代標準。古典は1:1で甘い。好みを見つける旅。',
+    '伝説では1874年マンハッタンクラブでウィンストン・チャーチル母ジェニーが考案。マティーニと並ぶ「スピリット＋ベルモット」族の双子だが、こちらはより甘く、深い赤の威厳がある。',
+    'old'],
+  ['martini','Dry Martini','ドライ・マティーニ',['gin','vermouth_d'],'Gin + Dry Vermouth',32,'Stir','Martini','#eef4d8','UK/USA, 1900s',['classic','spirit-forward','dry'],
+    [['ジン','60ml'],['ドライベルモット','10ml'],['オリーブ or レモンピール','1個']],
+    ['ミキシンググラスに氷とベルモット。軽くステアし水を切る（インアンドアウト）。','ジンを加え、25回ゆっくりステア。','よく冷やしたグラスへストレイン。'],
+    'ベルモットの量は流派次第。チャーチルは「フランスを横目で見るだけ」と言った。',
+    '「カクテルの王」。20世紀を通じて比率は乾いていき、ヘミングウェイ・モンゴメリー将軍・007など多くの作家と人物がそれぞれの完璧な比率を主張した。グラス・温度・希釈の三位一体が要求される最も繊細な一杯。',
+    'martini'],
+  ['vesper','Vesper','ヴェスパー',['gin','vodka','lillet'],'Gin + Vodka + Lillet',30,'Shake','Coupe','#f0e6c0','UK, 1953',['literary','spirit-forward'],
+    [['ジン','60ml'],['ウォッカ','20ml'],['リレ・ブラン','10ml'],['レモンピール','1片']],
+    ['シェイカーに全材料と氷。','「強く、冷たくなるまで」シェイク。','ストレインし、レモンピールをひねって沈める。'],
+    'ボンドの指示「Shaken, not stirred」を守るならシェイク。香りの立ち方が変わる。',
+    'イアン・フレミング『カジノ・ロワイヤル』(1953)でジェームズ・ボンドが命名。架空の女性ヴェスパー・リンドにちなむ。元レシピのキナ・リレは入手困難となり、現代はリレ・ブランで代用するのが標準。',
+    'martini'],
+  ['gin_tonic','Gin & Tonic','ジン・トニック',['gin'],'Gin',12,'Build','Highball','#e8eaa8','UK, 19c.',['classic','refreshing','easy'],
+    [['ジン','45ml'],['トニックウォーター','120ml'],['ライム','1/8個']],
+    ['冷えたハイボールグラスに氷を満たす。','ジンを注ぎ軽くステアして氷を冷やす。','トニックを静かに注ぐ。ライムを軽く搾って沈める。'],
+    'グラスもトニックも冷凍寸前まで冷やす。気泡の寿命が伸びる。',
+    'インド駐留の英国軍人がマラリア予防のキニーネ水（トニック）を飲みやすくするためジンを混ぜたのが起源。最もシンプルだが、最も奥深い一杯。氷の量・トニックの注ぎ方一つで別物になる。',
+    'highball'],
+  ['moscow_mule','Moscow Mule','モスコー・ミュール',['vodka'],'Vodka',12,'Build','Mug','#d4a574','USA, 1941',['classic','refreshing','ginger'],
+    [['ウォッカ','45ml'],['ライムジュース','15ml'],['ジンジャービア','120ml'],['ライム','1/8個']],
+    ['銅マグに氷を満たす。','ウォッカとライムを注ぎ、軽くステア。','ジンジャービアを静かに加え、ライムを飾る。'],
+    '銅マグは伝統。ガラスでも良いが、銅は冷感の持続が違う。',
+    '1941年ロサンゼルス。在庫過剰だったウォッカとジンジャービアと銅マグを抱えた3人の販売員が、互いの在庫を救うために共謀した「マーケティング発の古典」。ウォッカが米国市場で爆発するきっかけとなった一杯。',
+    'highball'],
+  ['mojito','Mojito','モヒート',['rum_white'],'White Rum',12,'Build','Highball','#c8e0b8','Cuba, 16c.',['classic','refreshing','mint'],
+    [['ホワイトラム','45ml'],['ライムジュース','20ml'],['シンプルシロップ','15ml'],['ミントの葉','10枚'],['ソーダ','60ml']],
+    ['グラスにミントと砂糖を入れ、優しくマドラーで叩く。香りを引き出す。','ライムとラムを加え、クラッシュアイスを満たす。','ソーダを注ぎ軽くステア。ミントの束を飾る。'],
+    'ミントは潰さない。香りだけ移すのが正解。葉を破ると苦くなる。',
+    '16世紀キューバの海賊フランシス・ドレイクの一行が壊血病対策に作った「エル・ドラケ」が起源とされる。20世紀ハバナの労働者の飲み物だったが、ヘミングウェイが愛したことで世界的に広まった。',
+    'highball'],
+  ['negroni','Negroni','ネグローニ',['gin','campari','vermouth_s'],'Gin + Campari + Sweet Vermouth',24,'Stir','Rocks','#a52a2a','Florence, 1919',['classic','bitter','aperitif'],
+    [['ジン','30ml'],['カンパリ','30ml'],['スイートベルモット','30ml'],['オレンジピール','1片']],
+    ['ロックスグラスに大きな氷を入れる。','全材料を注ぐ。','15回ステアし、オレンジピールでオイルを移す。'],
+    '等量比率の魔法。一切迷いがない。',
+    '1919年フィレンツェのバー・カソーニで、カミーロ・ネグローニ伯爵が「アメリカーノをもっと強く」と頼んだ際、ソーダの代わりにジンを入れたのが始まり。21世紀のバーテンダーの間で再評価され、世界的ブームを起こした。',
+    'aperitif'],
+  ['americano','Americano','アメリカーノ',['campari','vermouth_s'],'Campari + Sweet Vermouth',8,'Build','Highball','#c44545','Milan, 1860s',['classic','bitter','aperitif'],
+    [['カンパリ','30ml'],['スイートベルモット','30ml'],['ソーダ','適量'],['オレンジスライス','1枚']],
+    ['ハイボールグラスに氷を満たす。','カンパリとベルモットを注ぐ。','ソーダで満たし、軽くステア。オレンジを飾る。'],
+    'ネグローニの母。低アルコールで食前にちょうどよい。',
+    '1860年代ミラノのバー・ガスパレで生まれた「ミラノ・トリノ」が原型。米国人観光客が好んだことから「アメリカーノ」と呼ばれるように。ジェームズ・ボンドが小説で最初に注文するカクテルでもある（マティーニではない）。',
+    'aperitif'],
+  ['boulevardier','Boulevardier','ブールヴァルディエ',['bourbon','campari','vermouth_s'],'Bourbon + Campari + Sweet Vermouth',26,'Stir','Coupe','#8b3a2e','Paris, 1927',['classic','bitter','spirit-forward'],
+    [['バーボン','45ml'],['カンパリ','30ml'],['スイートベルモット','30ml'],['オレンジピール','1片']],
+    ['ミキシンググラスに全材料と氷。','20回ステア。','クープへストレイン。オレンジピール。'],
+    'ジンをバーボンに換えたネグローニ。冬向きの厚み。',
+    '1927年パリ。文芸誌『Boulevardier』を主宰した米国人エルスキン・グウィンが、リッツのバーで愛飲したことから命名。ネグローニの兄弟分だが、バーボンの甘さがカンパリの苦味を抱きかかえ、より丸い表情を見せる。',
+    'aperitif'],
+  ['aperol_spritz','Aperol Spritz','アペロール・スプリッツ',['aperol','prosecco'],'Aperol + Prosecco',11,'Build','Wine','#ff6f3c','Venice, 1950s',['modern','bitter','refreshing'],
+    [['アペロール','60ml'],['プロセッコ','90ml'],['ソーダ','30ml'],['オレンジスライス','1枚']],
+    ['大きめのワイングラスに氷を満たす。','3:2:1の順でプロセッコ→アペロール→ソーダ。','軽くステアし、オレンジを浮かべる。'],
+    '比率は 3-2-1。指で覚える。',
+    '1950年代ヴェネトで生まれ、2010年代にインスタグラム時代のアイコンに。鮮やかな橙色は写真映え、苦味は食前酒として最適、低アルコールは長時間の社交に耐える——三拍子揃った現代の主役。',
+    'sparkling'],
+  ['french75','French 75','フレンチ75',['gin','champagne'],'Gin + Champagne',18,'Shake/Build','Flute','#f0e8b8','Paris, 1915',['classic','sparkling','citrus'],
+    [['ジン','30ml'],['レモンジュース','15ml'],['シンプルシロップ','10ml'],['シャンパン','適量']],
+    ['ジン・レモン・シロップを氷とシェイク。','フルートグラスへストレイン。','シャンパンで満たす。レモンピールを添える。'],
+    'シャンパンは冷蔵庫から出したばかりを。気泡の寿命がレシピ。',
+    '第一次大戦中のパリ「ニューヨーク・バー」（後のハリーズ・バー）で誕生。フランス軍の75mm砲の威力にちなんで命名された——「飲めば撃たれたような衝撃が走る」。軍人の戯れから生まれた一杯が古典になった。',
+    'sparkling'],
+  ['mimosa','Mimosa','ミモザ',['champagne'],'Champagne',8,'Build','Flute','#ffb347','Paris, 1925',['classic','sparkling','brunch'],
+    [['シャンパン','75ml'],['オレンジジュース（搾りたて）','75ml']],
+    ['冷えたフルートグラスに半分まで搾りたてオレンジ。','シャンパンで満たす。','ステアせず、自然な層で供する。'],
+    'オレンジは絶対に搾りたて。瓶ジュースでは完全に別物。',
+    '1925年パリのリッツ・ホテルでフランク・マイヤーが考案。同時期にロンドンで生まれた「バックスフィズ」(2:1)とほぼ同じだが、ミモザは1:1で構成される。黄色いミモザの花にちなんだ名前。',
+    'sparkling'],
+  ['pina_colada','Piña Colada','ピニャ・コラーダ',['rum_white','rum_dark'],'Rum + Coconut',13,'Blend','Hurricane','#f5e6c8','Puerto Rico, 1954',['classic','tropical','creamy'],
+    [['ホワイトラム','45ml'],['ココナッツクリーム','45ml'],['パイナップルジュース','90ml'],['パイナップル（飾り）','1切れ']],
+    ['ブレンダーに全材料とクラッシュアイス1カップ。','30秒高速で攪拌、シャーベット状に。','ハリケーングラスへ注ぎ、パイナップルを飾る。'],
+    'ココナッツクリームは Coco López 推奨。砂糖が入っているので追加不要。',
+    'プエルトリコの公式カクテル。1954年カリベ・ヒルトンのバーテンダー、ラモン・モンチート・マレロが考案。スペイン語で「漉したパイナップル」の意。1978年のRupert Holmesのヒット曲が世界的普及を決定づけた。',
+    'tropical'],
+  ['mai_tai','Mai Tai','マイ・タイ',['rum_dark','rum_white'],'Aged Rum',26,'Shake','Rocks','#d97534','California, 1944',['classic','tropical','citrus'],
+    [['ホワイトラム','30ml'],['ダークラム','30ml'],['オレンジキュラソー','15ml'],['オルジェ・シロップ','15ml'],['ライムジュース','20ml']],
+    ['全材料をシェイカーへ。','クラッシュアイスを入れ、強くシェイク。','氷ごとロックスグラスへ。ミントを飾る。'],
+    'オルジェ（杏仁シロップ）が要。これがないと別物。',
+    '1944年カリフォルニアのティキバー Trader Vic\'s で、ヴィクター・バージェロンがタヒチ人の友人に振る舞った。一口飲んだ彼は "Maita\'i roa ae!"（最高だ！）と叫び、それが名前になった。Trader Vic\'s と Don the Beachcomber は元祖を巡って論争を続けている。',
+    'tropical'],
+];
+const META = {
+  daiquiri:{y:'1898',need:['rum_white','lime','syrup']},
+  whiskey_sour:{y:'1862',need:[['bourbon','whiskey'],'lemon','syrup','egg_white','angostura']},
+  margarita:{y:'1948',need:['tequila',['cointreau','curacao'],'lime','salt']},
+  gimlet:{y:'1890',need:['gin','lime','syrup']},
+  old_fashioned:{y:'1880',need:[['bourbon','rye'],'sugar','angostura','orange']},
+  sazerac:{y:'1850',need:['rye','sugar','peychaud','absinthe','lemon']},
+  manhattan:{y:'1874',need:[['rye','bourbon'],'vermouth_s','angostura']},
+  martini:{y:'1900',need:['gin','vermouth_d']},
+  vesper:{y:'1953',need:['gin','vodka','lillet','lemon']},
+  gin_tonic:{y:'1850',need:['gin','tonic','lime']},
+  moscow_mule:{y:'1941',need:['vodka','lime','ginger_beer']},
+  mojito:{y:'1586',need:['rum_white','lime','syrup','mint','soda']},
+  negroni:{y:'1919',need:['gin','campari','vermouth_s','orange']},
+  americano:{y:'1860',need:['campari','vermouth_s','soda','orange']},
+  boulevardier:{y:'1927',need:['bourbon','campari','vermouth_s','orange']},
+  aperol_spritz:{y:'1950',need:['aperol','prosecco','soda','orange']},
+  french75:{y:'1915',need:['gin','lemon','syrup','champagne']},
+  mimosa:{y:'1925',need:['champagne','orange_juice']},
+  pina_colada:{y:'1954',need:['rum_white','coconut','pineapple']},
+  mai_tai:{y:'1944',need:['rum_white','rum_dark','curacao','orgeat','lime','mint']}
+};
+const ALT = [
+  [/コアントロー|オレンジキュラソー/, '代替: トリプルセック、ホワイトキュラソー、グランマルニエ少量'],
+  [/リレ・ブラン/, '代替: コッキ・アメリカーノ、ドライベルモット＋オレンジビター少量'],
+  [/シャンパン|プロセッコ/, '代替: 辛口スパークリングワイン。高価な銘柄でなくてよい'],
+  [/ジンジャービア/, '代替: 辛口ジンジャーエール＋生姜スライス'],
+  [/ココナッツクリーム/, '代替: ココナッツミルク＋シロップ少量。ただし軽めに仕上がる'],
+  [/オルジェ/, '代替: アーモンドシロップ。なければ杏仁シロップを少量'],
+  [/ライムコーディアル/, '代替: ライム果汁＋シロップを2:1で合わせる'],
+  [/アブサン/, '代替: ペルノー、アニス系リキュールをリンス程度'],
+  [/ペイショーズ/, '代替: アンゴスチュラで可。ただし香りは別物'],
+  [/卵白/, '代替: アクアファバ15ml']
+];
+const S = {view:'home',from:[],detail:null,family:null,selected:new Set()};
+const flatNeed = need => need.flatMap(x=>Array.isArray(x)?x:[x]);
+const needMet = (group, selected) => (Array.isArray(group)?group:[group]).some(k=>selected.includes(k));
+const groupName = group => (Array.isArray(group)?group:[group]).map(k=>spByKey(k)?.[2]||k).join(' / ');
+const altFor = name => (ALT.find(([re])=>re.test(name))||[])[1] || '';
+const parsed = D.map(c=>({
+  id:c[0],n:c[1],nj:c[2],bk:c[3],bl:c[4],abv:c[5],prep:c[6],glass:c[7],
+  color:c[8],origin:c[9],tags:c[10],ings:c[11],steps:c[12],tip:c[13],story:c[14],fam:c[15],
+  year:META[c[0]]?.y || ((c[9].match(/\d{4}/)||[])[0] || ''),
+  need:META[c[0]]?.need || c[3]
+}));
+const byId = id => parsed.find(c=>c.id===id);
+const famById = id => FAMILIES.find(f=>f.id===id);
+const spByKey = k => SP.find(s=>s[0]===k);
+const PRIMARY_FAMILY = {negroni:'bitter',americano:'bitter',boulevardier:'bitter',aperol_spritz:'sparkling',french75:'sparkling',mimosa:'sparkling'};
+const familyMatch = (f,c) => (f.keys||[]).some(k=>c.bk.includes(k));
+const familyFor = c => famById(PRIMARY_FAMILY[c.id]) || FAMILIES.find(f=>familyMatch(f,c)) || FAMILIES[0];
+const BOTTLES = {
+  gin:['#a9e9dc','#325f56','#eaf9f4'], vodka:['#d5eef8','#4d6a80','#f7fbff'],
+  rum_white:['#ead7a9','#8a5b2e','#fff3d0'], rum_dark:['#9b5b2d','#3a2014','#f0c082'],
+  tequila:['#d7c074','#5c4b1f','#fff0ad'], whiskey:['#c98235','#311a11','#f6c66f'],
+  bourbon:['#d66e2f','#32160d','#ffc077'], rye:['#b86f31','#2f180f','#efb36e'],
+  brandy:['#9f4228','#2c1211','#e9a16e'], campari:['#e83e4d','#3b1118','#ff9aa3'],
+  aperol:['#ff7b3a','#452017','#ffc08f'], vermouth_s:['#8e2638','#2b1118','#e38a93'],
+  vermouth_d:['#cfc98a','#35351d','#fff4bf'], champagne:['#efe3a7','#554b22','#fff3c0'],
+  prosecco:['#d9e19a','#425122','#f9ffc0'], lillet:['#eee1b4','#51411d','#fff2c7']
+};
+function bottleSvg(k,label){
+  const p = BOTTLES[k] || ['#d7c074','#3b2a16','#fff0ad'];
+  const id='bt'+Math.random().toString(36).slice(2,8);
+  return `<svg class="bottle-art" viewBox="0 0 54 78" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="${id}g" x1="18" y1="5" x2="39" y2="73"><stop stop-color="#fff" stop-opacity=".55"/><stop offset=".24" stop-color="${p[0]}" stop-opacity=".58"/><stop offset=".72" stop-color="${p[0]}"/><stop offset="1" stop-color="${p[1]}"/></linearGradient>
+      <filter id="${id}p"><feTurbulence type="fractalNoise" baseFrequency=".95" numOctaves="2" seed="4"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 .86 0 0 0 0 .62 0 0 0 .2 0"/></filter>
+    </defs>
+    <path d="M22 6h10v13c0 3 6 8 7 14l4 29c1 7-3 11-10 11H21c-7 0-11-4-10-11l4-29c1-6 7-11 7-14V6z" fill="url(#${id}g)" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+    <path d="M21 6h12v7H21z" fill="${p[1]}" stroke="rgba(255,255,255,.32)" stroke-width="1"/>
+    <rect x="15" y="39" width="24" height="17" rx="5" fill="#111016" stroke="${p[2]}" stroke-opacity=".72"/>
+    <rect x="16" y="40" width="22" height="15" rx="4" filter="url(#${id}p)" opacity=".55"/>
+    <path d="M20 18c-5 9-7 26-5 42" stroke="white" stroke-opacity=".22" stroke-width="2" stroke-linecap="round"/>
+    <path d="M33 21c4 9 5 25 3 39" stroke="#000" stroke-opacity=".22" stroke-width="2" stroke-linecap="round"/>
+    <text x="27" y="50" text-anchor="middle" font-family="Fraunces,serif" font-size="7" font-weight="600" fill="${p[2]}">${label}</text>
+  </svg>`;
+}
+function gSvg(drink,glassArg){
+  const data = typeof drink === 'object' ? drink : null;
+  const color = data ? data.color : drink;
+  const glass = data ? data.glass : glassArg;
+  const cid = data ? data.id : '';
+  const id='g'+Math.random().toString(36).slice(2,8);
+  const grad='gr'+id, shine='sh'+id, blur='bl'+id, paint='pt'+id, glassFx='fx'+id;
+  let shape='', garnish='', detail='';
+  const twist = `<path d="M120 54c11-12 24-13 34-4" stroke="#d89a35" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  const lime = `<path d="M121 51l20 10-18 12z" fill="#9ecf76"/><path d="M124 57l11 5" stroke="#e9ffd0" stroke-width="1"/>`;
+  const mint = `<path d="M122 54c-9-13-2-24 12-20-1 12-5 18-12 20zM133 58c4-14 17-15 23-4-8 8-15 9-23 4z" fill="#74a86a"/>`;
+  const bubbles = `<circle cx="82" cy="86" r="2" fill="white" opacity=".35"/><circle cx="100" cy="104" r="1.7" fill="white" opacity=".28"/><circle cx="93" cy="128" r="2.4" fill="white" opacity=".26"/><circle cx="108" cy="76" r="1.8" fill="white" opacity=".24"/>`;
+  const ice = `<path d="M72 88l20-11 17 13-18 12zM88 121l19-10 16 12-17 11z" fill="rgba(255,255,255,.16)"/>`;
+  if(cid==='moscow_mule'){
+    shape=`<path d="M60 55h58l-5 94c-.5 10-7 16-17 16H82c-10 0-16.5-6-17-16L60 55z" fill="url(#${grad})" stroke="#c98556" stroke-width="2"/><path d="M118 78c25 2 24 46 0 48" stroke="#b87446" stroke-width="8" fill="none"/><ellipse cx="89" cy="57" rx="30" ry="6" fill="#e0a070" opacity=".45"/><path d="M72 88l18-10 14 12-17 11zM88 121l18-9 15 11-16 10z" fill="rgba(255,255,255,.18)"/>`;
+    garnish=lime;
+  } else if(/flute/i.test(glass)){
+    shape=`<path d="M73 26h34l-8 105H81L73 26z" fill="url(#${grad})" stroke="rgba(255,255,255,.52)" stroke-width="1.4"/><path d="M90 131v31M76 168h28" stroke="rgba(255,255,255,.52)" stroke-width="5" stroke-linecap="round"/><ellipse cx="90" cy="27" rx="18" ry="4" fill="rgba(255,255,255,.22)"/>`;
+    detail=bubbles;
+    garnish=cid==='mimosa'?`<circle cx="112" cy="45" r="10" fill="#f0a43a"/><path d="M112 35v20M102 45h20" stroke="#ffdca6" stroke-width="1"/>`:twist;
+  } else if(/wine|hurricane/i.test(glass)){
+    shape=`<path d="M54 31c5 52 15 80 36 88 21-8 31-36 36-88H54z" fill="url(#${grad})" stroke="rgba(255,255,255,.45)" stroke-width="1.4"/><path d="M90 119v39M73 166h34" stroke="rgba(255,255,255,.5)" stroke-width="5" stroke-linecap="round"/><ellipse cx="90" cy="34" rx="37" ry="6" fill="rgba(255,255,255,.2)"/>`;
+    detail=cid==='aperol_spritz'||cid==='french75'||cid==='mimosa'?bubbles:`<path d="M72 80c12 8 24 8 36 0" stroke="rgba(255,255,255,.16)" stroke-width="2"/>`;
+    garnish=cid==='pina_colada'?`<path d="M119 42l21-16 9 24z" fill="#e7c35c"/><path d="M124 38h19" stroke="#8c6b2d" stroke-width="1"/><path d="M113 24l24 92" stroke="#d88b72" stroke-width="4" stroke-linecap="round"/>`:`<circle cx="116" cy="55" r="12" fill="${cid==='aperol_spritz'?'#ff9b35':color}" opacity=".85"/><path d="M116 43v24M104 55h24" stroke="rgba(255,255,255,.45)" stroke-width="1"/>`;
+  } else if(/highball|collins/i.test(glass)){
+    shape=`<path d="M64 42h52l-7 112c-.5 9-6 14-15 14H86c-9 0-14.5-5-15-14L64 42z" fill="url(#${grad})" stroke="rgba(255,255,255,.46)" stroke-width="1.4"/><ellipse cx="90" cy="43" rx="27" ry="5" fill="rgba(255,255,255,.18)"/><path d="M73 72h34M75 96h31M77 120h27" stroke="rgba(255,255,255,.13)" stroke-width="1"/>`;
+    detail=(cid==='gin_tonic'||cid==='americano'||cid==='mojito')?bubbles+ice:ice;
+    garnish=cid==='mojito'?mint:cid==='americano'?`<circle cx="120" cy="58" r="13" fill="#d88933"/><path d="M120 45v26M107 58h26" stroke="#ffd7a0" stroke-width="1.2"/>`:lime;
+  } else if(/rocks/i.test(glass)){
+    shape=`<path d="M54 58h72l-8 92c-.7 10-7 16-17 16H79c-10 0-16.3-6-17-16L54 58z" fill="url(#${grad})" stroke="rgba(255,255,255,.46)" stroke-width="1.4"/><ellipse cx="90" cy="60" rx="37" ry="7" fill="rgba(255,255,255,.18)"/>`;
+    detail=ice+(cid==='whiskey_sour'?`<path d="M62 67c18-10 38-10 56 0v13c-18-8-38-8-56 0z" fill="#f4ead7" opacity=".85"/><circle cx="85" cy="72" r="2" fill="#a33"/><circle cx="94" cy="72" r="2" fill="#a33"/><circle cx="103" cy="72" r="2" fill="#a33"/>`:``);
+    garnish=cid==='mai_tai'?mint+lime:twist;
+  } else {
+    const salt = cid==='margarita'?`<ellipse cx="90" cy="41" rx="51" ry="6" fill="none" stroke="#f7f1df" stroke-width="3" stroke-dasharray="4 4" opacity=".9"/>`:``;
+    shape=`<path d="M42 40h96L96 105v48h18v8H66v-8h18v-48L42 40z" fill="url(#${grad})" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/><ellipse cx="90" cy="41" rx="49" ry="5" fill="rgba(255,255,255,.18)"/>${salt}<path d="M56 48h68L94 92 56 48z" fill="${color}" opacity=".28"/>`;
+    garnish=cid==='manhattan'?`<circle cx="120" cy="62" r="7" fill="#8b1f2b"/><path d="M119 55c6-5 13-5 18-1" stroke="#7da56a" stroke-width="2" fill="none"/>`:cid==='margarita'||cid==='daiquiri'||cid==='gimlet'?lime:twist;
+  }
+  return `<svg class="glass art" viewBox="0 0 180 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="${grad}" x1="78" y1="28" x2="100" y2="170"><stop stop-color="rgba(255,255,255,.42)"/><stop offset=".18" stop-color="${color}" stop-opacity=".38"/><stop offset=".54" stop-color="${color}" stop-opacity=".96"/><stop offset="1" stop-color="${color}" stop-opacity=".34"/></linearGradient><linearGradient id="${shine}" x1="0" y1="0" x2="180" y2="220"><stop stop-color="white" stop-opacity=".42"/><stop offset=".34" stop-color="white" stop-opacity=".04"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient><filter id="${blur}"><feGaussianBlur stdDeviation="13"/></filter><filter id="${paint}"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.92 0 0 0 0 0.72 0 0 0 .16 0"/></filter><filter id="${glassFx}"><feDropShadow dx="-4" dy="8" stdDeviation="6" flood-color="#000" flood-opacity=".35"/><feDropShadow dx="3" dy="-2" stdDeviation="2" flood-color="#fff" flood-opacity=".12"/></filter></defs>
+    <rect width="180" height="220" rx="28" fill="#111014"/><rect width="180" height="220" rx="28" filter="url(#${paint})" opacity=".7"/><rect x="16" y="18" width="148" height="172" rx="24" fill="url(#${shine})" opacity=".5"/><circle cx="90" cy="120" r="60" fill="${color}" opacity=".38" filter="url(#${blur})"/><path d="M20 170c42-16 94-16 140 0" stroke="rgba(255,255,255,.16)" stroke-width="1"/><ellipse cx="91" cy="171" rx="45" ry="8" fill="rgba(0,0,0,.5)"/>
+    <g filter="url(#${glassFx})">${shape}${detail}${garnish}</g><path d="M54 38c19-13 57-14 78 0" stroke="white" stroke-width="1.2" opacity=".16"/><path d="M63 58c-13 43-11 82 5 104" stroke="white" stroke-width="2.2" opacity=".12" stroke-linecap="round"/>
+  </svg>`;
+}
+function go(view, data){
+  if(S.view !== view) S.from.push(S.view);
+  S.view = view;
+  document.querySelectorAll('.v').forEach(el=>el.classList.remove('on'));
+  const nav = document.getElementById('nav');
+  const navTitle = document.getElementById('navTitle');
+  nav.classList.toggle('canback', view !== 'home');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(view==='home'){ S.from=[]; navTitle.textContent='カクテルブック'; document.getElementById('vHome').classList.add('on'); }
+  else if(view==='spirit'){ navTitle.textContent='ボトル棚'; renderSpirit(); document.getElementById('vSpirit').classList.add('on'); }
+  else if(view==='menu'){ navTitle.textContent='レシピ一覧'; renderMenu(); document.getElementById('vMenu').classList.add('on'); }
+  else if(view==='family'){ navTitle.textContent='味の系譜'; renderFamily(); document.getElementById('vFamily').classList.add('on'); }
+  else if(view==='detail'){ S.detail=data; navTitle.textContent='レシピ'; renderDetail(data); document.getElementById('vDetail').classList.add('on'); }
+  else if(view==='similar'){ S.family=data; navTitle.textContent='ファミリー'; renderSimilar(data); document.getElementById('vSimilar').classList.add('on'); }
+}
+
+document.getElementById('back').addEventListener('click', ()=>{
+  const prev = S.from.pop() || 'home';
+  S.view = ''; // bypass push
+  document.querySelectorAll('.v').forEach(el=>el.classList.remove('on'));
+  S.view = prev;
+  const nav = document.getElementById('nav');
+  const navTitle = document.getElementById('navTitle');
+  nav.classList.toggle('canback', prev !== 'home');
+  window.scrollTo({top:0,behavior:'instant'});
+  if(prev==='home'){ navTitle.textContent='カクテルブック'; document.getElementById('vHome').classList.add('on'); }
+  else if(prev==='spirit'){ navTitle.textContent='ボトル棚'; document.getElementById('vSpirit').classList.add('on'); }
+  else if(prev==='menu'){ navTitle.textContent='レシピ一覧'; document.getElementById('vMenu').classList.add('on'); }
+  else if(prev==='family'){ navTitle.textContent='味の系譜'; document.getElementById('vFamily').classList.add('on'); }
+  else if(prev==='detail'){ navTitle.textContent='レシピ'; renderDetail(S.detail); document.getElementById('vDetail').classList.add('on'); }
+  else if(prev==='similar'){ navTitle.textContent='ファミリー'; document.getElementById('vSimilar').classList.add('on'); }
+});
+
+document.querySelectorAll('[data-go]').forEach(el=>{
+  el.addEventListener('click', ()=> go(el.dataset.go));
+});
+window.addEventListener('scroll', ()=>{
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 8);
+});
+function cardHTML(c, badge){
+  return `<button class="card" data-id="${c.id}" style="--c:${c.color}">
+    <div class="glass-wrap">${gSvg(c)}</div>
+    <div class="body">
+      <div class="name">${c.n}</div>
+      <div class="year">${c.year}</div>
+      <div class="nj">${c.nj}</div>
+      <div class="meta">
+        <span class="abv"><b>${c.abv}</b><small>%</small></span>
+        ${badge || ''}
+      </div>
+    </div>
+  </button>`;
+}
+function bindCardClicks(container){
+  container.querySelectorAll('[data-id]').forEach(el=>{
+    el.addEventListener('click', ()=> go('detail', el.dataset.id));
+  });
+}
+function renderSpirit(){
+  const chips = document.getElementById('chips');
+  chips.innerHTML = SP.map(s=>{
+    const on = S.selected.has(s[0]);
+    return `<button class="chip ${on?'on':''}" data-k="${s[0]}" style="--b:${(BOTTLES[s[0]]||[])[0]||'#d7c074'}"><span class="e">${bottleSvg(s[0],s[1])}</span><span class="ct">${s[2]}</span></button>`;
+  }).join('');
+  chips.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const k = c.dataset.k;
+      if(S.selected.has(k)) S.selected.delete(k); else S.selected.add(k);
+      renderSpirit();
+    });
+  });
+  document.getElementById('chipsCt').textContent = `${S.selected.size}本を選択中`;
+  document.getElementById('chipsClear').onclick = ()=>{ S.selected.clear(); renderSpirit(); };
+
+  const grid = document.getElementById('spiritGrid');
+  if(S.selected.size === 0){
+    grid.className = 'grid';
+    grid.innerHTML = `<div class="empty">ボトルを選ぶと、今作れる一杯と、追加で必要なボトルを分けて表示します。</div>`;
+    return;
+  }
+  const sel = [...S.selected];
+  const ranked = parsed.map(c=>{
+    const groups = c.bk;
+    const has = groups.filter(k=>sel.includes(k));
+    const missing = groups.filter(k=>!sel.includes(k));
+    const overlap = has.length;
+    return {c, overlap, missing:missing.length, missingKeys:missing};
+  }).sort((a,b)=> a.missing - b.missing || b.overlap - a.overlap || a.c.n.localeCompare(b.c.n));
+  const ready = ranked.filter(r=>r.missing === 0);
+  const needMore = ranked.filter(r=>r.missing > 0);
+  grid.className = 'grid split';
+  const readyHTML = ready.length
+    ? ready.map(r=>cardHTML(r.c, `<span class="badge gn">作れる</span>`)).join('')
+    : `<div class="empty">今のボトルだけで作れるレシピはまだありません。</div>`;
+  const needHTML = needMore.map(r=>{
+    const missingLabel = r.missingKeys.map(k=>spByKey(k)?.[2]||k).join('・');
+    const badge = `<span class="badge rd"><b>必要</b><small>${missingLabel}</small></span>`;
+    return cardHTML(r.c, badge);
+  }).join('');
+  grid.innerHTML = `
+    <div class="result-head"><span class="t">今作れる</span><span class="n">${ready.length}</span></div>
+    ${readyHTML}
+    <div class="result-head"><span class="t">追加ボトルが必要</span><span class="n">${needMore.length}</span></div>
+    ${needHTML}
+  `;
+  bindCardClicks(grid);
+}
+function renderMenu(){
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML = parsed.map(c=> cardHTML(c)).join('');
+  bindCardClicks(grid);
+}
+function renderFamily(){
+  const list = document.getElementById('famList');
+  list.innerHTML = FAMILIES.map((f,i)=>{
+    const members = parsed.filter(c=>familyMatch(f,c));
+    const num = String(i+1).padStart(2,'0');
+    return `<div class="fam">
+      <div class="hd">
+        <div class="l">
+          <div class="n">系譜 ${num} · ${f.nj}</div>
+          <h3><em>${f.n}</em></h3>
+          <div class="fm">${f.f.map((x,j)=>`<span>${x}</span>${j<f.f.length-1?'<span class="pl">＋</span>':''}`).join('')}</div>
+        </div>
+        <div class="ct">${members.length}</div>
+      </div>
+      <div class="row">
+        ${members.map(c=>`<button class="pill" data-id="${c.id}" style="--c:${c.color}">
+          <div class="gw">${gSvg(c)}</div>
+          <div class="b"><div class="nm">${c.n}</div><div class="nj">${c.nj}</div></div>
+        </button>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  bindCardClicks(list);
+}
+function similarity(a,b){
+  if(a.id===b.id) return -1;
+  const ak = [...new Set(flatNeed(a.need || a.bk))];
+  const bk = [...new Set(flatNeed(b.need || b.bk))];
+  const shared = ak.filter(k=>bk.includes(k)).length;
+  const union = new Set([...ak,...bk]).size || 1;
+  return Math.round(shared / union * 100);
+}
+function renderDetail(id){
+  const c = byId(id);
+  const fam = familyFor(c);
+  const similar = parsed.map(o=>({c:o,s:similarity(c,o)})).filter(r=>r.s>0).sort((a,b)=>b.s-a.s).slice(0,5);
+  const maxS = 100;
+
+  const el = document.getElementById('vDetail');
+  el.style.setProperty('--c', c.color);
+  el.style.setProperty('--c-glow', c.color+'33');
+  el.innerHTML = `
+    <div class="dt-hero" style="--c:${c.color};--c-glow:${c.color}44">
+      <div class="glass-stage">${gSvg(c)}</div>
+      <div class="lbl">${fam.nj}ファミリー</div>
+      <h1>${c.n.split(' ').map((w,i,a)=> i===a.length-1 ? `<em>${w}</em>` : w).join(' ')}</h1>
+      <div class="hero-year">${c.year}</div>
+      <div class="nj">${c.nj} · ${c.origin.replace(/,?\s*\d{4}s?|,?\s*\d{4}|,?\s*19c\.|,?\s*16c\./,'')}</div>
+    </div>
+    <div class="specs">
+      <div class="spec"><div class="k">ベース</div><div class="v">${c.bl}</div></div>
+      <div class="spec"><div class="k">度数</div><div class="v">${c.abv}<small>%</small></div></div>
+      <div class="spec"><div class="k">技法</div><div class="v"><em>${c.prep}</em></div></div>
+      <div class="spec"><div class="k">グラス</div><div class="v">${c.glass}</div></div>
+    </div>
+    <div class="story" id="story">
+      <div class="pull">"${c.story.split('。')[0]}。"</div>
+      <div class="body">${c.story}</div>
+      <button class="tg">背景を読む <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="block">
+      <div class="bh"><h3>材料</h3><span class="n">${c.ings.length}点</span></div>
+      <ul class="ings">
+        ${c.ings.map((ing,i)=>`<li data-i="${i}"><span class="cb"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-6" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lab">${ing[0]}${altFor(ing[0])?`<small>${altFor(ing[0])}</small>`:''}</span><span class="amt">${ing[1]}</span></li>`).join('')}
+      </ul>
+    </div>
+    <div class="block">
+      <div class="bh"><h3>作り方</h3><span class="n">${c.steps.length}手順</span></div>
+      <ol class="steps">
+        ${c.steps.map(s=>`<li>${s}</li>`).join('')}
+      </ol>
+    </div>
+    <div class="tip">
+      <div class="k">コツ</div>
+      <div class="tiptext">${c.tip || 'このレシピは温度、氷、希釈で仕上がりが大きく変わる。まずは分量通りに作り、次回から甘味と酸味を微調整する。'}</div>
+    </div>
+    <div class="sim">
+      <div class="sh">
+        <div class="l">
+          <div class="kicker">材料が近い順</div>
+          <h3>次に作る<em>一杯</em></h3>
+        </div>
+      </div>
+      <div class="row">
+        ${similar.map(r=>`<button class="it" data-id="${r.c.id}" style="--c:${r.c.color}">
+          <div class="g">${gSvg(r.c)}<span class="sc">${Math.round(r.s/maxS*100)}%</span></div>
+          <div class="b"><div class="n">${r.c.n}</div><div class="nj">${r.c.nj}</div></div>
+        </button>`).join('')}
+      </div>
+    </div>
+    <button class="fam-link" data-fam="${fam.id}">
+      <div class="l">
+        <div class="k">ボトル系譜を見る</div>
+        <div class="t">${fam.nj}ファミリー →</div>
+      </div>
+      <div class="arr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </button>
+  `;
+
+  el.querySelector('#story button.tg').addEventListener('click', ()=>{
+    el.querySelector('#story').classList.toggle('open');
+  });
+  const checkKey = `cocktail:${c.id}:checked`;
+  let checked = [];
+  try { checked = JSON.parse(sessionStorage.getItem(checkKey) || '[]'); } catch(e) {}
+  el.querySelectorAll('.ings li').forEach(li=>{
+    const idx = Number(li.dataset.i);
+    li.classList.toggle('chk', checked.includes(idx));
+    li.addEventListener('click', ()=>{
+      li.classList.toggle('chk');
+      const now = [...el.querySelectorAll('.ings li.chk')].map(x=>Number(x.dataset.i));
+      try { sessionStorage.setItem(checkKey, JSON.stringify(now)); } catch(e) {}
+    });
+  });
+  el.querySelectorAll('[data-id]').forEach(b=>{
+    b.addEventListener('click', ()=> go('detail', b.dataset.id));
+  });
+  el.querySelector('[data-fam]').addEventListener('click', ()=> go('similar', fam.id));
+}
+function renderSimilar(famId){
+  const fam = famById(famId);
+  const members = parsed.filter(c=>familyMatch(fam,c));
+  const el = document.getElementById('vSimilar');
+  el.innerHTML = `
+    <div class="sec-head">
+      <div class="kicker">ファミリーフォーカス · ${fam.nj}</div>
+      <h2><em>${fam.n}</em>の系譜</h2>
+      <p class="sub">${fam.d}</p>
+      <div style="margin-top:18px;font-size:11px;color:var(--tx2);letter-spacing:.06em;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        ${fam.f.map((x,j)=>`<span>${x}</span>${j<fam.f.length-1?'<span style="color:var(--tx3)">＋</span>':''}`).join('')}
+      </div>
+    </div>
+    <div class="grid">
+      ${members.map(c=>cardHTML(c)).join('')}
+    </div>
+  `;
+  bindCardClicks(el);
+}
+go('home');
+</script>
+
+</body>
+</html>

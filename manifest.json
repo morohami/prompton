@@ -1,5 +1,33 @@
 [
   {
+    "id": "p1779487217532",
+    "title": "カクテルブック — Neon Speakeasy",
+    "description": "手持ちのベース酒から今作れるカクテルと足りないボトルを分けて表示する、ネオン高級バー風の単一HTMLカクテルレシピアプリ。",
+    "systemPrompt": "You are Codex, a senior frontend engineer and visual designer. Build a single-file, launch-ready HTML app with refined design, mobile-first UX, vanilla JavaScript, and no framework dependency.",
+    "userPrompt": "Create a cocktail recipe app with design as the priority. It does not need to be Japanese-style; it should look ready to launch. Use real-feeling cocktail visuals or high-end bar menu illustrations, remove emoji, classify cocktail families by how similar their ingredients/base bottles are, show the developed year under each cocktail name without \"since\", include useful technique tips, and include practical substitutions for uncommon ingredients such as Cointreau. Refine the bottle search so the user chooses only the base alcohol/liquor they currently have. Show only cocktails they can make now in the primary section, and for every unavailable cocktail show the additional bottle needed without requiring a click. Use painterly realistic visuals for both cocktails and bottles. Final design direction: Neon Speakeasy.",
+    "context": "Single-file Japanese cocktail app with 20 recipes. Mobile-first. Preserve all functionality in one HTML file. Output file: cocktail-app-v2.html.",
+    "model": "GPT-5",
+    "license": "CC0 — Public domain",
+    "tags": [
+      "cocktail",
+      "bar",
+      "recipe",
+      "html",
+      "design",
+      "neon",
+      "japanese"
+    ],
+    "tag": "cocktail",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-05-23",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "p1779555000001",
     "title": "ホテルと金 ─ Vol. I (final draft)",
     "description": "ホテル業界とファイナンスを横断する longform — Vol. 1 最終ドラフト。340KB の単一HTML。",
