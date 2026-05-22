@@ -1,0 +1,2078 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PromptShare — v1 Prototype</title>
+  <style>
+    :root {
+      --bg: #fbfaf7;
+      --surface: #ffffff;
+      --surface-soft: #fff5ec;
+      --surface-green: #f0faf4;
+      --text: #242321;
+      --muted: #6f6a62;
+      --line: #ece3d8;
+      --accent: #ff6f2c;
+      --accent-dark: #de5518;
+      --green: #2c9f62;
+      --blue: #3678f5;
+      --shadow: 0 18px 45px rgba(35, 28, 21, 0.08);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(255, 111, 44, 0.12), transparent 34rem),
+        linear-gradient(180deg, #fffaf4 0%, var(--bg) 42%, #f9f8f5 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    iframe { border: 0; background: white; }
+
+    .shell {
+      width: min(var(--max), calc(100vw - 32px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 1px solid rgba(236, 227, 216, 0.82);
+      background: rgba(251, 250, 247, 0.88);
+      backdrop-filter: blur(18px);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 76px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 14px;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 12px 24px rgba(255, 111, 44, 0.28);
+    }
+
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.05;
+    }
+
+    .brand-copy small {
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      margin-top: 4px;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-link {
+      padding: 10px 13px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.93rem;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--text);
+      background: white;
+      box-shadow: 0 8px 18px rgba(35, 28, 21, 0.06);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 11px 16px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      box-shadow: 0 12px 24px rgba(255, 111, 44, 0.24);
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      background: var(--accent-dark);
+      box-shadow: 0 16px 30px rgba(255, 111, 44, 0.26);
+    }
+
+    .button.secondary {
+      background: var(--text);
+      box-shadow: 0 12px 24px rgba(35, 28, 21, 0.14);
+    }
+
+    .button.secondary:hover { background: #000; }
+    .button.ghost {
+      background: white;
+      color: var(--text);
+      border-color: var(--line);
+      box-shadow: none;
+    }
+
+    .button.ghost:hover {
+      background: #fff8f1;
+      box-shadow: 0 12px 24px rgba(35, 28, 21, 0.08);
+    }
+
+    .button.soft {
+      background: #fff1e7;
+      color: var(--accent-dark);
+      border-color: #ffe0ca;
+      box-shadow: none;
+    }
+
+    .button.soft:hover { background: #ffe5d5; }
+    .button.green {
+      background: var(--green);
+      box-shadow: 0 12px 24px rgba(44, 159, 98, 0.2);
+    }
+
+    .button.small {
+      min-height: 36px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+    }
+
+    .button.block { width: 100%; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 28px;
+      align-items: stretch;
+      padding: 42px 0 26px;
+    }
+
+    .hero-card,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 34px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card:after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -120px;
+      width: 260px;
+      height: 260px;
+      background: rgba(255, 111, 44, 0.13);
+      border-radius: 999px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-dark);
+      background: #fff0e5;
+      border: 1px solid #ffe0ca;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-weight: 800;
+      font-size: 0.82rem;
+      letter-spacing: -0.01em;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.06;
+      letter-spacing: -0.045em;
+    }
+
+    h1 {
+      max-width: 820px;
+      margin-top: 18px;
+      font-size: clamp(2.3rem, 5vw, 4.7rem);
+    }
+
+    h2 { font-size: clamp(1.7rem, 3vw, 2.55rem); }
+    h3 { font-size: 1.25rem; }
+
+    .lead {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: clamp(1.02rem, 2vw, 1.2rem);
+      max-width: 720px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .mini-proof {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .proof-pill {
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 14px;
+    }
+
+    .proof-pill strong {
+      display: block;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .proof-pill span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .hero-preview {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hero-preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #ffc7a4;
+    }
+
+    .hero-preview iframe {
+      width: 100%;
+      min-height: 324px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      box-shadow: inset 0 0 0 1px #fff;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 18px 0 16px;
+    }
+
+    .section-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 680px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(135px, 0.7fr));
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 12px 28px rgba(35, 28, 21, 0.05);
+      margin: 16px 0 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    label,
+    .field-label {
+      color: #554e46;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: white;
+      color: var(--text);
+      padding: 11px 12px;
+      outline: none;
+      box-shadow: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 124px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(255, 111, 44, 0.78);
+      box-shadow: 0 0 0 4px rgba(255, 111, 44, 0.12);
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.94rem;
+      margin-bottom: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      padding-bottom: 42px;
+    }
+
+    .prompt-tile {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(35, 28, 21, 0.06);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .prompt-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 42px rgba(35, 28, 21, 0.1);
+    }
+
+    .tile-preview {
+      position: relative;
+      height: 202px;
+      overflow: hidden;
+      background: #f7f1ea;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tile-preview iframe {
+      width: 142%;
+      height: 142%;
+      transform: scale(0.704);
+      transform-origin: top left;
+      pointer-events: none;
+    }
+
+    .preview-pill {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.88);
+      color: #5d554d;
+      font-size: 0.76rem;
+      font-weight: 850;
+      box-shadow: 0 8px 18px rgba(35, 28, 21, 0.1);
+    }
+
+    .tile-body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .tile-kicker {
+      color: var(--accent-dark);
+      font-size: 0.79rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tile-body h3 a:hover { color: var(--accent-dark); }
+    .tile-body p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid #efe2d5;
+      background: #fff9f3;
+      color: #685d52;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 780;
+    }
+
+    .tile-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 750;
+      margin-top: auto;
+    }
+
+    .tile-meta a { color: var(--accent-dark); }
+    .tile-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      border: 1px dashed #e2d2c2;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .detail-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 332px;
+      gap: 22px;
+      padding: 30px 0 42px;
+    }
+
+    .detail-main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .detail-preview-panel {
+      padding: 16px;
+    }
+
+    .detail-preview-panel iframe {
+      display: block;
+      width: 100%;
+      min-height: 590px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+    }
+
+    .detail-intro,
+    .side-card,
+    .anatomy-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      box-shadow: 0 14px 30px rgba(35, 28, 21, 0.05);
+    }
+
+    .detail-intro,
+    .side-card,
+    .anatomy-card { padding: 22px; }
+
+    .breadcrumb {
+      display: inline-flex;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 760;
+      margin-bottom: 16px;
+    }
+
+    .breadcrumb:hover { color: var(--accent-dark); }
+
+    .detail-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .detail-title-row h1 {
+      margin-top: 0;
+      font-size: clamp(2.1rem, 4vw, 3.8rem);
+    }
+
+    .detail-description {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+      max-width: 850px;
+    }
+
+    .parent-note {
+      margin-top: 16px;
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: #f3f8ff;
+      color: #345075;
+      border: 1px solid #dbe9ff;
+      font-weight: 750;
+    }
+
+    .parent-note a {
+      color: #174ea6;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .side-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: sticky;
+      top: 96px;
+      align-self: start;
+    }
+
+    .author-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-weight: 760;
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: #fff0e5;
+      color: var(--accent-dark);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      flex: 0 0 auto;
+    }
+
+    .avatar.large {
+      width: 82px;
+      height: 82px;
+      border-radius: 26px;
+      font-size: 1.7rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .stat {
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fffaf5;
+      padding: 13px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.32rem;
+      letter-spacing: -0.04em;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 780;
+      margin-top: 3px;
+    }
+
+    .side-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .license-line,
+    .small-muted {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    .anatomy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .prompt-block {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffaf5;
+      overflow: hidden;
+    }
+
+    .prompt-block h3 {
+      padding: 14px 14px 0;
+      font-size: 1rem;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      margin: 0;
+      color: #4b463f;
+      font-size: 0.9rem;
+      padding: 14px;
+    }
+
+    .steps {
+      display: grid;
+      gap: 10px;
+      counter-reset: step;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 13px;
+      background: #fffaf5;
+    }
+
+    .step:before {
+      counter-increment: step;
+      content: counter(step);
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      font-weight: 900;
+    }
+
+    .step strong { display: block; }
+    .step span { color: var(--muted); font-size: 0.94rem; }
+
+    .fork-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .fork-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fffaf5;
+      font-weight: 800;
+    }
+
+    .fork-item small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .form-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 22px;
+      padding: 30px 0 44px;
+    }
+
+    .form-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+    .form-card h2 { margin-bottom: 16px; }
+    .form-note {
+      border-radius: 18px;
+      border: 1px solid #dfeadf;
+      background: var(--surface-green);
+      color: #2e6544;
+      padding: 14px;
+      font-weight: 720;
+      margin-bottom: 16px;
+    }
+
+    .upload-preview-card {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .upload-preview-card iframe {
+      width: 100%;
+      min-height: 420px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 12px;
+      color: var(--accent-dark);
+      font-weight: 780;
+    }
+
+    .author-hero {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      margin: 30px 0 22px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      box-shadow: var(--shadow);
+    }
+
+    .author-hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 720px;
+    }
+
+    .footer-strip {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin: 0 0 44px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 680;
+    }
+
+    #toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 80;
+      transform: translateY(24px);
+      opacity: 0;
+      pointer-events: none;
+      border-radius: 999px;
+      background: #211f1d;
+      color: white;
+      padding: 12px 16px;
+      font-weight: 800;
+      box-shadow: 0 18px 45px rgba(35, 28, 21, 0.22);
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .detail-layout,
+      .form-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .controls .search-field { grid-column: 1 / -1; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .side-stack,
+      .upload-preview-card { position: static; }
+      .anatomy-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .shell { width: min(var(--max), calc(100vw - 20px)); }
+      .header-inner {
+        min-height: auto;
+        padding: 12px 0;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .brand-mark { width: 38px; height: 38px; }
+      .header-nav { justify-content: flex-start; width: 100%; }
+      .hero { padding-top: 20px; }
+      .hero-card { padding: 24px; }
+      .mini-proof,
+      .controls,
+      .grid,
+      .form-grid,
+      .author-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .author-hero { text-align: left; }
+      .detail-title-row { flex-direction: column; }
+      .tile-preview { height: 180px; }
+      .footer-strip { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast" aria-live="polite"></div>
+  <header id="siteHeader" class="site-header"></header>
+  <main id="app" class="shell"></main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "promptshare.v1.prototype";
+      const DEFAULT_AUTHORS = {
+        "aiko": {
+          id: "aiko",
+          name: "Aiko Tanaka",
+          avatar: "AT",
+          bio: "Everyday automation tinkerer. Turns prompts into small tools for home, food, and family life.",
+          joined: "2026-02-08"
+        },
+        "marco": {
+          id: "marco",
+          name: "Marco Reyes",
+          avatar: "MR",
+          bio: "Product marketer sharing lightweight HTML prototypes, launch pages, and remixable prompts.",
+          joined: "2026-01-18"
+        },
+        "nina": {
+          id: "nina",
+          name: "Nina Patel",
+          avatar: "NP",
+          bio: "Life-admin nerd publishing personal finance, planning, and household dashboard prompts.",
+          joined: "2026-03-04"
+        }
+      };
+
+      const sampleHtml = {
+        meal: `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Weekend Bento Planner</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fff8ee;color:#2b2119}
+  .wrap{max-width:760px;margin:0 auto;padding:28px}
+  .hero{background:#ff7a3d;color:white;border-radius:24px;padding:26px}
+  h1{margin:0;font-size:36px;letter-spacing:-.05em}
+  p{line-height:1.5}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+  .card{background:white;border:1px solid #f0dccb;border-radius:18px;padding:16px;box-shadow:0 10px 20px #0001}
+  .card strong{display:block;color:#ff6f2c;margin-bottom:8px}.badge{display:inline-block;background:#fff0e4;color:#9b3d08;border-radius:999px;padding:6px 9px;font-weight:800;font-size:12px}
+  ul{padding-left:18px;margin-bottom:0}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <span class="badge">family prep</span>
+      <h1>Weekend Bento Planner</h1>
+      <p>Three simple lunch boxes from one grocery run. Designed for busy Sunday prep and low-waste ingredients.</p>
+    </section>
+    <section class="grid">
+      <article class="card"><strong>Saturday</strong><p>Onigiri, cucumber coins, tamagoyaki, orange slices.</p></article>
+      <article class="card"><strong>Sunday</strong><p>Chicken soboro rice, snap peas, cherry tomatoes, apple wedges.</p></article>
+      <article class="card"><strong>Backup</strong><p>Egg salad mini sandwich, edamame, grapes, carrot sticks.</p></article>
+    </section>
+    <article class="card" style="margin-top:12px">
+      <strong>Batch prep list</strong>
+      <ul><li>Cook 3 cups rice</li><li>Whisk 4 eggs for tamagoyaki</li><li>Slice fruit last to keep fresh</li></ul>
+    </article>
+  </main>
+</body>
+</html>`,
+        landing: `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Neighborhood Swap Landing Page</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#f7f7ff;color:#121321}
+  .wrap{max-width:900px;margin:0 auto;padding:42px 24px}
+  nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:54px}.logo{font-weight:900}
+  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:center}
+  h1{font-size:54px;line-height:.96;letter-spacing:-.06em;margin:0}
+  p{font-size:18px;color:#5e6078}.cta{display:inline-block;background:#111;color:white;padding:13px 18px;border-radius:999px;font-weight:800}
+  .phone{background:white;border:1px solid #dddff8;border-radius:30px;padding:18px;box-shadow:0 20px 50px #23235b1d}
+  .item{display:flex;justify-content:space-between;margin:10px 0;padding:14px;border-radius:16px;background:#f6f6ff}
+  @media(max-width:700px){.hero{grid-template-columns:1fr}h1{font-size:40px}}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <nav><div class="logo">SwapNest</div><a class="cta">Join beta</a></nav>
+    <section class="hero">
+      <div>
+        <h1>Borrow what you need from neighbors you trust.</h1>
+        <p>A calm local sharing board for drills, cake pans, camping gear, and one-off things you do not need to own forever.</p>
+        <a class="cta">Start a swap circle</a>
+      </div>
+      <div class="phone">
+        <div class="item"><strong>Projector</strong><span>Tonight</span></div>
+        <div class="item"><strong>Garden tools</strong><span>Weekend</span></div>
+        <div class="item"><strong>Baby carrier</strong><span>Available</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>`,
+        budget: `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Monthly Budget Snapshot</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#eef9f3;color:#16261c}
+  main{max-width:860px;margin:0 auto;padding:32px}.top{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:18px}
+  h1{font-size:40px;letter-spacing:-.05em;margin:0}.muted{color:#617268}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .card{background:white;border:1px solid #dcebe1;border-radius:20px;padding:18px;box-shadow:0 12px 28px #12351a12}
+  .card span{display:block;color:#5e7466;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  .card strong{display:block;font-size:30px;margin-top:8px;letter-spacing:-.05em}
+  .wide{grid-column:span 2}.bar{height:12px;background:#e5efe8;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:#36a568;border-radius:999px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.top{display:block}}
+</style>
+</head>
+<body>
+  <main>
+    <section class="top">
+      <div><h1>May Budget Snapshot</h1><p class="muted">A simple household dashboard for the next money meeting.</p></div>
+      <strong class="muted">Generated from CSV context</strong>
+    </section>
+    <section class="grid">
+      <article class="card"><span>Income</span><strong>$4,820</strong></article>
+      <article class="card"><span>Fixed costs</span><strong>$2,210</strong></article>
+      <article class="card"><span>Flexible</span><strong>$1,090</strong></article>
+      <article class="card"><span>Left to assign</span><strong>$620</strong></article>
+      <article class="card wide"><span>Groceries</span><strong>74%</strong><div class="bar"><i style="width:74%"></i></div></article>
+      <article class="card wide"><span>Transport</span><strong>42%</strong><div class="bar"><i style="width:42%"></i></div></article>
+    </section>
+  </main>
+</body>
+</html>`,
+        chores: `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chore Quest Board</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fff7fb;color:#301f2b}
+  main{max-width:820px;margin:0 auto;padding:28px}h1{font-size:42px;letter-spacing:-.05em;margin:0 0 8px}.sub{color:#765b6e}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.lane{background:white;border:1px solid #efd8e5;border-radius:22px;padding:16px}
+  .lane h2{font-size:18px}.quest{padding:12px;border-radius:15px;background:#fff1f7;margin:10px 0;font-weight:800}.points{color:#cc3f7a}
+  @media(max-width:720px){.board{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <main>
+    <h1>Chore Quest Board</h1>
+    <p class="sub">A playful weekly task board that turns small home jobs into points.</p>
+    <section class="board">
+      <div class="lane"><h2>Kitchen</h2><div class="quest">Unload dishwasher <span class="points">+10</span></div><div class="quest">Wipe table <span class="points">+5</span></div></div>
+      <div class="lane"><h2>Bedroom</h2><div class="quest">Make bed <span class="points">+5</span></div><div class="quest">Laundry basket <span class="points">+10</span></div></div>
+      <div class="lane"><h2>Bonus</h2><div class="quest">Help a sibling <span class="points">+20</span></div><div class="quest">Pick music <span class="points">+3</span></div></div>
+    </section>
+  </main>
+</body>
+</html>`
+      };
+
+      const DEFAULT_PROMPTS = [
+        {
+          id: "meal-bento",
+          title: "Weekend Bento Planner",
+          description: "A reusable prompt that turns family food preferences and schedule constraints into a cheerful static meal-prep HTML page.",
+          authorId: "aiko",
+          authorName: "Aiko Tanaka",
+          date: "2026-05-12",
+          model: "GPT-4o",
+          outputType: "planner",
+          tags: ["food", "family", "planning"],
+          license: "CC-BY",
+          downloads: 128,
+          forks: 18,
+          parentId: "",
+          systemPrompt: "You are a practical home-planning assistant. Generate compact, friendly HTML pages that help busy households make decisions quickly.",
+          userPrompt: "Create a weekend bento planner for a family of four. Show three lunch options, batch prep tasks, and keep the design warm and printable.",
+          contextData: "Constraints: low-waste ingredients, kids like eggs and fruit, one parent has 30 minutes for Sunday prep, no backend or external assets.",
+          html: sampleHtml.meal
+        },
+        {
+          id: "landing-swapnest",
+          title: "Tiny Landing Page Generator",
+          description: "Prompt recipe for turning a plain-language product idea into a polished one-page landing page with hero copy and a product mockup.",
+          authorId: "marco",
+          authorName: "Marco Reyes",
+          date: "2026-05-09",
+          model: "Claude",
+          outputType: "landing page",
+          tags: ["startup", "marketing", "prototype"],
+          license: "CC0",
+          downloads: 244,
+          forks: 39,
+          parentId: "",
+          systemPrompt: "You are a senior product designer and front-end prototyper. Produce a single responsive HTML file with strong hierarchy and credible copy.",
+          userPrompt: "Generate a landing page for a neighborhood borrowing app. Include a simple product mockup, short value proposition, and beta signup CTA.",
+          contextData: "Audience: local community organizers. Brand personality: calm, useful, trustworthy. Use no external libraries.",
+          html: sampleHtml.landing
+        },
+        {
+          id: "budget-snapshot",
+          title: "Personal Budget Snapshot",
+          description: "A prompt anatomy for transforming monthly spending notes into a clean household finance dashboard.",
+          authorId: "nina",
+          authorName: "Nina Patel",
+          date: "2026-05-06",
+          model: "Gemini",
+          outputType: "dashboard",
+          tags: ["finance", "life admin", "dashboard"],
+          license: "CC-BY",
+          downloads: 191,
+          forks: 27,
+          parentId: "",
+          systemPrompt: "You are a calm personal finance explainer. Convert messy budget notes into a non-judgmental, scannable static dashboard.",
+          userPrompt: "Create a monthly budget snapshot from the provided income and category totals. Emphasize what is left to assign and two categories to watch.",
+          contextData: "Income: $4,820. Fixed costs: $2,210. Flexible spending: $1,090. Left to assign: $620. Grocery usage: 74%. Transport usage: 42%.",
+          html: sampleHtml.budget
+        },
+        {
+          id: "chore-quest",
+          title: "Kids Chore Quest Board",
+          description: "A playful prompt for turning weekly household tasks into a kid-friendly HTML quest board.",
+          authorId: "aiko",
+          authorName: "Aiko Tanaka",
+          date: "2026-04-30",
+          model: "GPT-4o",
+          outputType: "game board",
+          tags: ["family", "kids", "home"],
+          license: "CC0",
+          downloads: 87,
+          forks: 12,
+          parentId: "",
+          systemPrompt: "You are a playful family systems designer. Build simple, readable HTML tools that motivate children without shaming them.",
+          userPrompt: "Create a weekly chore quest board for two kids. Use points, bright cards, and three columns: Kitchen, Bedroom, Bonus.",
+          contextData: "Tone: cheerful. No names in output. Needs to print well and work on mobile. Use only HTML and CSS.",
+          html: sampleHtml.chores
+        }
+      ];
+
+      const state = {
+        gallery: {
+          query: "",
+          tag: "all",
+          model: "all",
+          output: "all",
+          sort: "newest"
+        }
+      };
+
+      let store = loadStore();
+      let toastTimer = null;
+
+      function loadStore() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return freshSeed();
+          const parsed = JSON.parse(raw);
+          if (!parsed || !Array.isArray(parsed.prompts)) return freshSeed();
+          parsed.authors = parsed.authors && typeof parsed.authors === "object" ? parsed.authors : { ...DEFAULT_AUTHORS };
+          parsed.prompts = parsed.prompts.map((prompt) => ({
+            ...prompt,
+            tags: Array.isArray(prompt.tags) ? prompt.tags : [],
+            downloads: Number(prompt.downloads || 0),
+            forks: Number(prompt.forks || 0),
+            parentId: prompt.parentId || ""
+          }));
+          return parsed;
+        } catch {
+          return freshSeed();
+        }
+      }
+
+      function freshSeed() {
+        return JSON.parse(JSON.stringify({
+          authors: DEFAULT_AUTHORS,
+          prompts: DEFAULT_PROMPTS
+        }));
+      }
+
+      function saveStore() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+      }
+
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      const ENTITY_MAP = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      };
+
+      function esc(value = "") {
+        return String(value).replace(/[&<>"']/g, (char) => ENTITY_MAP[char]);
+      }
+
+      function slugify(value) {
+        const slug = String(value || "prompt")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        return slug || "prompt";
+      }
+
+      function initials(name) {
+        return String(name || "Creator")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0] || "")
+          .join("")
+          .toUpperCase() || "PS";
+      }
+
+      function todayISO() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function compactNumber(value) {
+        return new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
+      }
+
+      function findPrompt(id) {
+        return store.prompts.find((prompt) => prompt.id === id);
+      }
+
+      function getAuthor(authorId, fallbackName = "Anonymous Creator") {
+        if (authorId && store.authors[authorId]) return store.authors[authorId];
+        return {
+          id: authorId || "anonymous",
+          name: fallbackName,
+          avatar: initials(fallbackName),
+          bio: "PromptShare creator",
+          joined: ""
+        };
+      }
+
+      function authorPrompts(authorId) {
+        return store.prompts.filter((prompt) => prompt.authorId === authorId);
+      }
+
+      function childrenOf(promptId) {
+        return store.prompts.filter((prompt) => prompt.parentId === promptId);
+      }
+
+      function promptForkCount(prompt) {
+        return Math.max(Number(prompt.forks || 0), childrenOf(prompt.id).length);
+      }
+
+      function uniqueSorted(values) {
+        return [...new Set(values.filter(Boolean).map((value) => String(value).trim()).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b));
+      }
+
+      function allTags() {
+        return uniqueSorted(store.prompts.flatMap((prompt) => prompt.tags || []));
+      }
+
+      function allModels() {
+        return uniqueSorted(store.prompts.map((prompt) => prompt.model));
+      }
+
+      function allOutputTypes() {
+        return uniqueSorted(store.prompts.map((prompt) => prompt.outputType));
+      }
+
+      function optionMarkup(values, selected, allLabel) {
+        const all = `<option value="all"${selected === "all" ? " selected" : ""}>${esc(allLabel)}</option>`;
+        return all + values.map((value) => `<option value="${esc(value)}"${selected === value ? " selected" : ""}>${esc(value)}</option>`).join("");
+      }
+
+      function fixedOptionMarkup(values, selected) {
+        return values.map((value) => `<option value="${esc(value)}"${selected === value ? " selected" : ""}>${esc(value)}</option>`).join("");
+      }
+
+      function getRoute() {
+        const clean = window.location.hash.replace(/^#\/?/, "");
+        if (!clean) return { name: "gallery", id: "" };
+        const [name, id = ""] = clean.split("/");
+        if (["gallery", "prompt", "upload", "fork", "author"].includes(name)) {
+          return { name, id };
+        }
+        return { name: "gallery", id: "" };
+      }
+
+      function renderHeader(route) {
+        const header = $("siteHeader");
+        header.innerHTML = `
+          <div class="shell header-inner">
+            <a class="brand" href="#gallery" aria-label="PromptShare gallery">
+              <span class="brand-mark" aria-hidden="true">PS</span>
+              <span class="brand-copy">
+                <span>PromptShare</span>
+                <small>prompt recipes + HTML dishes</small>
+              </span>
+            </a>
+            <nav class="header-nav" aria-label="Primary navigation">
+              <a class="nav-link ${route.name === "gallery" ? "active" : ""}" href="#gallery">Gallery</a>
+              <a class="nav-link ${route.name === "author" ? "active" : ""}" href="#author/aiko">Creators</a>
+              <a class="button small ${route.name === "upload" ? "secondary" : ""}" href="#upload">Upload prompt</a>
+            </nav>
+          </div>
+        `;
+      }
+
+      function render() {
+        const route = getRoute();
+        renderHeader(route);
+        if (route.name === "prompt") return renderPromptCard(route.id);
+        if (route.name === "upload") return renderUpload();
+        if (route.name === "fork") return renderUpload(route.id);
+        if (route.name === "author") return renderAuthor(route.id);
+        return renderGallery();
+      }
+
+      function renderGallery() {
+        const featured = store.prompts[0] || DEFAULT_PROMPTS[0];
+        const totalDownloads = store.prompts.reduce((sum, prompt) => sum + Number(prompt.downloads || 0), 0);
+        const totalForks = store.prompts.reduce((sum, prompt) => sum + promptForkCount(prompt), 0);
+
+        $("app").innerHTML = `
+          <section class="hero">
+            <div class="hero-card">
+              <span class="eyebrow">Cookpad-inspired prompt sharing</span>
+              <h1>Browse prompts like recipes. Download the HTML dish.</h1>
+              <p class="lead">PromptShare is a prototype gallery where creators publish AI prompts alongside the tangible HTML outputs they generated. Browse without signup, fork what works, and build from everyday examples.</p>
+              <div class="hero-actions">
+                <a class="button" href="#upload">Upload a prompt</a>
+                <a class="button ghost" href="#prompt/${esc(featured.id)}">Open featured card</a>
+              </div>
+              <div class="mini-proof" aria-label="Prototype stats">
+                <div class="proof-pill"><strong>${compactNumber(store.prompts.length)}</strong><span>prompt cards</span></div>
+                <div class="proof-pill"><strong>${compactNumber(totalDownloads)}</strong><span>downloads</span></div>
+                <div class="proof-pill"><strong>${compactNumber(totalForks)}</strong><span>forks</span></div>
+              </div>
+            </div>
+            <aside class="hero-preview panel" aria-label="Featured HTML output preview">
+              <div class="hero-preview-head">
+                <strong>${esc(featured.title)}</strong>
+                <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              </div>
+              <iframe title="Featured HTML output preview" sandbox="allow-scripts allow-forms" srcdoc="${esc(featured.html)}"></iframe>
+            </aside>
+          </section>
+
+          <section>
+            <div class="section-head">
+              <div>
+                <h2>Gallery</h2>
+                <p>Search by topic, model, or output type. Each card previews the generated HTML and includes direct download and fork actions.</p>
+              </div>
+            </div>
+
+            <div class="controls" role="search">
+              <div class="field search-field">
+                <label for="searchInput">Search prompts</label>
+                <input id="searchInput" type="search" autocomplete="off" placeholder="Try food, dashboard, landing page..." value="${esc(state.gallery.query)}">
+              </div>
+              <div class="field">
+                <label for="tagFilter">Tag</label>
+                <select id="tagFilter" data-gallery-filter="tag">${optionMarkup(allTags(), state.gallery.tag, "All tags")}</select>
+              </div>
+              <div class="field">
+                <label for="modelFilter">Model</label>
+                <select id="modelFilter" data-gallery-filter="model">${optionMarkup(allModels(), state.gallery.model, "All models")}</select>
+              </div>
+              <div class="field">
+                <label for="outputFilter">Output</label>
+                <select id="outputFilter" data-gallery-filter="output">${optionMarkup(allOutputTypes(), state.gallery.output, "All outputs")}</select>
+              </div>
+              <div class="field">
+                <label for="sortSelect">Sort</label>
+                <select id="sortSelect" data-gallery-filter="sort">
+                  <option value="newest"${state.gallery.sort === "newest" ? " selected" : ""}>Newest</option>
+                  <option value="downloads"${state.gallery.sort === "downloads" ? " selected" : ""}>Most downloaded</option>
+                  <option value="forks"${state.gallery.sort === "forks" ? " selected" : ""}>Most forked</option>
+                  <option value="title"${state.gallery.sort === "title" ? " selected" : ""}>Title A–Z</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="result-row">
+              <span id="resultCount"></span>
+              <span>Browse and download without signup</span>
+            </div>
+            <div id="galleryGrid" class="grid" aria-live="polite"></div>
+          </section>
+
+          <div class="footer-strip">
+            <span>This static prototype stores uploaded prompts in your browser using localStorage. No backend is required.</span>
+            <button class="button small ghost" data-action="resetDemo">Reset demo data</button>
+          </div>
+        `;
+
+        updateGalleryResults();
+      }
+
+      function filteredPrompts() {
+        const query = state.gallery.query.trim().toLowerCase();
+        let list = [...store.prompts];
+
+        if (query) {
+          list = list.filter((prompt) => {
+            const haystack = [
+              prompt.title,
+              prompt.description,
+              prompt.authorName,
+              prompt.model,
+              prompt.outputType,
+              prompt.license,
+              prompt.systemPrompt,
+              prompt.userPrompt,
+              prompt.contextData,
+              ...(prompt.tags || [])
+            ].join(" ").toLowerCase();
+            return haystack.includes(query);
+          });
+        }
+
+        if (state.gallery.tag !== "all") {
+          list = list.filter((prompt) => (prompt.tags || []).includes(state.gallery.tag));
+        }
+
+        if (state.gallery.model !== "all") {
+          list = list.filter((prompt) => prompt.model === state.gallery.model);
+        }
+
+        if (state.gallery.output !== "all") {
+          list = list.filter((prompt) => prompt.outputType === state.gallery.output);
+        }
+
+        list.sort((a, b) => {
+          if (state.gallery.sort === "downloads") return Number(b.downloads || 0) - Number(a.downloads || 0);
+          if (state.gallery.sort === "forks") return promptForkCount(b) - promptForkCount(a);
+          if (state.gallery.sort === "title") return a.title.localeCompare(b.title);
+          return new Date(b.date) - new Date(a.date);
+        });
+
+        return list;
+      }
+
+      function updateGalleryResults() {
+        const grid = $("galleryGrid");
+        const count = $("resultCount");
+        if (!grid || !count) return;
+
+        const list = filteredPrompts();
+        count.textContent = `${list.length} ${list.length === 1 ? "prompt" : "prompts"} found`;
+
+        if (!list.length) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <h3>No prompts match those filters.</h3>
+              <p>Try a broader keyword or reset the filters.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = list.map(promptTileHTML).join("");
+      }
+
+      function promptTileHTML(prompt) {
+        const author = getAuthor(prompt.authorId, prompt.authorName);
+        const tagHTML = (prompt.tags || []).slice(0, 4).map((tag) => `<span class="tag">${esc(tag)}</span>`).join("");
+        return `
+          <article class="prompt-tile">
+            <div class="tile-preview">
+              <iframe title="${esc(prompt.title)} preview" sandbox="allow-scripts allow-forms" srcdoc="${esc(prompt.html)}"></iframe>
+              <span class="preview-pill">${esc(prompt.outputType)}</span>
+            </div>
+            <div class="tile-body">
+              <div class="tile-kicker">${esc(prompt.model)} · ${esc(prompt.date)}</div>
+              <h3><a href="#prompt/${esc(prompt.id)}">${esc(prompt.title)}</a></h3>
+              <p>${esc(prompt.description)}</p>
+              <div class="tags">${tagHTML}</div>
+              <div class="tile-meta">
+                <a href="#author/${esc(author.id)}">By ${esc(author.name)}</a>
+                <span>${compactNumber(prompt.downloads)} downloads</span>
+                <span>${compactNumber(promptForkCount(prompt))} forks</span>
+              </div>
+              <div class="tile-actions">
+                <a class="button small" href="#prompt/${esc(prompt.id)}">Open</a>
+                <button class="button small ghost" data-action="download" data-id="${esc(prompt.id)}">Download</button>
+                <a class="button small soft" href="#fork/${esc(prompt.id)}">Fork</a>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderPromptCard(promptId) {
+        const prompt = findPrompt(promptId);
+        if (!prompt) return renderNotFound("Prompt not found", "That prompt may have been deleted or the link is incorrect.");
+
+        const author = getAuthor(prompt.authorId, prompt.authorName);
+        const parent = prompt.parentId ? findPrompt(prompt.parentId) : null;
+        const children = childrenOf(prompt.id);
+        const tagHTML = (prompt.tags || []).map((tag) => `<span class="tag">${esc(tag)}</span>`).join("");
+
+        $("app").innerHTML = `
+          <section class="detail-layout">
+            <div class="detail-main">
+              <article class="detail-intro">
+                <a class="breadcrumb" href="#gallery">← Back to gallery</a>
+                <div class="detail-title-row">
+                  <div>
+                    <span class="eyebrow">${esc(prompt.outputType)} · ${esc(prompt.model)}</span>
+                    <h1>${esc(prompt.title)}</h1>
+                    <p class="detail-description">${esc(prompt.description)}</p>
+                  </div>
+                </div>
+                ${parent ? `<div class="parent-note">Forked from <a href="#prompt/${esc(parent.id)}">${esc(parent.title)}</a></div>` : ""}
+                <div class="tags" style="margin-top:18px">${tagHTML}</div>
+              </article>
+
+              <article class="detail-preview-panel panel">
+                <div class="hero-preview-head" style="margin-bottom:12px">
+                  <strong>Live HTML preview</strong>
+                  <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                </div>
+                <iframe title="${esc(prompt.title)} full preview" sandbox="allow-scripts allow-forms" srcdoc="${esc(prompt.html)}"></iframe>
+              </article>
+
+              <article class="anatomy-card">
+                <div class="section-head" style="margin-top:0">
+                  <div>
+                    <h2>Prompt Anatomy</h2>
+                    <p>Like Cookpad ingredients: the system prompt, user instruction, and context data that made the HTML output.</p>
+                  </div>
+                </div>
+                <div class="anatomy-grid">
+                  <section class="prompt-block">
+                    <h3>System prompt</h3>
+                    <pre>${esc(prompt.systemPrompt)}</pre>
+                  </section>
+                  <section class="prompt-block">
+                    <h3>User instruction</h3>
+                    <pre>${esc(prompt.userPrompt)}</pre>
+                  </section>
+                  <section class="prompt-block">
+                    <h3>Context data</h3>
+                    <pre>${esc(prompt.contextData)}</pre>
+                  </section>
+                </div>
+              </article>
+
+              <article class="anatomy-card">
+                <div class="section-head" style="margin-top:0">
+                  <div>
+                    <h2>Usage Instructions</h2>
+                    <p>The HTML output is the product; the prompt is the repeatable recipe.</p>
+                  </div>
+                </div>
+                <div class="steps">
+                  <div class="step"><div><strong>Download the dish</strong><span>Grab the raw HTML file and open it locally, share it, or deploy it as a static page.</span></div></div>
+                  <div class="step"><div><strong>Reuse the recipe</strong><span>Copy the prompt anatomy into your preferred model and swap in your own context data.</span></div></div>
+                  <div class="step"><div><strong>Fork and improve</strong><span>Use the fork action to publish a remixed prompt and attach a new generated HTML output.</span></div></div>
+                </div>
+              </article>
+
+              <article class="anatomy-card">
+                <div class="section-head" style="margin-top:0">
+                  <div>
+                    <h2>Fork tree</h2>
+                    <p>Remixes linked back to this original prompt.</p>
+                  </div>
+                </div>
+                ${children.length ? `<div class="fork-list">${children.map(forkItemHTML).join("")}</div>` : `<p class="small-muted">No visible forks yet. Be the first to remix this card.</p>`}
+              </article>
+            </div>
+
+            <aside class="side-stack">
+              <section class="side-card">
+                <a class="author-mini" href="#author/${esc(author.id)}">
+                  <span class="avatar">${esc(author.avatar || initials(author.name))}</span>
+                  <span><strong>${esc(author.name)}</strong><br><span>${esc(author.bio)}</span></span>
+                </a>
+                <div class="stats">
+                  <div class="stat"><strong>${compactNumber(prompt.downloads)}</strong><span>downloads</span></div>
+                  <div class="stat"><strong>${compactNumber(promptForkCount(prompt))}</strong><span>forks</span></div>
+                  <div class="stat"><strong>${esc(prompt.date)}</strong><span>published</span></div>
+                  <div class="stat"><strong>${esc(prompt.license)}</strong><span>license</span></div>
+                </div>
+                <div class="side-actions">
+                  <button class="button block" data-action="download" data-id="${esc(prompt.id)}">Download raw HTML</button>
+                  <a class="button block soft" href="#fork/${esc(prompt.id)}">Fork this prompt</a>
+                  <button class="button block ghost" data-action="copyPrompt" data-id="${esc(prompt.id)}">Copy prompt text</button>
+                </div>
+              </section>
+              <section class="side-card">
+                <strong>Prototype note</strong>
+                <p class="small-muted">Downloads and forks update locally in this browser. A production version would save these counts on the backend.</p>
+              </section>
+            </aside>
+          </section>
+        `;
+      }
+
+      function forkItemHTML(prompt) {
+        const author = getAuthor(prompt.authorId, prompt.authorName);
+        return `
+          <a class="fork-item" href="#prompt/${esc(prompt.id)}">
+            <span>${esc(prompt.title)}<small>${esc(author.name)} · ${esc(prompt.date)}</small></span>
+            <span aria-hidden="true">→</span>
+          </a>
+        `;
+      }
+
+      function renderUpload(parentId = "") {
+        const parent = parentId ? findPrompt(parentId) : null;
+        if (parentId && !parent) return renderNotFound("Fork source not found", "The prompt you tried to fork is not available.");
+
+        const isFork = Boolean(parent);
+        const prefill = {
+          title: isFork ? `Fork of ${parent.title}` : "",
+          description: isFork ? `A remixed version of “${parent.title}”.` : "",
+          authorName: "",
+          authorBio: "",
+          model: isFork ? parent.model : "GPT-4o",
+          outputType: isFork ? parent.outputType : "",
+          tags: isFork ? (parent.tags || []).join(", ") : "",
+          license: isFork ? parent.license : "CC-BY",
+          systemPrompt: isFork ? parent.systemPrompt : "",
+          userPrompt: isFork ? parent.userPrompt : "",
+          contextData: isFork ? parent.contextData : "",
+          html: isFork ? parent.html : `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your HTML output</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0;background:#fff8f0;color:#241f1a}
+  main{max-width:720px;margin:0 auto;padding:40px}
+  .card{background:white;border:1px solid #eadccd;border-radius:24px;padding:28px;box-shadow:0 16px 40px #00000012}
+</style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h1>Your generated HTML goes here</h1>
+      <p>Upload a file or paste the HTML source to preview it before publishing.</p>
+    </section>
+  </main>
+</body>
+</html>`
+        };
+
+        const authorOptions = Object.values(store.authors)
+          .map((author) => `<option value="${esc(author.name)}"></option>`)
+          .join("");
+
+        $("app").innerHTML = `
+          <section class="form-layout">
+            <form id="promptForm" class="form-card" data-parent-id="${isFork ? esc(parent.id) : ""}">
+              <a class="breadcrumb" href="${isFork ? `#prompt/${esc(parent.id)}` : "#gallery"}">← ${isFork ? "Back to source prompt" : "Back to gallery"}</a>
+              <span class="eyebrow">${isFork ? "Fork prompt" : "Upload prompt"}</span>
+              <h1 style="font-size:clamp(2rem,4vw,3.5rem);margin:14px 0 10px">${isFork ? "Remix this prompt recipe" : "Publish a prompt recipe"}</h1>
+              <p class="lead" style="margin-bottom:18px">${isFork ? "The original prompt and HTML are prefilled. Edit them, attach a new output, and publish a linked fork." : "Paste the prompt anatomy, upload the generated HTML dish, and add searchable metadata."}</p>
+              ${isFork ? `<div class="form-note">Forking from <strong>${esc(parent.title)}</strong>. The new card will link back to the parent prompt.</div>` : ""}
+
+              <div class="form-grid">
+                <div class="field full">
+                  <label for="titleInput">Title</label>
+                  <input id="titleInput" name="title" required maxlength="90" value="${esc(prefill.title)}" placeholder="e.g. Family Meal Planner">
+                </div>
+
+                <div class="field full">
+                  <label for="descriptionInput">Short description</label>
+                  <textarea id="descriptionInput" name="description" required maxlength="420" placeholder="What does this prompt help people create?">${esc(prefill.description)}</textarea>
+                </div>
+
+                <div class="field">
+                  <label for="authorInput">Creator display name</label>
+                  <input id="authorInput" name="authorName" list="authorList" required value="${esc(prefill.authorName)}" placeholder="Your name">
+                  <datalist id="authorList">${authorOptions}</datalist>
+                </div>
+
+                <div class="field">
+                  <label for="authorBioInput">Creator bio</label>
+                  <input id="authorBioInput" name="authorBio" value="${esc(prefill.authorBio)}" placeholder="Short optional bio">
+                </div>
+
+                <div class="field">
+                  <label for="modelInput">Model used</label>
+                  <select id="modelInput" name="model">
+                    ${fixedOptionMarkup(uniqueSorted(["GPT-4o", "Claude", "Gemini", "Other", ...allModels()]), prefill.model)}
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="outputTypeInput">Output type</label>
+                  <input id="outputTypeInput" name="outputType" required value="${esc(prefill.outputType)}" placeholder="dashboard, landing page, planner...">
+                </div>
+
+                <div class="field">
+                  <label for="tagsInput">Tags</label>
+                  <input id="tagsInput" name="tags" value="${esc(prefill.tags)}" placeholder="food, family, planning">
+                </div>
+
+                <div class="field">
+                  <label for="licenseInput">License</label>
+                  <select id="licenseInput" name="license">
+                    ${fixedOptionMarkup(["CC0", "CC-BY", "All Rights Reserved"], prefill.license)}
+                  </select>
+                </div>
+
+                <div class="field full">
+                  <label for="systemPromptInput">System prompt</label>
+                  <textarea id="systemPromptInput" name="systemPrompt" required placeholder="Role, constraints, tone, formatting rules...">${esc(prefill.systemPrompt)}</textarea>
+                </div>
+
+                <div class="field full">
+                  <label for="userPromptInput">User instruction</label>
+                  <textarea id="userPromptInput" name="userPrompt" required placeholder="The exact user request that produced the HTML...">${esc(prefill.userPrompt)}</textarea>
+                </div>
+
+                <div class="field full">
+                  <label for="contextDataInput">Context data</label>
+                  <textarea id="contextDataInput" name="contextData" placeholder="Inputs, examples, data, preferences, constraints...">${esc(prefill.contextData)}</textarea>
+                </div>
+
+                <div class="field full">
+                  <label for="htmlFileInput">Upload HTML file</label>
+                  <input id="htmlFileInput" type="file" accept=".html,.htm,text/html">
+                </div>
+
+                <div class="field full">
+                  <label for="htmlInput">HTML source</label>
+                  <textarea id="htmlInput" name="htmlSource" required style="min-height:220px" spellcheck="false">${esc(prefill.html)}</textarea>
+                </div>
+              </div>
+
+              <div class="hero-actions">
+                <button class="button" type="submit">${isFork ? "Publish fork" : "Publish prompt"}</button>
+                <button class="button ghost" type="button" data-action="previewUpload">Refresh preview</button>
+              </div>
+              <div id="formMessage" class="message" aria-live="polite"></div>
+            </form>
+
+            <aside class="form-card upload-preview-card">
+              <div>
+                <span class="eyebrow">Live output preview</span>
+                <h2 style="margin-top:12px">HTML dish</h2>
+                <p class="small-muted">This iframe previews the uploaded or pasted HTML. The prototype keeps your published cards in browser storage.</p>
+              </div>
+              <iframe id="uploadPreview" title="Upload HTML preview" sandbox="allow-scripts allow-forms"></iframe>
+              <div class="form-note" style="margin:0">Minimal friction: browsing and downloading do not require signup in this v1 prototype.</div>
+            </aside>
+          </section>
+        `;
+
+        requestAnimationFrame(updateUploadPreview);
+      }
+
+      function renderAuthor(authorId) {
+        const author = store.authors[authorId];
+        if (!author) return renderNotFound("Creator not found", "That creator profile is not available.");
+
+        const prompts = authorPrompts(authorId);
+        const totalDownloads = prompts.reduce((sum, prompt) => sum + Number(prompt.downloads || 0), 0);
+        const totalForks = prompts.reduce((sum, prompt) => sum + promptForkCount(prompt), 0);
+
+        $("app").innerHTML = `
+          <section class="author-hero">
+            <span class="avatar large">${esc(author.avatar || initials(author.name))}</span>
+            <div>
+              <a class="breadcrumb" href="#gallery">← Back to gallery</a>
+              <h1 style="font-size:clamp(2rem,4vw,3.5rem);margin-top:8px">${esc(author.name)}</h1>
+              <p>${esc(author.bio)}</p>
+              <div class="stats" style="max-width:480px">
+                <div class="stat"><strong>${prompts.length}</strong><span>published prompts</span></div>
+                <div class="stat"><strong>${compactNumber(totalDownloads)}</strong><span>total downloads</span></div>
+                <div class="stat"><strong>${compactNumber(totalForks)}</strong><span>total forks</span></div>
+                <div class="stat"><strong>${esc(author.joined || "demo")}</strong><span>joined</span></div>
+              </div>
+            </div>
+            <button class="button ghost" data-action="follow">Follow</button>
+          </section>
+
+          <section>
+            <div class="section-head">
+              <div>
+                <h2>Published prompts</h2>
+                <p>All prompt recipes by this creator.</p>
+              </div>
+            </div>
+            <div class="grid">
+              ${prompts.length ? prompts.map(promptTileHTML).join("") : `<div class="empty-state"><h3>No prompts yet.</h3><p>This creator has not published anything in the prototype.</p></div>`}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderNotFound(title, message) {
+        $("app").innerHTML = `
+          <section class="hero">
+            <div class="hero-card">
+              <span class="eyebrow">404</span>
+              <h1>${esc(title)}</h1>
+              <p class="lead">${esc(message)}</p>
+              <div class="hero-actions"><a class="button" href="#gallery">Return to gallery</a></div>
+            </div>
+          </section>
+        `;
+      }
+
+      function handleClick(event) {
+        const actionEl = event.target.closest("[data-action]");
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+
+        if (action === "download") {
+          const prompt = findPrompt(actionEl.dataset.id);
+          if (!prompt) return;
+          prompt.downloads = Number(prompt.downloads || 0) + 1;
+          saveStore();
+          downloadPrompt(prompt);
+          showToast("HTML download started");
+          const route = getRoute();
+          if (route.name === "gallery") updateGalleryResults();
+          if (route.name === "prompt" || route.name === "author") render();
+        }
+
+        if (action === "copyPrompt") {
+          const prompt = findPrompt(actionEl.dataset.id);
+          if (!prompt) return;
+          const text = [
+            "SYSTEM PROMPT:",
+            prompt.systemPrompt,
+            "",
+            "USER INSTRUCTION:",
+            prompt.userPrompt,
+            "",
+            "CONTEXT DATA:",
+            prompt.contextData
+          ].join("\n");
+          copyText(text);
+          showToast("Prompt text copied");
+        }
+
+        if (action === "previewUpload") {
+          updateUploadPreview();
+          showToast("Preview refreshed");
+        }
+
+        if (action === "follow") {
+          actionEl.textContent = actionEl.textContent.includes("Following") ? "Follow" : "Following";
+          actionEl.classList.toggle("green");
+          showToast("Follow is a v1 placeholder");
+        }
+
+        if (action === "resetDemo") {
+          if (confirm("Reset the demo prompts and remove local uploads?")) {
+            store = freshSeed();
+            saveStore();
+            state.gallery = { query: "", tag: "all", model: "all", output: "all", sort: "newest" };
+            render();
+            showToast("Demo data reset");
+          }
+        }
+      }
+
+      function handleInput(event) {
+        const target = event.target;
+        if (target.id === "searchInput") {
+          state.gallery.query = target.value;
+          updateGalleryResults();
+        }
+
+        if (target.id === "htmlInput") {
+          updateUploadPreview();
+        }
+      }
+
+      function handleChange(event) {
+        const target = event.target;
+
+        if (target.dataset.galleryFilter) {
+          const key = target.dataset.galleryFilter;
+          state.gallery[key] = target.value;
+          updateGalleryResults();
+        }
+
+        if (target.id === "htmlFileInput") {
+          const file = target.files && target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            const htmlInput = $("htmlInput");
+            htmlInput.value = String(reader.result || "");
+            updateUploadPreview();
+            showToast("HTML file loaded");
+          };
+          reader.onerror = () => showToast("Could not read that file");
+          reader.readAsText(file);
+        }
+      }
+
+      function handleSubmit(event) {
+        if (event.target.id !== "promptForm") return;
+        event.preventDefault();
+
+        const form = event.target;
+        const fd = new FormData(form);
+        const message = $("formMessage");
+        const title = String(fd.get("title") || "").trim();
+        const description = String(fd.get("description") || "").trim();
+        const authorName = String(fd.get("authorName") || "").trim();
+        const authorBio = String(fd.get("authorBio") || "").trim();
+        const model = String(fd.get("model") || "Other").trim();
+        const outputType = String(fd.get("outputType") || "").trim();
+        const license = String(fd.get("license") || "CC-BY").trim();
+        const systemPrompt = String(fd.get("systemPrompt") || "").trim();
+        const userPrompt = String(fd.get("userPrompt") || "").trim();
+        const contextData = String(fd.get("contextData") || "").trim();
+        const html = String(fd.get("htmlSource") || "").trim();
+        const tags = String(fd.get("tags") || "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+          .slice(0, 12);
+
+        if (!title || !description || !authorName || !outputType || !systemPrompt || !userPrompt || !html) {
+          message.textContent = "Please fill in the title, description, creator, output type, prompt text, and HTML source.";
+          return;
+        }
+
+        const author = getOrCreateAuthor(authorName, authorBio);
+        const parentId = form.dataset.parentId || "";
+        const newPrompt = {
+          id: `prompt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+          title,
+          description,
+          authorId: author.id,
+          authorName: author.name,
+          date: todayISO(),
+          model,
+          outputType,
+          tags,
+          license,
+          downloads: 0,
+          forks: 0,
+          parentId,
+          systemPrompt,
+          userPrompt,
+          contextData,
+          html
+        };
+
+        store.prompts.unshift(newPrompt);
+        if (parentId) {
+          const parent = findPrompt(parentId);
+          if (parent) parent.forks = Number(parent.forks || 0) + 1;
+        }
+
+        saveStore();
+        showToast(parentId ? "Fork published" : "Prompt published");
+        window.location.hash = `#prompt/${newPrompt.id}`;
+      }
+
+      function getOrCreateAuthor(name, bio) {
+        const normalized = name.toLowerCase();
+        const existing = Object.values(store.authors).find((author) => author.name.toLowerCase() === normalized);
+        if (existing) {
+          if (bio) existing.bio = bio;
+          return existing;
+        }
+
+        const id = `author-${slugify(name)}-${Date.now().toString(36)}`;
+        const author = {
+          id,
+          name,
+          avatar: initials(name),
+          bio: bio || "PromptShare creator",
+          joined: todayISO()
+        };
+        store.authors[id] = author;
+        return author;
+      }
+
+      function updateUploadPreview() {
+        const frame = $("uploadPreview");
+        const input = $("htmlInput");
+        if (!frame || !input) return;
+        frame.srcdoc = input.value || "";
+      }
+
+      function downloadPrompt(prompt) {
+        const blob = new Blob([prompt.html], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${slugify(prompt.title)}.html`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1200);
+      }
+
+      function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+          return;
+        }
+        fallbackCopy(text);
+      }
+
+      function fallbackCopy(text) {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.left = "-9999px";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+
+      function showToast(message) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+      }
+
+      window.addEventListener("hashchange", render);
+      document.addEventListener("click", handleClick);
+      document.addEventListener("input", handleInput);
+      document.addEventListener("change", handleChange);
+      document.addEventListener("submit", handleSubmit);
+
+      render();
+    })();
+  </script>
+</body>
+</html>
