@@ -938,6 +938,18 @@
     border: 0;
     background: white;
   }
+  /* Lazy-mount placeholder for grid cards. Fills the .thumb-wrap and
+     animates a subtle shimmer until the iframe is attached. */
+  .card .card-thumb-mount {
+    position: absolute;
+    inset: 0;
+    background: var(--bg-elevated);
+    background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: thumb-shimmer 1.6s linear infinite;
+  }
+  .card .card-thumb-mount[data-mounted="1"] { animation: none; background: white; }
 
   .card .ribbon {
     position: absolute;
@@ -4477,7 +4489,7 @@ function renderGallery() {
     card.innerHTML = `
       <div class="thumb-wrap">
         <span class="ribbon ${ribbonClass}">${ribbonText}</span>
-        <div class="thumb thumb-mount" data-thumb-id="${p.id}"></div>
+        <div class="thumb-mount card-thumb-mount" data-thumb-id="${p.id}"></div>
       </div>
       <div class="meta-top">
         <span>${formatDate(p.date)}</span>
@@ -6168,6 +6180,9 @@ function mountAlbumThumbs(scope) {
     const id = mount.dataset.thumbId;
     const html = cache[id] || '';
     const iframe = document.createElement('iframe');
+    // Grid cards rely on the `.thumb` class for the 1280×1280-scaled trick;
+    // magazine album cards don't need it (sized by their .album-thumb parent).
+    if (mount.classList.contains('card-thumb-mount')) iframe.className = 'thumb';
     iframe.setAttribute('sandbox', 'allow-scripts');
     iframe.setAttribute('scrolling', 'no');
     iframe.setAttribute('tabindex', '-1');
