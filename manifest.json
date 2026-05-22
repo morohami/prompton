@@ -1,5 +1,25 @@
 [
   {
+    "id": "p1779489296529",
+    "title": "PromptShare — v1 Prototype",
+    "description": "",
+    "systemPrompt": "",
+    "userPrompt": "na",
+    "context": "",
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "tags": [],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-05-22",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "p1779487555469",
     "title": "3D Quantum Neural Network",
     "description": "",
