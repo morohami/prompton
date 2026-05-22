@@ -66,18 +66,10 @@
     "model": "Claude Opus 4.7",
     "license": "CC0 — Public domain",
     "tags": [
-      "hotel",
-      "real-estate",
-      "business-model",
-      "data-viz",
-      "japan",
-      "interactive",
-      "dashboard",
-      "system-prompt",
-      "tools",
-      "tutorial"
+      "penis",
+      "demo"
     ],
-    "tag": "hotel",
+    "tag": "penis",
     "author": "you",
     "authorName": "You",
     "date": "2026-05-23",
@@ -85,7 +77,9 @@
     "forks": 0,
     "parentId": null,
     "usage": [],
-    "variables": []
+    "variables": [],
+    "reproPrompt": "",
+    "devNotes": ""
   },
   {
     "id": "p1779555000004",
