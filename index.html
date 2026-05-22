@@ -11,30 +11,30 @@
   /* ─── Theme variables ─── */
   /* Default (no data-theme yet): light palette — readability first */
   :root, :root[data-theme="light"] {
-    --bg: #fafaf7;
-    --bg-2: #f1efea;
+    --bg: #faf8f3;
+    --bg-2: #f3f0e8;
     --bg-elevated: #ffffff;
     --bg-card: #ffffff;
-    --bg-card-hover: #f3f1ec;
-    --bg-top: rgba(255,255,255,0.85);
+    --bg-card-hover: #f6f2e9;
+    --bg-top: #ffffff;
     --text: #1a1a1a;
-    --text-secondary: #555a5e;
-    --text-muted: #8a8e93;
-    --accent: #1db954;
-    --accent-hover: #169c46;
-    --accent-deep: #0e7a37;
-    --accent-on: #ffffff;        /* color of text on top of --accent surface */
-    --border: rgba(0,0,0,0.10);
-    --border-strong: rgba(0,0,0,0.18);
+    --text-secondary: #4d4d4d;
+    --text-muted: #707070;
+    --accent: #e8893a;           /* soft persimmon-orange */
+    --accent-hover: #d67625;
+    --accent-deep: #b85e15;
+    --accent-on: #1a1a1a;        /* dark text on soft orange — keeps the orange soft */
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.16);
     --hover: rgba(0,0,0,0.04);
-    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.06);
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.05);
     --overlay-strong: rgba(0,0,0,0.55);
-    --surface-tint: rgba(0,0,0,0.04);   /* generic dim/hover */
+    --surface-tint: rgba(0,0,0,0.04);
     --input-bg: #ffffff;
-    --input-focus-bg: #f3f1ec;
+    --input-focus-bg: #f9f5ec;
     --kbd-bg: rgba(0,0,0,0.06);
     --kbd-border: rgba(0,0,0,0.12);
-    --iframe-frame: rgba(0,0,0,0.10);
+    --iframe-frame: rgba(0,0,0,0.08);
   }
   :root[data-theme="dark"] {
     --bg: #121212;
@@ -101,9 +101,6 @@
   /* ─── Header / Top Bar (Spotify style) ─── */
   header.masthead {
     background: var(--bg-top);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
     padding: 14px 32px;
     display: flex;
     align-items: center;
@@ -112,6 +109,14 @@
     position: sticky;
     top: 0;
     z-index: 50;
+    box-shadow: var(--shadow);
+  }
+  :root[data-theme="dark"] header.masthead {
+    background: rgba(18,18,18,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
   }
   .brand {
     font-family: 'DM Sans', sans-serif;
@@ -469,12 +474,32 @@
     margin-bottom: 14px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
   }
-  .album-card .album-thumb iframe {
+  .album-card .album-thumb iframe,
+  .album-card .album-thumb .thumb-mount iframe {
     width: 100%;
     height: 100%;
     border: 0;
     background: white;
     pointer-events: none;
+    display: block;
+  }
+  .album-card .album-thumb .thumb-mount {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-2);
+    /* Subtle pulse before the iframe mounts so the placeholder feels alive */
+    background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: thumb-shimmer 1.6s linear infinite;
+  }
+  .album-card .album-thumb .thumb-mount[data-mounted="1"] {
+    animation: none;
+    background: white;
+  }
+  @keyframes thumb-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
   .album-card .album-play {
     position: absolute;
@@ -866,7 +891,7 @@
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    color: var(--tomato);
+    color: var(--accent-deep);
     margin-bottom: 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--rule);
@@ -984,6 +1009,21 @@
     color: var(--ink-soft);
     margin-top: 4px;
     font-style: italic;
+  }
+  .personalize .var-field[data-auto="1"] label::after {
+    content: 'auto';
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    border: 1px solid var(--accent-deep);
+    padding: 1px 5px;
+    border-radius: 3px;
+    vertical-align: middle;
+    opacity: 0.7;
   }
   .personalize .actions {
     display: flex;
@@ -1349,7 +1389,7 @@
   }
   .cover-ctas .btn.cover-primary {
     background: var(--tomato);
-    color: #fff;
+    color: var(--accent-on);
   }
   .cover-ctas .btn.cover-primary:hover {
     background: var(--tomato-deep);
@@ -2214,7 +2254,7 @@
   }
   .version-node .v-current-tag {
     background: var(--tomato);
-    color: #fff;
+    color: var(--accent-on);
     font-family: 'JetBrains Mono', monospace;
     font-size: 9px;
     font-weight: 500;
@@ -2442,7 +2482,7 @@
   }
   .btn.primary {
     background: var(--tomato);
-    color: #fff;
+    color: var(--accent-on);
   }
   .btn.primary:hover { background: var(--tomato-deep); }
 
@@ -2451,12 +2491,12 @@
   .btn-copy.success,
   .btn-claude.success {
     background: var(--olive) !important;
-    color: #fff !important;
+    color: var(--accent-on) !important;
     border-color: var(--olive) !important;
   }
   .btn.secondary.success {
     background: var(--olive) !important;
-    color: #fff !important;
+    color: var(--accent-on) !important;
     border-color: var(--olive) !important;
   }
 
@@ -2693,7 +2733,7 @@
 
   .btn.primary.big {
     background: var(--tomato);
-    color: #fff;
+    color: var(--accent-on);
     padding: 14px 28px;
     font-size: 15px;
     font-weight: 500;
@@ -3082,7 +3122,7 @@
   }
   .btn-follow.following:hover {
     background: var(--tomato);
-    color: #fff;
+    color: var(--accent-on);
     border-color: var(--tomato);
   }
   .btn-follow.following:hover::after { content: ' · Unfollow'; }
@@ -3736,10 +3776,15 @@ function renderGallery() {
     })();
     const youName = getProfile('you').name;
 
+    // Cache HTML strings keyed by prompt id so the IntersectionObserver below
+    // can build iframes without hauling them through the DOM as data-attrs.
+    window._albumHtmlCache = window._albumHtmlCache || {};
+    publicPrompts.forEach(p => { window._albumHtmlCache[p.id] = p.html || ''; });
+
     const albumCardHtml = (p) =>
       '<div class="album-card" data-news-go="' + p.id + '">' +
         '<div class="album-thumb">' +
-          '<iframe srcdoc="' + escapeAttr(p.html) + '" sandbox="" scrolling="no" tabindex="-1"></iframe>' +
+          '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>' +
           '<div class="album-play" title="Open prompt">▶</div>' +
         '</div>' +
         '<h3 class="album-title">' + escapeHtml(p.title) + '</h3>' +
@@ -3747,10 +3792,10 @@ function renderGallery() {
         '<div class="album-stats">' + formatNum(p.downloads) + ' · ⑂ ' + p.forks + '</div>' +
       '</div>';
 
-    // "Recently added" — by date desc, the freshest 8 entries in the collection
+    // "Recently added" — by date desc, the freshest 30 entries in the collection
     const recentlyAdded = publicPrompts.slice().sort((a, b) =>
       (b.date || '').localeCompare(a.date || '')
-    ).slice(0, 8);
+    ).slice(0, 30);
 
     magazineEl.innerHTML =
       '<div class="greeting">' + greeting + ', ' + escapeHtml(youName === 'You' ? 'reader' : youName.split(' ')[0]) + '.</div>' +
@@ -3846,6 +3891,11 @@ function renderGallery() {
         renderGallery();
         document.getElementById('cardGrid').scrollIntoView({behavior:'smooth', block:'start'});
       }));
+
+    // Lazy-mount live iframe previews — only build the iframe once the card
+    // enters the viewport. Keeps initial render fast and stops 30 sandboxed
+    // browsers from spinning up at once.
+    mountAlbumThumbs(magazineEl);
 
     archiveEl.innerHTML = '<div class="archive-header"><h2>All prompts</h2><p>The full library — search, filter, and sort below.</p></div>';
   } else {
@@ -4016,6 +4066,27 @@ function renderDetail(id, viewingVersionNum) {
   const isYours = p.author === 'you';
   const canSaveNewVersion = isYours && !isViewingPast;
 
+  // Auto-detect undeclared {{TOKEN}} variables in the prompt text. Any token
+  // that appears in systemPrompt/userPrompt/context but isn't in view.variables
+  // gets synthesized as an editable field, so the Personalize panel covers it.
+  const declaredKeys = new Set((view.variables || []).map(v => v.key));
+  const haystack = [view.systemPrompt, view.userPrompt, view.context].filter(Boolean).join(' ');
+  const tokenRe = /\{\{([A-Z][A-Z0-9_]*)\}\}/g;
+  const autoVars = [];
+  const seen = new Set(declaredKeys);
+  let m;
+  while ((m = tokenRe.exec(haystack)) !== null) {
+    const key = m[1];
+    if (seen.has(key)) continue;
+    seen.add(key);
+    // Humanize key → label (e.g. CUSTOMER_NAME → "Customer name")
+    const label = key.toLowerCase().replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase());
+    autoVars.push({ key, label, default: '', hint: 'Auto-detected from {{' + key + '}}', auto: true });
+  }
+  if (autoVars.length) {
+    view = Object.assign({}, view, { variables: (view.variables || []).concat(autoVars) });
+  }
+
   const el = document.getElementById('detailContent');
   el.innerHTML = `
     ${isViewingPast ? `
@@ -4100,7 +4171,7 @@ function renderDetail(id, viewingVersionNum) {
             const tag = isLong ? 'textarea' : 'input';
             const valAttr = isLong ? '' : ` value="${escapeAttr(v.default)}"`;
             const inner = isLong ? escapeHtml(v.default) : '';
-            return `<div class="var-field" data-var-field="${escapeAttr(v.key)}">
+            return `<div class="var-field" data-var-field="${escapeAttr(v.key)}"${v.auto ? ' data-auto="1"' : ''}>
               <label>${escapeHtml(v.label)}${v.required ? ' <span class="req">*</span>' : ''} <span class="key-tag">{{${escapeHtml(v.key)}}}</span></label>
               <${tag} data-var="${escapeAttr(v.key)}"${valAttr}${isLong ? '' : ' type="text"'}>${inner}${isLong ? `</${tag}>` : ''}
               ${v.hint ? `<div class="hint">${escapeHtml(v.hint)}</div>` : ''}
@@ -5045,7 +5116,9 @@ function handleHtmlFile(f) {
   reader.readAsText(f);
 }
 
-fileDrop.addEventListener('click', () => htmlFile.click());
+// Note: fileDrop is a <label> wrapping the file input, so clicking it
+// natively opens the OS file picker. Do NOT add a manual click handler —
+// that would open the picker twice.
 htmlFile.addEventListener('change', (e) => handleHtmlFile(e.target.files[0]));
 
 // Drag & drop on the drop zone
@@ -5245,6 +5318,45 @@ document.getElementById('sortSelect').addEventListener('change', (e) => {
 // ─── Utilities ───
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
+
+// Mount live <iframe> previews into .thumb-mount placeholders. The first
+// batch (visible-ish) goes in immediately; the rest are staggered with
+// requestIdleCallback / setTimeout so the main thread can paint first.
+function mountAlbumThumbs(scope) {
+  const mounts = Array.from((scope || document).querySelectorAll('.thumb-mount[data-thumb-id]'));
+  if (!mounts.length) return;
+  const cache = window._albumHtmlCache || {};
+  const buildIframe = (mount) => {
+    if (mount.dataset.mounted === '1') return;
+    mount.dataset.mounted = '1';
+    const id = mount.dataset.thumbId;
+    const html = cache[id] || '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.setAttribute('tabindex', '-1');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.setAttribute('loading', 'lazy');
+    iframe.srcdoc = html;
+    mount.appendChild(iframe);
+  };
+  // First ~8 (fits the visible area in most layouts) — mount synchronously.
+  const eager = mounts.slice(0, 8);
+  const rest = mounts.slice(8);
+  eager.forEach(buildIframe);
+  // Rest — defer to next idle frame so initial paint isn't blocked.
+  const schedule = (fn) => {
+    if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 1500 });
+    else setTimeout(fn, 60);
+  };
+  let i = 0;
+  const tick = () => {
+    const batchEnd = Math.min(i + 4, rest.length);
+    for (; i < batchEnd; i++) buildIframe(rest[i]);
+    if (i < rest.length) schedule(tick);
+  };
+  if (rest.length) schedule(tick);
+}
 function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
 function safeFilename(prompt) {
   // Preserve unicode (Japanese OK). Strip only chars OSes refuse in filenames.
@@ -5602,6 +5714,13 @@ function b64utf8(str) {
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
   return btoa(bin);
 }
+function b64ToUtf8(b64) {
+  // atob() returns a binary string (one char per byte). Decode those bytes as UTF-8.
+  const bin = atob(b64.replace(/\s/g, ''));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
 async function ghFetch(path, opts) {
   const cfg = getSyncConfig();
   if (!cfg.repo || !cfg.pat) throw new Error('Configure repo and PAT in Settings first.');
@@ -5650,7 +5769,7 @@ async function pushPromptToGitHub(prompt) {
   // 2. Update manifest.json — read fresh then append/replace this prompt
   const cfg = getSyncConfig();
   const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-  const manText = atob(manRaw.content.replace(/\s/g, ''));
+  const manText = b64ToUtf8(manRaw.content);
   let manifest;
   try { manifest = JSON.parse(manText); }
   catch (e) { manifest = []; }
