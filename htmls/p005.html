@@ -1,0 +1,84 @@
+<!DOCTYPE html><html><head><style>
+    body{font-family:'Helvetica Neue',sans-serif;background:#1e293b;color:#e2e8f0;margin:0;padding:30px;min-height:100vh;box-sizing:border-box}
+    h1{font-size:18px;margin:0 0 4px;color:#fbbf24;letter-spacing:.05em}
+    .sub{color:#94a3b8;font-size:12px;margin-bottom:28px}
+    .card{background:#fff;color:#1e293b;border-radius:14px;padding:36px 30px;max-width:480px;margin:0 auto;box-shadow:0 20px 40px rgba(0,0,0,.3);text-align:center;cursor:pointer;transition:transform .2s,box-shadow .2s}
+    .card:hover{transform:translateY(-2px);box-shadow:0 24px 50px rgba(0,0,0,.4)}
+    .jp{font-size:54px;font-weight:300;margin-bottom:10px;color:#0f172a;font-family:'Hiragino Mincho ProN','Yu Mincho',serif}
+    .reading{font-size:18px;color:#6366f1;margin-bottom:24px;letter-spacing:.05em;min-height:24px;transition:opacity .15s}
+    .gloss{font-size:20px;color:#1e293b;padding-top:20px;border-top:1px solid #e2e8f0;min-height:30px;transition:opacity .15s}
+    .hidden .reading,.hidden .gloss{opacity:0}
+    .controls{display:flex;justify-content:center;gap:10px;margin:24px auto 0;max-width:480px}
+    .btn{background:#334155;color:#fff;border:0;padding:11px 18px;border-radius:6px;font-size:13px;cursor:pointer;flex:1;font-family:inherit;font-weight:500;transition:transform .1s,filter .15s}
+    .btn:hover{filter:brightness(1.1)}
+    .btn:active{transform:scale(0.96)}
+    .btn.good{background:#10b981}.btn.bad{background:#ef4444}.btn.hard{background:#f59e0b}
+    .progress{max-width:480px;margin:18px auto 0;font-size:12px;color:#94a3b8;text-align:center;font-family:monospace}
+    .hint{text-align:center;font-size:11px;color:#64748b;margin-top:14px;letter-spacing:.05em;text-transform:uppercase}
+    .done{text-align:center;padding:40px 30px;color:#fbbf24;max-width:480px;margin:0 auto;background:#fff;color:#1e293b;border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,.3)}
+    .done h2{font-size:28px;margin:0 0 8px;color:#1e293b;font-family:'Hiragino Mincho ProN',serif}
+    .done .stats{color:#64748b;margin-bottom:18px;font-size:14px}
+    .done button{background:#fbbf24;color:#1e293b;border:0;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px}
+  </style></head><body>
+  <h1>◉ JLPT N3 · DAY 14</h1>
+  <div class="sub" id="sub">spaced repetition · click card to reveal answer</div>
+  <div id="cardWrap">
+    <div class="card hidden">
+      <div class="jp">締切</div>
+      <div class="reading">しめきり · shimekiri</div>
+      <div class="gloss">deadline; closing date</div>
+    </div>
+    <div class="hint">▼ click card to reveal</div>
+    <div class="progress">0 of 8 reviewed</div>
+  </div>
+  <script>
+  var deck=[
+    {jp:'締切',reading:'しめきり · shimekiri',gloss:'deadline; closing date'},
+    {jp:'取引',reading:'とりひき · torihiki',gloss:'transaction; dealing'},
+    {jp:'建築',reading:'けんちく · kenchiku',gloss:'architecture; building'},
+    {jp:'効率',reading:'こうりつ · kouritsu',gloss:'efficiency'},
+    {jp:'責任',reading:'せきにん · sekinin',gloss:'responsibility; duty'},
+    {jp:'解決',reading:'かいけつ · kaiketsu',gloss:'resolution; settlement'},
+    {jp:'影響',reading:'えいきょう · eikyou',gloss:'influence; effect'},
+    {jp:'経験',reading:'けいけん · keiken',gloss:'experience'}
+  ];
+  var idx=0,revealed=false,reviewed=0,total=deck.length,ratings={again:0,hard:0,good:0};
+  function render(){
+    var wrap=document.getElementById('cardWrap');
+    if(idx>=deck.length){
+      wrap.innerHTML='<div class="done"><h2>All done!</h2>'+
+        '<div class="stats">Reviewed '+total+' cards · '+ratings.good+' good · '+ratings.hard+' hard · '+ratings.again+' again</div>'+
+        '<button onclick="restart()">Start over</button></div>';
+      return;
+    }
+    var c=deck[idx];
+    var html='<div class="card '+(revealed?'':'hidden')+'" id="theCard">'+
+      '<div class="jp">'+c.jp+'</div>'+
+      '<div class="reading">'+c.reading+'</div>'+
+      '<div class="gloss">'+c.gloss+'</div>'+
+      '</div>';
+    if(revealed){
+      html+='<div class="controls">'+
+        '<button class="btn bad" data-rate="again">Again</button>'+
+        '<button class="btn hard" data-rate="hard">Hard</button>'+
+        '<button class="btn good" data-rate="good">Good</button>'+
+      '</div>';
+    } else {
+      html+='<div class="hint">▼ click card to reveal</div>';
+    }
+    html+='<div class="progress">'+reviewed+' of '+total+' reviewed</div>';
+    wrap.innerHTML=html;
+    var card=document.getElementById('theCard');
+    if(card&&!revealed)card.onclick=function(){revealed=true;render();};
+    wrap.querySelectorAll('[data-rate]').forEach(function(b){
+      b.onclick=function(){
+        var r=b.dataset.rate;ratings[r]++;reviewed++;
+        if(r==='again')deck.push(deck[idx]);
+        idx++;revealed=false;render();
+      };
+    });
+  }
+  function restart(){idx=0;revealed=false;reviewed=0;ratings={again:0,hard:0,good:0};deck.sort(function(){return Math.random()-0.5;});render();}
+  render();
+  </script>
+  </body></html>

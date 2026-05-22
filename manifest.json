@@ -1,0 +1,421 @@
+[
+  {
+    "id": "p001",
+    "title": "Weekly meal planner with grocery roll-up",
+    "description": "A 7-day Mediterranean meal plan that auto-generates a consolidated shopping list.",
+    "author": "mira_tanaka",
+    "authorName": "Mira Tanaka",
+    "date": "2026-05-12",
+    "tag": "planner",
+    "tags": [
+      "planner",
+      "food",
+      "weekly",
+      "shopping"
+    ],
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "systemPrompt": "You are a meticulous nutritionist and home cook. You design realistic week-long meal plans that ordinary people can actually execute on a weekday.",
+    "userPrompt": "Generate a single-file HTML weekly meal planner for a {{DIET}} diet at ~{{CALORIES}} cal/day. Output a 7-day table (breakfast/lunch/dinner) followed by a consolidated grocery list grouped by aisle. Include a \"🔀 Regenerate menu\" button that picks new meals from a JS pool, and a 🖨 Print button. Style: warm cream paper, serif headings.",
+    "context": "Household: {{HOUSEHOLD}}. {{NOTES}}",
+    "variables": [
+      {
+        "key": "DIET",
+        "label": "Diet style",
+        "default": "Mediterranean",
+        "hint": "e.g. Mediterranean, vegan, low-carb, Japanese home cooking"
+      },
+      {
+        "key": "CALORIES",
+        "label": "Calories per day",
+        "default": "1800",
+        "hint": "Per adult"
+      },
+      {
+        "key": "HOUSEHOLD",
+        "label": "Household",
+        "default": "2 adults",
+        "hint": "Who you're feeding"
+      },
+      {
+        "key": "NOTES",
+        "label": "Quirks & traditions",
+        "default": "No fish allergies. Friday is pizza night by tradition.",
+        "hint": "Allergies, rituals, things you won't budge on"
+      }
+    ],
+    "usage": [
+      "Replace the diet style (\"Mediterranean\") with your own to re-roll the menu.",
+      "Increase calories per day for athletes or growing teens.",
+      "Pipe the grocery list into Instacart by adjusting the final prompt block."
+    ],
+    "downloads": 1284,
+    "forks": 47,
+    "parentId": null
+  },
+  {
+    "id": "p002",
+    "title": "Retro terminal revenue dashboard",
+    "description": "Dark, monospaced KPI cards with a sparkline — feels like a Bloomberg terminal.",
+    "author": "tomas_lind",
+    "authorName": "Tomas Lind",
+    "date": "2026-05-09",
+    "tag": "dashboard",
+    "tags": [
+      "dashboard",
+      "finance",
+      "kpi",
+      "retro"
+    ],
+    "model": "Claude Sonnet 4.6",
+    "license": "CC-BY — Attribution",
+    "systemPrompt": "You are a senior product designer. You produce dashboards that feel inhabited, not generated. Avoid purple gradients and Inter font.",
+    "userPrompt": "Build a single-file HTML revenue dashboard with three KPI cards (MRR, Churn, LTV) and a 7-day bar chart. Animate the numbers counting up from 0 on load. Add hover tooltips on the bars showing per-day revenue. Use a dark navy background, cyan accent, very thin display weights for the numbers. Mono labels.",
+    "context": "Numbers are illustrative — placeholder values are fine.",
+    "usage": [
+      "Swap the three KPIs for your team's metrics.",
+      "Wire `fetch()` to your analytics endpoint to make it live.",
+      "Adjust the cyan accent to your brand color."
+    ],
+    "downloads": 892,
+    "forks": 31,
+    "parentId": null,
+    "coverEligible": true,
+    "editorsNote": "Tomas proves dashboards don't have to look like they were designed by a committee. The retro terminal aesthetic isn't just nostalgic — the thin display weights and cyan accent make the numbers genuinely scannable. Thirty-one forks and counting."
+  },
+  {
+    "id": "p003",
+    "title": "Heartfelt thank-you letter (handwritten feel)",
+    "description": "Generates a warm, specific thank-you letter that doesn't sound AI-written.",
+    "author": "eleanor_rosa",
+    "authorName": "Eleanor Rosa",
+    "date": "2026-05-15",
+    "tag": "letter",
+    "tags": [
+      "letter",
+      "gratitude",
+      "family",
+      "writing"
+    ],
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "systemPrompt": "You write personal letters with the cadence of someone who actually sat down with pen and paper. Specific. Slightly uneven. Never gushing.",
+    "userPrompt": "Write a thank-you letter from {{SENDER}} to {{RECIPIENT}}, who {{KINDNESS}}. The letter should feel specific — not generic gratitude. Output as a single-file HTML letter on warm paper.",
+    "context": "{{DETAIL}}",
+    "variables": [
+      {
+        "key": "SENDER",
+        "label": "Your name",
+        "default": "Eleanor",
+        "hint": "How you sign letters",
+        "required": true
+      },
+      {
+        "key": "RECIPIENT",
+        "label": "Recipient",
+        "default": "Margaret",
+        "hint": "The person you're thanking",
+        "required": true
+      },
+      {
+        "key": "KINDNESS",
+        "label": "What they did",
+        "default": "brought a casserole and a handwritten card while my family was going through a difficult week",
+        "hint": "The specific kindness — be concrete"
+      },
+      {
+        "key": "DETAIL",
+        "label": "A small detail to anchor it",
+        "default": "The casserole arrived warm. It was the first night we'd sat at the table together in two weeks.",
+        "hint": "One sensory or timing detail that makes it real"
+      }
+    ],
+    "usage": [
+      "Replace names and the specific kindness — keep the structure.",
+      "Adjust the closing line to match how you actually sign letters.",
+      "For business thank-yous, raise formality in the system prompt."
+    ],
+    "downloads": 2103,
+    "forks": 88,
+    "parentId": null,
+    "coverEligible": true,
+    "editorsNote": "Eleanor's thank-you prompt has been forked 88 times since she posted it in May — more than any other letter template in the archive. What makes it work is what it refuses to do: no bullet points, no gratitude listicles, just one specific memory rendered with the cadence of real handwriting.",
+    "versions": [
+      {
+        "v": 1,
+        "date": "2026-05-10",
+        "systemPrompt": "You write thoughtful thank-you letters that feel personal and heartfelt. Take your time. Use rich, descriptive language to express gratitude. Reference shared moments and weave in details that make the recipient feel genuinely appreciated. Don't be afraid to be a little sentimental.",
+        "userPrompt": "Write a thank-you letter from Eleanor to Margaret, who brought a casserole and a handwritten card while my family was going through a difficult week. Output as a single-file HTML letter on warm paper.",
+        "context": "The casserole arrived warm. It was the first night we'd sat at the table together in two weeks.",
+        "model": "Claude Opus 4.7",
+        "variables": [],
+        "changelog": "First draft. Captured the warmth I wanted but the model still reaches for stock phrases like \"from the bottom of my heart.\" Need to tighten."
+      },
+      {
+        "v": 2,
+        "date": "2026-05-13",
+        "systemPrompt": "You write personal letters with the cadence of someone who actually sat down with pen and paper. Specific. Slightly uneven. Never gushing.",
+        "userPrompt": "Write a thank-you letter from Eleanor to Margaret, who brought a casserole and a handwritten card while my family was going through a difficult week. The letter should feel specific — not generic gratitude. Output as a single-file HTML letter on warm paper.",
+        "context": "The casserole arrived warm. It was the first night we'd sat at the table together in two weeks.",
+        "model": "Claude Opus 4.7",
+        "variables": [],
+        "changelog": "Added specificity constraint. The model was producing generic thank-yous that could apply to anyone — now it anchors on the concrete detail. Also tightened the system prompt: \"Never gushing\" is doing a lot of work."
+      },
+      {
+        "v": 3,
+        "date": "2026-05-15",
+        "systemPrompt": "You write personal letters with the cadence of someone who actually sat down with pen and paper. Specific. Slightly uneven. Never gushing.",
+        "userPrompt": "Write a thank-you letter from {{SENDER}} to {{RECIPIENT}}, who {{KINDNESS}}. The letter should feel specific — not generic gratitude. Output as a single-file HTML letter on warm paper.",
+        "context": "{{DETAIL}}",
+        "model": "Claude Opus 4.7",
+        "variables": [
+          {
+            "key": "SENDER",
+            "label": "Your name",
+            "default": "Eleanor",
+            "hint": "How you sign letters",
+            "required": true
+          },
+          {
+            "key": "RECIPIENT",
+            "label": "Recipient",
+            "default": "Margaret",
+            "hint": "The person you're thanking",
+            "required": true
+          },
+          {
+            "key": "KINDNESS",
+            "label": "What they did",
+            "default": "brought a casserole and a handwritten card while my family was going through a difficult week",
+            "hint": "The specific kindness — be concrete"
+          },
+          {
+            "key": "DETAIL",
+            "label": "A small detail to anchor it",
+            "default": "The casserole arrived warm. It was the first night we'd sat at the table together in two weeks.",
+            "hint": "One sensory or timing detail that makes it real"
+          }
+        ],
+        "changelog": "Introduced {{RECIPIENT}} and {{KINDNESS}} variables so others can personalize without editing the prompt. Kept the tone anchored by requiring a sensory detail."
+      }
+    ]
+  },
+  {
+    "id": "p004",
+    "title": "Wordle clone — finished puzzle showcase",
+    "description": "A playable-feeling Wordle layout. Great template for any 5×6 guessing game.",
+    "author": "kenji_arai",
+    "authorName": "Kenji Arai",
+    "date": "2026-04-30",
+    "tag": "game",
+    "tags": [
+      "game",
+      "puzzle",
+      "css-grid"
+    ],
+    "model": "GPT-5",
+    "license": "CC-BY — Attribution",
+    "systemPrompt": "You build interactive HTML toys that work in a single file. Vanilla JS only.",
+    "userPrompt": "Build a single-file Wordle clone — fully playable. 5×6 grid, on-screen QWERTY keyboard plus physical keyboard input, Enter to submit, Backspace to delete. Use the canonical Wordle color logic: green for correct position, yellow for wrong position, gray for not in word. Pick the answer randomly from a small word list. Show a \"Play again\" button when the game ends.",
+    "context": "",
+    "usage": [
+      "Replace BLANT with any 5-letter word.",
+      "Add a keyboard input layer for full playability.",
+      "Swap the tile colors for an accessible palette."
+    ],
+    "downloads": 612,
+    "forks": 19,
+    "parentId": null
+  },
+  {
+    "id": "p005",
+    "title": "JLPT vocabulary flashcards — SRS layout",
+    "description": "A spaced-repetition study card with reading, gloss, and Again/Hard/Good buttons.",
+    "author": "mira_tanaka",
+    "authorName": "Mira Tanaka",
+    "date": "2026-05-02",
+    "tag": "study",
+    "tags": [
+      "study",
+      "japanese",
+      "flashcards",
+      "srs"
+    ],
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "systemPrompt": "You design study interfaces that respect the learner's time. No animations that delay review. No emoji unless serving information.",
+    "userPrompt": "Create a single-file HTML flashcard reviewer for {{SUBJECT}} vocabulary. Build a deck of 8 cards inline. Each card shows the kanji on top, then click the card to reveal the reading (hiragana + romaji) and English gloss. Three buttons (Again / Hard / Good): \"Again\" pushes the card back to the end of the deck, the others advance. Show a progress indicator. {{THEME}} theme. End with a \"Start over\" summary screen.",
+    "context": "Example card: {{EXAMPLE}}",
+    "variables": [
+      {
+        "key": "SUBJECT",
+        "label": "Study subject",
+        "default": "JLPT N3",
+        "hint": "e.g. JLPT N3, GRE vocab, medical terminology"
+      },
+      {
+        "key": "THEME",
+        "label": "Color theme",
+        "default": "Dark",
+        "hint": "Dark or Light"
+      },
+      {
+        "key": "EXAMPLE",
+        "label": "Example card",
+        "default": "締切 (しめきり / shimekiri) — deadline; closing date.",
+        "hint": "One sample so the model knows the format"
+      }
+    ],
+    "usage": [
+      "Replace the JLPT level by swapping the deck label.",
+      "Connect to a real SRS algorithm (SM-2 or FSRS) by binding the buttons.",
+      "Adjust colors for a light-mode version."
+    ],
+    "downloads": 1456,
+    "forks": 62,
+    "parentId": null,
+    "coverEligible": true,
+    "editorsNote": "A study-tool prompt that respects the learner's time. Mira stripped away every animation that delays a review cycle and built the progress bar to feel honest, not gamified. Sixty-two forks so far, spanning Korean, Mandarin, and even GRE vocabulary."
+  },
+  {
+    "id": "p006",
+    "title": "30-day habit tracker — quiet edition",
+    "description": "A serene, paper-feeling habit grid. No streaks. No notifications. Just a record.",
+    "author": "eleanor_rosa",
+    "authorName": "Eleanor Rosa",
+    "date": "2026-05-14",
+    "tag": "planner",
+    "tags": [
+      "planner",
+      "habits",
+      "self",
+      "minimal"
+    ],
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "systemPrompt": "You design interfaces that feel like ink on paper. Quiet typography. No gamification. The user is not a player.",
+    "userPrompt": "Generate a single-file HTML habit tracker showing five habits across 30 days as a grid. Each cell is clickable and cycles empty → partial (muted gold) → done (olive green) → empty. Use a warm cream background. Italic serif heading. No streak counter. Show a small legend at the bottom.",
+    "context": "Habits: Read 30 min, No phone AM, Walk 5k, Stretch, Journal.",
+    "usage": [
+      "Edit the five habit labels directly in the HTML.",
+      "Replace the random fill with your actual data.",
+      "Print at 11\"×17\" for a physical wall tracker."
+    ],
+    "downloads": 789,
+    "forks": 24,
+    "parentId": "p005"
+  },
+  {
+    "id": "p007",
+    "title": "Nonna's lemon cake — recipe card",
+    "description": "Italian-grandmother-energy recipe card with double-rule headers and italic title.",
+    "author": "tomas_lind",
+    "authorName": "Tomas Lind",
+    "date": "2026-05-06",
+    "tag": "letter",
+    "tags": [
+      "recipe",
+      "baking",
+      "family"
+    ],
+    "model": "GPT-4o",
+    "license": "CC0 — Public domain",
+    "systemPrompt": "You preserve family recipes as if you were typesetting them for a cookbook. Warm but precise.",
+    "userPrompt": "Format my grandmother's lemon cake recipe as a single-file HTML recipe card. Italic display title. Double-rule under the header. Ingredients as a bullet list, method as a numbered list. Serif typography throughout.",
+    "context": "Ingredients and method provided inline by user.",
+    "usage": [
+      "Drop in any family recipe — keep the typographic shell.",
+      "Print as a 5\"×7\" card for the kitchen drawer.",
+      "Translate to your grandmother's language for the gift version."
+    ],
+    "downloads": 423,
+    "forks": 11,
+    "parentId": null
+  },
+  {
+    "id": "p008",
+    "title": "履歴書 — Japanese resume template",
+    "description": "A faithful Rirekisho table layout for job applications in Japan.",
+    "author": "kenji_arai",
+    "authorName": "Kenji Arai",
+    "date": "2026-05-10",
+    "tag": "planner",
+    "tags": [
+      "japan",
+      "resume",
+      "career",
+      "template"
+    ],
+    "model": "Claude Sonnet 4.6",
+    "license": "CC-BY — Attribution",
+    "systemPrompt": "日本のビジネス慣行を尊重する。履歴書のフォーマットは標準的なものに従う。",
+    "userPrompt": "日本式の履歴書（リレキショ）を一枚のHTMLファイルで作成してください。氏名、ふりがな、生年月日、住所、学歴・職歴の標準的な表組みを含むこと。明朝体を使用。",
+    "context": "田中花子、29歳、東京在住、早稲田大学卒、株式会社サンライズ勤務。",
+    "usage": [
+      "名前と経歴を自分のものに置き換えてください。",
+      "A4サイズで印刷できるように余白を調整してください。",
+      "写真欄に実際の証明写真を埋め込むこともできます。"
+    ],
+    "downloads": 967,
+    "forks": 38,
+    "parentId": null,
+    "coverEligible": true,
+    "editorsNote": "A bilingual cover entry that shows the platform's range. Kenji's Rirekisho template follows the exact table conventions Japanese employers expect — right down to the furigana row and photo placeholder. Thirty-eight forks, mostly from job-seekers prepping for spring hiring."
+  },
+  {
+    "id": "p009",
+    "title": "Professional thank-you note (business tone)",
+    "description": "A fork of Eleanor's letter prompt, tuned for post-meeting business thank-yous.",
+    "author": "tomas_lind",
+    "authorName": "Tomas Lind",
+    "date": "2026-05-18",
+    "tag": "letter",
+    "tags": [
+      "letter",
+      "business",
+      "professional",
+      "writing"
+    ],
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "systemPrompt": "You write professional correspondence that sounds human, not corporate. Warm but not casual. Specific but not over-familiar.",
+    "userPrompt": "Write a professional thank-you note from {{SENDER}} to {{RECIPIENT}}, who {{KINDNESS}}. Keep it under 150 words. The tone should be warm but appropriate for a business relationship. Output as a single-file HTML letter on clean white paper with minimal styling.",
+    "context": "{{DETAIL}}",
+    "variables": [
+      {
+        "key": "SENDER",
+        "label": "Your name",
+        "default": "Tomas",
+        "hint": "How you sign professional emails",
+        "required": true
+      },
+      {
+        "key": "RECIPIENT",
+        "label": "Recipient",
+        "default": "David Chen",
+        "hint": "The person you're thanking",
+        "required": true
+      },
+      {
+        "key": "KINDNESS",
+        "label": "What they did",
+        "default": "took an extra hour after our meeting to walk me through the integration architecture",
+        "hint": "The specific professional kindness"
+      },
+      {
+        "key": "DETAIL",
+        "label": "A detail",
+        "default": "The whiteboard sketch he drew finally made the data flow click.",
+        "hint": "One concrete detail"
+      }
+    ],
+    "usage": [
+      "Swap names and the specific kindness for your situation.",
+      "For more formal tone, add \"address the recipient as Mr./Ms.\" to the system prompt.",
+      "Remove the 150-word limit for longer letters of recommendation."
+    ],
+    "downloads": 312,
+    "forks": 8,
+    "parentId": "p003"
+  }
+]

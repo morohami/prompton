@@ -1,0 +1,93 @@
+<!DOCTYPE html><html><head><style>
+    body{font-family:system-ui,sans-serif;background:#fafafa;margin:0;padding:30px;text-align:center;min-height:100vh;box-sizing:border-box}
+    h1{font-size:28px;font-weight:800;letter-spacing:.2em;margin:0 0 4px}
+    .sub{color:#888;font-size:13px;margin-bottom:24px}
+    .board{display:inline-grid;grid-template-columns:repeat(5,52px);gap:6px}
+    .tile{width:52px;height:52px;border:2px solid #d3d6da;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;text-transform:uppercase;background:#fff;color:#1a1a1a;transition:background .2s,border-color .2s,transform .12s}
+    .tile.filled{border-color:#878a8c}
+    .tile.g{background:#6aaa64;border-color:#6aaa64;color:#fff}
+    .tile.y{background:#c9b458;border-color:#c9b458;color:#fff}
+    .tile.b{background:#787c7e;border-color:#787c7e;color:#fff}
+    .tile.pop{transform:scale(1.08)}
+    .msg{min-height:22px;margin:18px 0 6px;font-weight:600;color:#1a1a1a;font-size:14px}
+    .msg.win{color:#6aaa64}.msg.lose{color:#c9b458}
+    .keyboard{margin-top:18px;display:flex;flex-direction:column;gap:6px;align-items:center}
+    .kb-row{display:flex;gap:4px}
+    .key{background:#d3d6da;color:#1a1a1a;padding:14px 8px;min-width:32px;border-radius:4px;cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;user-select:none;transition:background .15s,filter .1s}
+    .key:hover{filter:brightness(0.95)}
+    .key:active{transform:scale(0.96)}
+    .key.wide{padding:14px 12px;font-size:11px}
+    .key.g{background:#6aaa64;color:#fff}.key.y{background:#c9b458;color:#fff}.key.b{background:#787c7e;color:#fff}
+    .replay{background:#1a1a1a;color:#fff;border:0;padding:10px 18px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;display:none;margin:8px 0;font-family:inherit}
+    .replay:hover{background:#444}
+  </style></head><body>
+  <h1>WORDLE</h1><div class="sub">guess the five-letter word</div>
+  <div class="board" id="board">
+    <div class="tile b">C</div><div class="tile b">R</div><div class="tile y">A</div><div class="tile b">N</div><div class="tile b">E</div>
+    <div class="tile b">P</div><div class="tile y">L</div><div class="tile b">A</div><div class="tile b">T</div><div class="tile b">E</div>
+    <div class="tile y">S</div><div class="tile g">L</div><div class="tile b">A</div><div class="tile g">N</div><div class="tile g">T</div>
+    <div class="tile g">B</div><div class="tile g">L</div><div class="tile g">A</div><div class="tile g">N</div><div class="tile g">T</div>
+    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+  </div>
+  <div class="msg" id="msg">Type a word to start</div>
+  <button class="replay" id="replay">Play again</button>
+  <div class="keyboard" id="keyboard"></div>
+  <script>
+  var WORDS=['CRANE','PLATE','SLANT','GHOST','SHARK','BROIL','THUMP','PRIZE','CHOMP','GLINT','DREAM','SPARK','CRISP','BLAZE','TIGER','MOUTH','FROST','PIANO','RIVER','FLAME','GRAPE','BRICK','CLOUD','PRISM','VAULT'];
+  var board=document.getElementById('board'),msgEl=document.getElementById('msg'),kbEl=document.getElementById('keyboard'),replayBtn=document.getElementById('replay');
+  var answer,row,col,gameOver,keyStates;
+  function newGame(){
+    answer=WORDS[Math.floor(Math.random()*WORDS.length)];
+    row=0;col=0;gameOver=false;keyStates={};
+    board.innerHTML='';
+    for(var r=0;r<6;r++){for(var c=0;c<5;c++){var t=document.createElement('div');t.className='tile';t.id='t'+r+c;board.appendChild(t);}}
+    msgEl.textContent='Type a word to guess';msgEl.className='msg';replayBtn.style.display='none';
+    buildKb();
+  }
+  function buildKb(){
+    var rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];kbEl.innerHTML='';
+    rows.forEach(function(r,i){
+      var rw=document.createElement('div');rw.className='kb-row';
+      if(i===2){var en=document.createElement('div');en.className='key wide';en.textContent='ENTER';en.onclick=submit;rw.appendChild(en);}
+      r.split('').forEach(function(l){
+        var k=document.createElement('div');k.className='key '+(keyStates[l]||'');k.id='k_'+l;k.textContent=l;
+        k.onclick=function(){type(l);};rw.appendChild(k);
+      });
+      if(i===2){var bk=document.createElement('div');bk.className='key wide';bk.textContent='⌫';bk.onclick=back;rw.appendChild(bk);}
+      kbEl.appendChild(rw);
+    });
+  }
+  function type(l){if(gameOver||col>=5)return;var t=document.getElementById('t'+row+col);t.textContent=l;t.classList.add('filled','pop');setTimeout(function(){t.classList.remove('pop');},120);col++;msgEl.textContent='';}
+  function back(){if(gameOver||col<=0)return;col--;var t=document.getElementById('t'+row+col);t.textContent='';t.classList.remove('filled');}
+  function submit(){
+    if(gameOver)return;
+    if(col!==5){flash('Need 5 letters');return;}
+    var g='';for(var i=0;i<5;i++)g+=document.getElementById('t'+row+i).textContent;
+    var colors=computeColors(g,answer);
+    for(var i=0;i<5;i++){(function(i){setTimeout(function(){
+      var t=document.getElementById('t'+row+i);t.classList.add(colors[i]);
+      var l=g[i],s=keyStates[l]||'';
+      if(colors[i]==='g')keyStates[l]='g';
+      else if(colors[i]==='y'&&s!=='g')keyStates[l]='y';
+      else if(s!=='g'&&s!=='y')keyStates[l]='b';
+      var k=document.getElementById('k_'+l);if(k){k.classList.remove('g','y','b');k.classList.add(keyStates[l]);}
+    },i*200);})(i);}
+    setTimeout(function(){
+      if(g===answer){gameOver=true;msgEl.textContent='You got it! 🎉';msgEl.className='msg win';replayBtn.style.display='inline-block';}
+      else if(row===5){gameOver=true;msgEl.textContent='The word was '+answer;msgEl.className='msg lose';replayBtn.style.display='inline-block';}
+      else{row++;col=0;}
+    },5*200+100);
+  }
+  function computeColors(g,a){
+    var c=['b','b','b','b','b'],u=[0,0,0,0,0];
+    for(var i=0;i<5;i++)if(g[i]===a[i]){c[i]='g';u[i]=1;}
+    for(var i=0;i<5;i++)if(c[i]!=='g')for(var j=0;j<5;j++)if(!u[j]&&g[i]===a[j]){c[i]='y';u[j]=1;break;}
+    return c;
+  }
+  function flash(s){msgEl.textContent=s;setTimeout(function(){if(!gameOver&&msgEl.textContent===s)msgEl.textContent='';},1200);}
+  replayBtn.onclick=newGame;
+  document.addEventListener('keydown',function(e){if(e.key==='Enter')submit();else if(e.key==='Backspace')back();else if(/^[a-zA-Z]$/.test(e.key))type(e.key.toUpperCase());});
+  newGame();
+  </script>
+  </body></html>

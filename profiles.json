@@ -1,0 +1,85 @@
+{
+  "mira_tanaka": {
+    "handle": "mira_tanaka",
+    "name": "Mira Tanaka",
+    "bio": "Tokyo-based product designer. Writes prompts for the small tools of daily life.",
+    "email": "mira@promptshare.example",
+    "location": "Tokyo, Japan",
+    "website": "https://mira.design",
+    "avatar": null,
+    "joined": "2026-01-15",
+    "followers": [
+      "eleanor_rosa",
+      "tomas_lind"
+    ],
+    "following": [
+      "kenji_arai"
+    ]
+  },
+  "tomas_lind": {
+    "handle": "tomas_lind",
+    "name": "Tomas Lind",
+    "bio": "Stockholm. Designing interfaces with the patience of a furniture maker.",
+    "email": "tomas@promptshare.example",
+    "location": "Stockholm, Sweden",
+    "website": "https://tomaslind.se",
+    "avatar": null,
+    "joined": "2026-02-02",
+    "followers": [
+      "mira_tanaka",
+      "kenji_arai",
+      "eleanor_rosa"
+    ],
+    "following": [
+      "eleanor_rosa"
+    ]
+  },
+  "eleanor_rosa": {
+    "handle": "eleanor_rosa",
+    "name": "Eleanor Rosa",
+    "bio": "Letters, recipes, quiet rituals. Lives in Lisbon.",
+    "email": "eleanor@promptshare.example",
+    "location": "Lisbon, Portugal",
+    "website": "",
+    "avatar": null,
+    "joined": "2026-01-22",
+    "followers": [
+      "mira_tanaka",
+      "tomas_lind",
+      "kenji_arai"
+    ],
+    "following": [
+      "mira_tanaka"
+    ]
+  },
+  "kenji_arai": {
+    "handle": "kenji_arai",
+    "name": "Kenji Arai",
+    "bio": "Software engineer. Builds toys that don't feel like products.",
+    "email": "kenji@promptshare.example",
+    "location": "Osaka, Japan",
+    "website": "https://kenji.dev",
+    "avatar": null,
+    "joined": "2026-03-01",
+    "followers": [
+      "tomas_lind"
+    ],
+    "following": [
+      "mira_tanaka",
+      "tomas_lind",
+      "eleanor_rosa"
+    ]
+  },
+  "you": {
+    "handle": "you",
+    "name": "You",
+    "bio": "New to PromptShare. Click \"Edit profile\" to add a bio.",
+    "email": "",
+    "location": "",
+    "website": "",
+    "avatar": null,
+    "joined": "2026-05-22",
+    "followers": [],
+    "following": []
+  }
+}

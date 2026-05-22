@@ -1,0 +1,73 @@
+<!DOCTYPE html><html><head><style>
+    body{font-family:Georgia,serif;background:#fdfaf3;color:#2a1f15;margin:0;padding:30px}
+    h1{font-size:38px;margin:0 0 4px;font-weight:400}
+    .sub{color:#888;margin-bottom:18px}
+    .controls{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+    .controls button{background:#a23b1f;color:#fff;border:0;padding:9px 18px;border-radius:4px;cursor:pointer;font-family:Georgia,serif;font-size:14px;transition:background .15s}
+    .controls button:hover{background:#7a2a13}
+    .controls button.alt{background:#5a4f42}
+    .controls button.alt:hover{background:#3a342a}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;font-weight:600;padding:10px;background:#e8dcc0;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+    td{padding:14px 10px;border-bottom:1px solid #e8dcc0;vertical-align:top;font-size:15px;transition:background .25s}
+    td.flash{background:#fff5d6}
+    td b{color:#a23b1f}
+    .day{font-weight:700;color:#a23b1f;white-space:nowrap}
+    .grocery{background:#fffbf2;border:1px solid #e8dcc0;padding:16px 20px;border-radius:4px;margin-top:24px}
+    .grocery h2{font-size:16px;margin:0 0 8px;font-weight:600;color:#a23b1f;text-transform:uppercase;letter-spacing:.08em}
+    .grocery ul{columns:2;column-gap:30px;padding-left:18px;font-size:14px;margin:0}
+    .grocery li{margin-bottom:4px;break-inside:avoid}
+    .grocery li b{color:#a23b1f}
+    @media print{.controls{display:none}}
+  </style></head><body>
+  <h1>Week of <span id="weekLabel">March 17</span></h1>
+  <div class="sub">Mediterranean · 1800 cal/day · grocery list at the bottom</div>
+  <div class="controls">
+    <button onclick="regenerate()">🔀 Regenerate menu</button>
+    <button class="alt" onclick="window.print()">🖨 Print</button>
+  </div>
+  <table id="planTable">
+    <tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr>
+    <tr><td class="day">Mon</td><td>Greek yogurt + figs</td><td>Lentil soup, sourdough</td><td>Grilled salmon, farro</td></tr>
+    <tr><td class="day">Tue</td><td>Shakshuka</td><td>Quinoa tabbouleh</td><td>Roast chicken, potatoes</td></tr>
+    <tr><td class="day">Wed</td><td>Avocado toast</td><td>White bean salad</td><td>Pasta puttanesca</td></tr>
+    <tr><td class="day">Thu</td><td>Oatmeal + dates</td><td>Hummus wrap</td><td>Sea bass, fennel</td></tr>
+    <tr><td class="day">Fri</td><td>Eggs + tomato</td><td>Leftover puttanesca</td><td>Pizza Friday 🍕</td></tr>
+    <tr><td class="day">Sat</td><td>Pancakes + berries</td><td>Caprese sandwich</td><td>Lamb tagine, couscous</td></tr>
+    <tr><td class="day">Sun</td><td>Smoked salmon bagel</td><td>Mediterranean bowl</td><td>Vegetable lasagna</td></tr>
+  </table>
+  <div class="grocery">
+    <h2>Grocery list (this week)</h2>
+    <ul>
+      <li><b>Produce:</b> figs, tomatoes, avocado, dates, onions, garlic, lemons, fennel, herbs</li>
+      <li><b>Protein:</b> salmon, chicken, sea bass, eggs, Greek yogurt</li>
+      <li><b>Pantry:</b> farro, quinoa, lentils, pasta, olive oil, sourdough</li>
+      <li><b>Dairy:</b> feta, parmesan, mozzarella, butter</li>
+    </ul>
+  </div>
+  <script>
+  var meals={
+    breakfast:['Greek yogurt + figs','Shakshuka','Avocado toast','Oatmeal + dates','Eggs + tomato','Smoked salmon bagel','Pancakes + berries','Cottage cheese + honey','Pumpkin muffins'],
+    lunch:['Lentil soup, sourdough','Quinoa tabbouleh','White bean salad','Hummus wrap','Caprese sandwich','Mediterranean bowl','Salade niçoise','Chickpea soup','Falafel pita'],
+    dinner:['Grilled salmon, farro','Roast chicken, potatoes','Pasta puttanesca','Sea bass, fennel','Pizza Friday 🍕','Lamb tagine, couscous','Vegetable lasagna','Mushroom risotto','Shrimp orzo','Stuffed peppers']
+  };
+  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  function pick(arr,exclude){var pool=arr.filter(function(x){return exclude.indexOf(x)<0;});return pool[Math.floor(Math.random()*pool.length)];}
+  function regenerate(){
+    var used={breakfast:[],lunch:[],dinner:[]};
+    var rows='<tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr>';
+    for(var i=0;i<days.length;i++){
+      var b=pick(meals.breakfast,used.breakfast);used.breakfast.push(b);
+      var l=pick(meals.lunch,used.lunch);used.lunch.push(l);
+      var d=pick(meals.dinner,used.dinner);used.dinner.push(d);
+      rows+='<tr><td class="day">'+days[i]+'</td><td>'+b+'</td><td>'+l+'</td><td>'+d+'</td></tr>';
+    }
+    var tbl=document.getElementById('planTable');
+    tbl.innerHTML=rows;
+    tbl.querySelectorAll('td:not(.day)').forEach(function(td){
+      td.classList.add('flash');
+      setTimeout(function(){td.classList.remove('flash');},400);
+    });
+  }
+  </script>
+  </body></html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html><html><head><style>
+    body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0a0e1a;color:#c9d1e3;margin:0;padding:24px;min-height:100vh;box-sizing:border-box}
+    h1{font-size:24px;margin:0 0 20px;color:#7dd3fc;font-weight:400;letter-spacing:.02em}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .card{background:#131929;border:1px solid #243046;border-radius:8px;padding:18px;transition:border-color .15s,transform .15s}
+    .card:hover{border-color:#7dd3fc;transform:translateY(-2px)}
+    .lbl{font-size:11px;color:#8b94a8;text-transform:uppercase;letter-spacing:.1em}
+    .num{font-size:42px;font-weight:200;color:#fff;margin:6px 0;font-variant-numeric:tabular-nums}
+    .delta{font-size:13px;color:#7ee787}
+    .bars{display:flex;gap:6px;align-items:flex-end;height:60px;margin-top:14px}
+    .bar{flex:1;background:linear-gradient(180deg,#7dd3fc,#0369a1);border-radius:3px 3px 0 0;cursor:pointer;transition:opacity .12s,filter .12s;min-width:0}
+    .bar:hover{filter:brightness(1.25)}
+    .bar-labels{display:flex;gap:6px;margin-top:6px}
+    .bar-labels div{flex:1;text-align:center;font-size:10px;color:#5e6a82;font-family:monospace}
+    .tooltip{position:fixed;background:#1a2238;border:1px solid #2d3a5a;color:#7dd3fc;padding:6px 10px;border-radius:4px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .12s;z-index:100;font-family:monospace;white-space:nowrap;box-shadow:0 6px 14px rgba(0,0,0,.4)}
+    .tooltip.show{opacity:1}
+    .tooltip .day{color:#8b94a8;margin-right:6px}
+  </style></head><body>
+  <h1>◉ revenue.dashboard</h1>
+  <div class="grid">
+    <div class="card"><div class="lbl">MRR</div><div class="num" data-target="42800" data-fmt="k">$42.8k</div><div class="delta">↗ 12.3%</div></div>
+    <div class="card"><div class="lbl">Churn</div><div class="num" data-target="2.1" data-fmt="pct">2.1%</div><div class="delta" style="color:#f87171">↘ 0.4%</div></div>
+    <div class="card"><div class="lbl">LTV</div><div class="num" data-target="1840" data-fmt="dollar">$1,840</div><div class="delta">↗ 8.1%</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="lbl">last 7 days · hover bars</div>
+    <div class="bars" id="bars">
+      <div class="bar" style="height:30%"></div>
+      <div class="bar" style="height:50%"></div>
+      <div class="bar" style="height:42%"></div>
+      <div class="bar" style="height:65%"></div>
+      <div class="bar" style="height:55%"></div>
+      <div class="bar" style="height:78%"></div>
+      <div class="bar" style="height:90%"></div>
+    </div>
+    <div class="bar-labels"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
+  </div>
+  <div class="tooltip" id="tt"></div>
+  <script>
+  // Animate counters
+  function fmt(v,kind){
+    if(kind==='k')return '$'+(v/1000).toFixed(1)+'k';
+    if(kind==='pct')return v.toFixed(1)+'%';
+    if(kind==='dollar')return '$'+Math.round(v).toLocaleString();
+    return v;
+  }
+  document.querySelectorAll('.num').forEach(function(el){
+    var target=parseFloat(el.dataset.target),kind=el.dataset.fmt,t0=performance.now(),dur=1100;
+    function tick(now){var p=Math.min(1,(now-t0)/dur);var e=1-Math.pow(1-p,3);el.textContent=fmt(target*e,kind);if(p<1)requestAnimationFrame(tick);}
+    requestAnimationFrame(tick);
+  });
+  // Bar tooltips
+  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var revs=[12800,21000,17600,27300,23100,32800,37700];
+  var tt=document.getElementById('tt');
+  document.querySelectorAll('#bars .bar').forEach(function(b,i){
+    b.addEventListener('mouseenter',function(){tt.innerHTML='<span class="day">'+days[i]+'</span>$'+revs[i].toLocaleString();tt.classList.add('show');});
+    b.addEventListener('mousemove',function(e){tt.style.left=(e.clientX+12)+'px';tt.style.top=(e.clientY-30)+'px';});
+    b.addEventListener('mouseleave',function(){tt.classList.remove('show');});
+  });
+  </script>
+  </body></html>

@@ -131,6 +131,44 @@
     color: var(--bg);
     transform: scale(1.04);
   }
+  .nav-actions .nav-settings {
+    font-size: 18px;
+    line-height: 1;
+    padding: 6px 10px;
+    color: var(--text-muted);
+  }
+  .nav-actions .nav-settings:hover { color: var(--text); }
+  .nav-actions .nav-settings.connected { color: var(--accent); }
+
+  /* ── Settings view ── */
+  .settings-wrap { max-width: 640px; margin: 24px auto 60px; padding: 0 20px; }
+  .settings-wrap h1 { font-family: 'DM Sans', sans-serif; font-size: 38px; font-weight: 800; margin: 18px 0 8px; letter-spacing: -0.02em; }
+  .settings-wrap h1 em { font-style: italic; color: var(--accent); }
+  .settings-wrap .lede { color: var(--text-secondary); font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+  .settings-field { margin-bottom: 22px; }
+  .settings-field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 8px; }
+  .settings-field .hint { color: var(--text-muted); font-size: 12px; text-transform: none; letter-spacing: 0; font-family: 'DM Sans', sans-serif; font-weight: 400; margin-left: 4px; }
+  .settings-field .hint a { color: var(--accent); text-decoration: underline; }
+  .settings-field .hint code { background: var(--bg-2); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+  .settings-field input[type="text"], .settings-field input[type="password"] {
+    width: 100%; box-sizing: border-box;
+    background: var(--bg-2); border: 1px solid var(--border); color: var(--text);
+    padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    transition: border-color .15s;
+  }
+  .settings-field input:focus { outline: 0; border-color: var(--accent); }
+  .settings-actions { display: flex; gap: 12px; align-items: center; margin-top: 28px; flex-wrap: wrap; }
+  .settings-actions .btn-primary { background: var(--accent); color: #000; border: 0; padding: 11px 24px; border-radius: 999px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 14px; transition: transform .1s, background .15s; }
+  .settings-actions .btn-primary:hover { background: var(--accent-hover); transform: scale(1.03); }
+  .settings-actions .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 10px 18px; border-radius: 999px; cursor: pointer; font-family: inherit; font-size: 14px; }
+  .settings-actions .btn-secondary:hover { border-color: var(--text); }
+  .settings-actions .btn-text { background: transparent; border: 0; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 8px 4px; font-family: inherit; }
+  .settings-actions .btn-text:hover { color: var(--text-secondary); text-decoration: underline; }
+  .settings-status { margin-top: 18px; padding: 12px 16px; border-radius: 6px; font-size: 13px; display: none; line-height: 1.5; }
+  .settings-status.ok { display: block; background: rgba(29,185,84,0.12); color: var(--accent); border: 1px solid rgba(29,185,84,0.3); }
+  .settings-status.err { display: block; background: rgba(255,90,90,0.12); color: #ff5a5a; border: 1px solid rgba(255,90,90,0.3); }
+  .settings-status.info { display: block; background: var(--bg-2); color: var(--text-secondary); border: 1px solid var(--border); }
+  .settings-status code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px; }
 
   /* ─── Intro tagline pair (was the huge hero, now small) ─── */
   .intro-tagline {
@@ -544,6 +582,13 @@
   }
   .chip:hover { background: var(--bg-card-hover); color: var(--text); border-color: transparent; }
   .chip.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .chip .chip-count {
+    display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px;
+    background: rgba(255,255,255,0.08); color: var(--text-muted); font-size: 10px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace; vertical-align: 1px;
+  }
+  .chip.active .chip-count { background: rgba(0,0,0,0.18); color: rgba(0,0,0,0.6); }
+  .tag-chips { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
   .sort-label {
     color: var(--text-muted);
@@ -3147,6 +3192,7 @@
   <nav class="nav-actions">
     <a data-nav="gallery">Browse</a>
     <a data-nav="profile">Profile</a>
+    <a data-nav="settings" class="nav-settings" title="GitHub sync settings">⚙</a>
     <button class="btn-upload" data-nav="upload">＋ Share a prompt</button>
   </nav>
 </header>
@@ -3172,12 +3218,7 @@
   <div class="filter-bar">
     <input type="text" class="search" id="searchInput" placeholder="Search prompts, tags, authors…" />
     <button class="chip active" data-filter="all">All</button>
-    <button class="chip" data-filter="dashboard">Dashboard</button>
-    <button class="chip" data-filter="letter">Letter</button>
-    <button class="chip" data-filter="game">Game</button>
-    <button class="chip" data-filter="planner">Planner</button>
-    <button class="chip" data-filter="study">Study</button>
-    <button class="chip" data-filter="chart">Chart</button>
+    <span id="tagChips" class="tag-chips"></span>
     <span class="sort-label">Sort:</span>
     <select id="sortSelect">
       <option value="new">Newest</option>
@@ -3305,6 +3346,36 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 <!-- ════════ COMPARE ════════ -->
 <section class="view" id="view-compare"></section>
 
+<!-- ════════ SETTINGS ════════ -->
+<section class="view" id="view-settings">
+  <span class="back-link" data-nav="gallery">← Back to gallery</span>
+  <div class="settings-wrap">
+    <h1>Sync with <em>GitHub</em>.</h1>
+    <p class="lede">Your collection lives in a GitHub repo. New uploads are committed via the GitHub API using a Personal Access Token (PAT) you supply here. Read access stays public — only you can write.</p>
+    <form id="settingsForm">
+      <div class="settings-field">
+        <label>Repository <span class="hint">user/repo — where the collection is stored</span></label>
+        <input type="text" name="repo" id="syncRepo" placeholder="morohami/prompton" autocomplete="off" />
+      </div>
+      <div class="settings-field">
+        <label>Branch <span class="hint">usually "main"</span></label>
+        <input type="text" name="branch" id="syncBranch" placeholder="main" autocomplete="off" />
+      </div>
+      <div class="settings-field">
+        <label>Personal Access Token <span class="hint">scope: <code>public_repo</code> (or <code>repo</code> for private). Stored only in your browser.</span></label>
+        <input type="password" name="pat" id="syncPat" placeholder="ghp_..." autocomplete="off" spellcheck="false" />
+        <div class="hint" style="margin-top:6px">Create one at <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=Prompton" target="_blank" rel="noopener">github.com/settings/tokens</a> · only <code>public_repo</code> is needed.</div>
+      </div>
+      <div class="settings-actions">
+        <button type="button" id="syncTestBtn" class="btn-secondary">Test connection</button>
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" id="syncClearBtn" class="btn-text">Clear stored token</button>
+      </div>
+      <div class="settings-status" id="syncStatus"></div>
+    </form>
+  </div>
+</section>
+
 </main>
 
 <div class="compare-pill" id="comparePill" aria-hidden="true">
@@ -3320,765 +3391,8 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
    PromptShare prototype — single-file, localStorage-backed
    ════════════════════════════════════════════════════════ */
 
-// ─── Sample HTML outputs (compact, distinct visuals) ───
-const sampleOutputs = {
-  mealPlanner: `<!DOCTYPE html><html><head><style>
-    body{font-family:Georgia,serif;background:#fdfaf3;color:#2a1f15;margin:0;padding:30px}
-    h1{font-size:38px;margin:0 0 4px;font-weight:400}
-    .sub{color:#888;margin-bottom:18px}
-    .controls{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-    .controls button{background:#a23b1f;color:#fff;border:0;padding:9px 18px;border-radius:4px;cursor:pointer;font-family:Georgia,serif;font-size:14px;transition:background .15s}
-    .controls button:hover{background:#7a2a13}
-    .controls button.alt{background:#5a4f42}
-    .controls button.alt:hover{background:#3a342a}
-    table{width:100%;border-collapse:collapse}
-    th{text-align:left;font-weight:600;padding:10px;background:#e8dcc0;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
-    td{padding:14px 10px;border-bottom:1px solid #e8dcc0;vertical-align:top;font-size:15px;transition:background .25s}
-    td.flash{background:#fff5d6}
-    td b{color:#a23b1f}
-    .day{font-weight:700;color:#a23b1f;white-space:nowrap}
-    .grocery{background:#fffbf2;border:1px solid #e8dcc0;padding:16px 20px;border-radius:4px;margin-top:24px}
-    .grocery h2{font-size:16px;margin:0 0 8px;font-weight:600;color:#a23b1f;text-transform:uppercase;letter-spacing:.08em}
-    .grocery ul{columns:2;column-gap:30px;padding-left:18px;font-size:14px;margin:0}
-    .grocery li{margin-bottom:4px;break-inside:avoid}
-    .grocery li b{color:#a23b1f}
-    @media print{.controls{display:none}}
-  </style></head><body>
-  <h1>Week of <span id="weekLabel">March 17</span></h1>
-  <div class="sub">Mediterranean · 1800 cal/day · grocery list at the bottom</div>
-  <div class="controls">
-    <button onclick="regenerate()">🔀 Regenerate menu</button>
-    <button class="alt" onclick="window.print()">🖨 Print</button>
-  </div>
-  <table id="planTable">
-    <tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr>
-    <tr><td class="day">Mon</td><td>Greek yogurt + figs</td><td>Lentil soup, sourdough</td><td>Grilled salmon, farro</td></tr>
-    <tr><td class="day">Tue</td><td>Shakshuka</td><td>Quinoa tabbouleh</td><td>Roast chicken, potatoes</td></tr>
-    <tr><td class="day">Wed</td><td>Avocado toast</td><td>White bean salad</td><td>Pasta puttanesca</td></tr>
-    <tr><td class="day">Thu</td><td>Oatmeal + dates</td><td>Hummus wrap</td><td>Sea bass, fennel</td></tr>
-    <tr><td class="day">Fri</td><td>Eggs + tomato</td><td>Leftover puttanesca</td><td>Pizza Friday 🍕</td></tr>
-    <tr><td class="day">Sat</td><td>Pancakes + berries</td><td>Caprese sandwich</td><td>Lamb tagine, couscous</td></tr>
-    <tr><td class="day">Sun</td><td>Smoked salmon bagel</td><td>Mediterranean bowl</td><td>Vegetable lasagna</td></tr>
-  </table>
-  <div class="grocery">
-    <h2>Grocery list (this week)</h2>
-    <ul>
-      <li><b>Produce:</b> figs, tomatoes, avocado, dates, onions, garlic, lemons, fennel, herbs</li>
-      <li><b>Protein:</b> salmon, chicken, sea bass, eggs, Greek yogurt</li>
-      <li><b>Pantry:</b> farro, quinoa, lentils, pasta, olive oil, sourdough</li>
-      <li><b>Dairy:</b> feta, parmesan, mozzarella, butter</li>
-    </ul>
-  </div>
-  <script>
-  var meals={
-    breakfast:['Greek yogurt + figs','Shakshuka','Avocado toast','Oatmeal + dates','Eggs + tomato','Smoked salmon bagel','Pancakes + berries','Cottage cheese + honey','Pumpkin muffins'],
-    lunch:['Lentil soup, sourdough','Quinoa tabbouleh','White bean salad','Hummus wrap','Caprese sandwich','Mediterranean bowl','Salade niçoise','Chickpea soup','Falafel pita'],
-    dinner:['Grilled salmon, farro','Roast chicken, potatoes','Pasta puttanesca','Sea bass, fennel','Pizza Friday 🍕','Lamb tagine, couscous','Vegetable lasagna','Mushroom risotto','Shrimp orzo','Stuffed peppers']
-  };
-  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  function pick(arr,exclude){var pool=arr.filter(function(x){return exclude.indexOf(x)<0;});return pool[Math.floor(Math.random()*pool.length)];}
-  function regenerate(){
-    var used={breakfast:[],lunch:[],dinner:[]};
-    var rows='<tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr>';
-    for(var i=0;i<days.length;i++){
-      var b=pick(meals.breakfast,used.breakfast);used.breakfast.push(b);
-      var l=pick(meals.lunch,used.lunch);used.lunch.push(l);
-      var d=pick(meals.dinner,used.dinner);used.dinner.push(d);
-      rows+='<tr><td class="day">'+days[i]+'</td><td>'+b+'</td><td>'+l+'</td><td>'+d+'</td></tr>';
-    }
-    var tbl=document.getElementById('planTable');
-    tbl.innerHTML=rows;
-    tbl.querySelectorAll('td:not(.day)').forEach(function(td){
-      td.classList.add('flash');
-      setTimeout(function(){td.classList.remove('flash');},400);
-    });
-  }
-  <\/script>
-  </body></html>`,
-
-  retroDash: `<!DOCTYPE html><html><head><style>
-    body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0a0e1a;color:#c9d1e3;margin:0;padding:24px;min-height:100vh;box-sizing:border-box}
-    h1{font-size:24px;margin:0 0 20px;color:#7dd3fc;font-weight:400;letter-spacing:.02em}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-    .card{background:#131929;border:1px solid #243046;border-radius:8px;padding:18px;transition:border-color .15s,transform .15s}
-    .card:hover{border-color:#7dd3fc;transform:translateY(-2px)}
-    .lbl{font-size:11px;color:#8b94a8;text-transform:uppercase;letter-spacing:.1em}
-    .num{font-size:42px;font-weight:200;color:#fff;margin:6px 0;font-variant-numeric:tabular-nums}
-    .delta{font-size:13px;color:#7ee787}
-    .bars{display:flex;gap:6px;align-items:flex-end;height:60px;margin-top:14px}
-    .bar{flex:1;background:linear-gradient(180deg,#7dd3fc,#0369a1);border-radius:3px 3px 0 0;cursor:pointer;transition:opacity .12s,filter .12s;min-width:0}
-    .bar:hover{filter:brightness(1.25)}
-    .bar-labels{display:flex;gap:6px;margin-top:6px}
-    .bar-labels div{flex:1;text-align:center;font-size:10px;color:#5e6a82;font-family:monospace}
-    .tooltip{position:fixed;background:#1a2238;border:1px solid #2d3a5a;color:#7dd3fc;padding:6px 10px;border-radius:4px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .12s;z-index:100;font-family:monospace;white-space:nowrap;box-shadow:0 6px 14px rgba(0,0,0,.4)}
-    .tooltip.show{opacity:1}
-    .tooltip .day{color:#8b94a8;margin-right:6px}
-  </style></head><body>
-  <h1>◉ revenue.dashboard</h1>
-  <div class="grid">
-    <div class="card"><div class="lbl">MRR</div><div class="num" data-target="42800" data-fmt="k">$42.8k</div><div class="delta">↗ 12.3%</div></div>
-    <div class="card"><div class="lbl">Churn</div><div class="num" data-target="2.1" data-fmt="pct">2.1%</div><div class="delta" style="color:#f87171">↘ 0.4%</div></div>
-    <div class="card"><div class="lbl">LTV</div><div class="num" data-target="1840" data-fmt="dollar">$1,840</div><div class="delta">↗ 8.1%</div></div>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <div class="lbl">last 7 days · hover bars</div>
-    <div class="bars" id="bars">
-      <div class="bar" style="height:30%"></div>
-      <div class="bar" style="height:50%"></div>
-      <div class="bar" style="height:42%"></div>
-      <div class="bar" style="height:65%"></div>
-      <div class="bar" style="height:55%"></div>
-      <div class="bar" style="height:78%"></div>
-      <div class="bar" style="height:90%"></div>
-    </div>
-    <div class="bar-labels"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
-  </div>
-  <div class="tooltip" id="tt"></div>
-  <script>
-  // Animate counters
-  function fmt(v,kind){
-    if(kind==='k')return '$'+(v/1000).toFixed(1)+'k';
-    if(kind==='pct')return v.toFixed(1)+'%';
-    if(kind==='dollar')return '$'+Math.round(v).toLocaleString();
-    return v;
-  }
-  document.querySelectorAll('.num').forEach(function(el){
-    var target=parseFloat(el.dataset.target),kind=el.dataset.fmt,t0=performance.now(),dur=1100;
-    function tick(now){var p=Math.min(1,(now-t0)/dur);var e=1-Math.pow(1-p,3);el.textContent=fmt(target*e,kind);if(p<1)requestAnimationFrame(tick);}
-    requestAnimationFrame(tick);
-  });
-  // Bar tooltips
-  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  var revs=[12800,21000,17600,27300,23100,32800,37700];
-  var tt=document.getElementById('tt');
-  document.querySelectorAll('#bars .bar').forEach(function(b,i){
-    b.addEventListener('mouseenter',function(){tt.innerHTML='<span class="day">'+days[i]+'</span>$'+revs[i].toLocaleString();tt.classList.add('show');});
-    b.addEventListener('mousemove',function(e){tt.style.left=(e.clientX+12)+'px';tt.style.top=(e.clientY-30)+'px';});
-    b.addEventListener('mouseleave',function(){tt.classList.remove('show');});
-  });
-  <\/script>
-  </body></html>`,
-
-  thankYouV1: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Times New Roman',serif;background:#faf6ef;margin:0;padding:50px 36px;color:#2a1f15;display:flex;justify-content:center}
-    .letter{max-width:520px;background:#fffdf6;padding:48px 50px;border:1px solid #e0d5b8;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-    h1{font-style:italic;font-weight:400;font-size:30px;margin:0 0 22px;color:#7a3520}
-    p{font-size:15px;line-height:1.8;margin:0 0 14px;text-indent:18px}
-    .sig{font-style:italic;margin-top:28px;font-size:18px}
-  </style></head><body><div class="letter">
-  <h1>My dearest Margaret,</h1>
-  <p>I find myself struggling to put into words just how deeply touched I was by your extraordinary kindness this past week. When the world feels heavy and the days blur together in a haze of difficulty, it is the small, deliberate acts of love from people like you that remind me what truly matters.</p>
-  <p>Your beautiful, handwritten card — every word so carefully chosen — arrived at exactly the moment we needed it most. And the casserole! Margaret, that casserole was a balm for our weary spirits. I do not exaggerate when I say it brought a sense of normalcy back to our home that we had been desperately missing.</p>
-  <p>You are, and always have been, a true and steadfast friend. Please know that your kindness has not gone unnoticed and will not soon be forgotten.</p>
-  <p>With all my love and the deepest possible gratitude,</p>
-  <div class="sig">— Eleanor</div>
-  </div></body></html>`,
-
-  thankYouV2: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Times New Roman',serif;background:#faf6ef;margin:0;padding:60px 40px;color:#2a1f15;display:flex;justify-content:center}
-    .letter{max-width:500px;background:#fffdf6;padding:50px 45px;border:1px solid #e0d5b8;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-    h1{font-style:italic;font-weight:400;font-size:34px;margin:0 0 24px;color:#7a3520}
-    p{font-size:15px;line-height:1.7;margin:0 0 14px}
-    .sig{font-style:italic;margin-top:28px;font-size:18px}
-  </style></head><body><div class="letter">
-  <h1>Margaret,</h1>
-  <p>Your card arrived on Tuesday — the first day in two weeks I'd been able to sit down at the kitchen table. I can't remember the last time something small in the mail meant so much.</p>
-  <p>The casserole was perfect. I don't know how you knew, but you did.</p>
-  <p>Thank you for showing up the way you always do — quietly, with the right thing, at the right moment.</p>
-  <div class="sig">— Eleanor</div>
-  </div></body></html>`,
-
-  thankYou: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Times New Roman',serif;background:#faf6ef;margin:0;padding:60px 40px;color:#2a1f15;display:flex;justify-content:center}
-    .letter{max-width:500px;background:#fffdf6;padding:50px 45px;border:1px solid #e0d5b8;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-    h1{font-style:italic;font-weight:400;font-size:34px;margin:0 0 24px;color:#7a3520}
-    p{font-size:15px;line-height:1.7;margin:0 0 14px}.sig{font-style:italic;margin-top:30px;font-size:18px}
-  </style></head><body><div class="letter">
-  <h1>Dear Margaret,</h1>
-  <p>I cannot tell you how much your handwritten card meant to us this week. To know that someone outside our small circle was holding our family in their thoughts — that is its own kind of medicine.</p>
-  <p>The casserole arrived perfectly warm, and your timing was uncanny: it was the first night we'd sat together at the table in two weeks.</p>
-  <p>Thank you for showing up the way only you know how.</p>
-  <div class="sig">— Eleanor, with love</div>
-  </div></body></html>`,
-
-  thankYouV1: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Times New Roman',serif;background:#fcf7eb;margin:0;padding:50px 30px;color:#3a2a18;display:flex;justify-content:center;min-height:100vh;box-sizing:border-box}
-    .letter{max-width:520px;background:#fffaee;padding:54px 48px;border:1px double #c8a87a;box-shadow:0 8px 24px rgba(0,0,0,.10)}
-    .scroll{text-align:center;font-size:18px;color:#a85d2a;font-style:italic;margin-bottom:26px;letter-spacing:.06em}
-    h1{font-style:italic;font-weight:400;font-size:30px;margin:0 0 24px;color:#7a3520;text-align:center}
-    p{font-size:15px;line-height:1.85;margin:0 0 14px;text-indent:22px}
-    .sig{font-style:italic;margin-top:32px;font-size:17px;text-align:right;color:#7a3520}
-  </style></head><body><div class="letter">
-  <div class="scroll">~ A Note of Gratitude ~</div>
-  <h1>To my dearest Margaret,</h1>
-  <p>I find myself sitting at the kitchen table this Sunday morning with a cup of tea and a heart so full I scarcely know where to begin. Your handwritten card arrived on Wednesday afternoon — the very day, in fact, when I had run out of small comforts.</p>
-  <p>The casserole was a kindness beyond words. It arrived warm, wrapped with the kind of care only someone who truly cares would think to provide. We sat as a family that night for the first time in two weeks, and I held my husband's hand while the children ate seconds.</p>
-  <p>You have a way of showing up that I want my children to grow up understanding. Thank you, dear friend, for being exactly who you are.</p>
-  <div class="sig">With all my love,<br>Eleanor</div>
-  </div></body></html>`,
-
-  thankYouV2: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Times New Roman',serif;background:#faf6ef;margin:0;padding:60px 30px;color:#2a1f15;display:flex;justify-content:center;min-height:100vh;box-sizing:border-box}
-    .letter{max-width:500px;background:#fffdf6;padding:48px 44px;border:1px solid #e0d5b8;box-shadow:0 4px 14px rgba(0,0,0,.06)}
-    h1{font-style:italic;font-weight:400;font-size:32px;margin:0 0 22px;color:#7a3520}
-    p{font-size:15px;line-height:1.7;margin:0 0 14px}
-    .sig{font-style:italic;margin-top:28px;font-size:17px}
-  </style></head><body><div class="letter">
-  <h1>Dear Margaret,</h1>
-  <p>Thank you for the handwritten card. It arrived on a hard week, and meant more than I think you knew.</p>
-  <p>The casserole was perfect — warm, generous, timed somehow exactly right. We sat as a family that night for the first time in two weeks.</p>
-  <p>You have a way of showing up. Thank you for being who you are.</p>
-  <div class="sig">— Eleanor</div>
-  </div></body></html>`,
-
-  wordle: `<!DOCTYPE html><html><head><style>
-    body{font-family:system-ui,sans-serif;background:#fafafa;margin:0;padding:30px;text-align:center;min-height:100vh;box-sizing:border-box}
-    h1{font-size:28px;font-weight:800;letter-spacing:.2em;margin:0 0 4px}
-    .sub{color:#888;font-size:13px;margin-bottom:24px}
-    .board{display:inline-grid;grid-template-columns:repeat(5,52px);gap:6px}
-    .tile{width:52px;height:52px;border:2px solid #d3d6da;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;text-transform:uppercase;background:#fff;color:#1a1a1a;transition:background .2s,border-color .2s,transform .12s}
-    .tile.filled{border-color:#878a8c}
-    .tile.g{background:#6aaa64;border-color:#6aaa64;color:#fff}
-    .tile.y{background:#c9b458;border-color:#c9b458;color:#fff}
-    .tile.b{background:#787c7e;border-color:#787c7e;color:#fff}
-    .tile.pop{transform:scale(1.08)}
-    .msg{min-height:22px;margin:18px 0 6px;font-weight:600;color:#1a1a1a;font-size:14px}
-    .msg.win{color:#6aaa64}.msg.lose{color:#c9b458}
-    .keyboard{margin-top:18px;display:flex;flex-direction:column;gap:6px;align-items:center}
-    .kb-row{display:flex;gap:4px}
-    .key{background:#d3d6da;color:#1a1a1a;padding:14px 8px;min-width:32px;border-radius:4px;cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;user-select:none;transition:background .15s,filter .1s}
-    .key:hover{filter:brightness(0.95)}
-    .key:active{transform:scale(0.96)}
-    .key.wide{padding:14px 12px;font-size:11px}
-    .key.g{background:#6aaa64;color:#fff}.key.y{background:#c9b458;color:#fff}.key.b{background:#787c7e;color:#fff}
-    .replay{background:#1a1a1a;color:#fff;border:0;padding:10px 18px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;display:none;margin:8px 0;font-family:inherit}
-    .replay:hover{background:#444}
-  </style></head><body>
-  <h1>WORDLE</h1><div class="sub">guess the five-letter word</div>
-  <div class="board" id="board">
-    <div class="tile b">C</div><div class="tile b">R</div><div class="tile y">A</div><div class="tile b">N</div><div class="tile b">E</div>
-    <div class="tile b">P</div><div class="tile y">L</div><div class="tile b">A</div><div class="tile b">T</div><div class="tile b">E</div>
-    <div class="tile y">S</div><div class="tile g">L</div><div class="tile b">A</div><div class="tile g">N</div><div class="tile g">T</div>
-    <div class="tile g">B</div><div class="tile g">L</div><div class="tile g">A</div><div class="tile g">N</div><div class="tile g">T</div>
-    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
-    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
-  </div>
-  <div class="msg" id="msg">Type a word to start</div>
-  <button class="replay" id="replay">Play again</button>
-  <div class="keyboard" id="keyboard"></div>
-  <script>
-  var WORDS=['CRANE','PLATE','SLANT','GHOST','SHARK','BROIL','THUMP','PRIZE','CHOMP','GLINT','DREAM','SPARK','CRISP','BLAZE','TIGER','MOUTH','FROST','PIANO','RIVER','FLAME','GRAPE','BRICK','CLOUD','PRISM','VAULT'];
-  var board=document.getElementById('board'),msgEl=document.getElementById('msg'),kbEl=document.getElementById('keyboard'),replayBtn=document.getElementById('replay');
-  var answer,row,col,gameOver,keyStates;
-  function newGame(){
-    answer=WORDS[Math.floor(Math.random()*WORDS.length)];
-    row=0;col=0;gameOver=false;keyStates={};
-    board.innerHTML='';
-    for(var r=0;r<6;r++){for(var c=0;c<5;c++){var t=document.createElement('div');t.className='tile';t.id='t'+r+c;board.appendChild(t);}}
-    msgEl.textContent='Type a word to guess';msgEl.className='msg';replayBtn.style.display='none';
-    buildKb();
-  }
-  function buildKb(){
-    var rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];kbEl.innerHTML='';
-    rows.forEach(function(r,i){
-      var rw=document.createElement('div');rw.className='kb-row';
-      if(i===2){var en=document.createElement('div');en.className='key wide';en.textContent='ENTER';en.onclick=submit;rw.appendChild(en);}
-      r.split('').forEach(function(l){
-        var k=document.createElement('div');k.className='key '+(keyStates[l]||'');k.id='k_'+l;k.textContent=l;
-        k.onclick=function(){type(l);};rw.appendChild(k);
-      });
-      if(i===2){var bk=document.createElement('div');bk.className='key wide';bk.textContent='⌫';bk.onclick=back;rw.appendChild(bk);}
-      kbEl.appendChild(rw);
-    });
-  }
-  function type(l){if(gameOver||col>=5)return;var t=document.getElementById('t'+row+col);t.textContent=l;t.classList.add('filled','pop');setTimeout(function(){t.classList.remove('pop');},120);col++;msgEl.textContent='';}
-  function back(){if(gameOver||col<=0)return;col--;var t=document.getElementById('t'+row+col);t.textContent='';t.classList.remove('filled');}
-  function submit(){
-    if(gameOver)return;
-    if(col!==5){flash('Need 5 letters');return;}
-    var g='';for(var i=0;i<5;i++)g+=document.getElementById('t'+row+i).textContent;
-    var colors=computeColors(g,answer);
-    for(var i=0;i<5;i++){(function(i){setTimeout(function(){
-      var t=document.getElementById('t'+row+i);t.classList.add(colors[i]);
-      var l=g[i],s=keyStates[l]||'';
-      if(colors[i]==='g')keyStates[l]='g';
-      else if(colors[i]==='y'&&s!=='g')keyStates[l]='y';
-      else if(s!=='g'&&s!=='y')keyStates[l]='b';
-      var k=document.getElementById('k_'+l);if(k){k.classList.remove('g','y','b');k.classList.add(keyStates[l]);}
-    },i*200);})(i);}
-    setTimeout(function(){
-      if(g===answer){gameOver=true;msgEl.textContent='You got it! 🎉';msgEl.className='msg win';replayBtn.style.display='inline-block';}
-      else if(row===5){gameOver=true;msgEl.textContent='The word was '+answer;msgEl.className='msg lose';replayBtn.style.display='inline-block';}
-      else{row++;col=0;}
-    },5*200+100);
-  }
-  function computeColors(g,a){
-    var c=['b','b','b','b','b'],u=[0,0,0,0,0];
-    for(var i=0;i<5;i++)if(g[i]===a[i]){c[i]='g';u[i]=1;}
-    for(var i=0;i<5;i++)if(c[i]!=='g')for(var j=0;j<5;j++)if(!u[j]&&g[i]===a[j]){c[i]='y';u[j]=1;break;}
-    return c;
-  }
-  function flash(s){msgEl.textContent=s;setTimeout(function(){if(!gameOver&&msgEl.textContent===s)msgEl.textContent='';},1200);}
-  replayBtn.onclick=newGame;
-  document.addEventListener('keydown',function(e){if(e.key==='Enter')submit();else if(e.key==='Backspace')back();else if(/^[a-zA-Z]$/.test(e.key))type(e.key.toUpperCase());});
-  newGame();
-  <\/script>
-  </body></html>`,
-
-  flashcards: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Helvetica Neue',sans-serif;background:#1e293b;color:#e2e8f0;margin:0;padding:30px;min-height:100vh;box-sizing:border-box}
-    h1{font-size:18px;margin:0 0 4px;color:#fbbf24;letter-spacing:.05em}
-    .sub{color:#94a3b8;font-size:12px;margin-bottom:28px}
-    .card{background:#fff;color:#1e293b;border-radius:14px;padding:36px 30px;max-width:480px;margin:0 auto;box-shadow:0 20px 40px rgba(0,0,0,.3);text-align:center;cursor:pointer;transition:transform .2s,box-shadow .2s}
-    .card:hover{transform:translateY(-2px);box-shadow:0 24px 50px rgba(0,0,0,.4)}
-    .jp{font-size:54px;font-weight:300;margin-bottom:10px;color:#0f172a;font-family:'Hiragino Mincho ProN','Yu Mincho',serif}
-    .reading{font-size:18px;color:#6366f1;margin-bottom:24px;letter-spacing:.05em;min-height:24px;transition:opacity .15s}
-    .gloss{font-size:20px;color:#1e293b;padding-top:20px;border-top:1px solid #e2e8f0;min-height:30px;transition:opacity .15s}
-    .hidden .reading,.hidden .gloss{opacity:0}
-    .controls{display:flex;justify-content:center;gap:10px;margin:24px auto 0;max-width:480px}
-    .btn{background:#334155;color:#fff;border:0;padding:11px 18px;border-radius:6px;font-size:13px;cursor:pointer;flex:1;font-family:inherit;font-weight:500;transition:transform .1s,filter .15s}
-    .btn:hover{filter:brightness(1.1)}
-    .btn:active{transform:scale(0.96)}
-    .btn.good{background:#10b981}.btn.bad{background:#ef4444}.btn.hard{background:#f59e0b}
-    .progress{max-width:480px;margin:18px auto 0;font-size:12px;color:#94a3b8;text-align:center;font-family:monospace}
-    .hint{text-align:center;font-size:11px;color:#64748b;margin-top:14px;letter-spacing:.05em;text-transform:uppercase}
-    .done{text-align:center;padding:40px 30px;color:#fbbf24;max-width:480px;margin:0 auto;background:#fff;color:#1e293b;border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,.3)}
-    .done h2{font-size:28px;margin:0 0 8px;color:#1e293b;font-family:'Hiragino Mincho ProN',serif}
-    .done .stats{color:#64748b;margin-bottom:18px;font-size:14px}
-    .done button{background:#fbbf24;color:#1e293b;border:0;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px}
-  </style></head><body>
-  <h1>◉ JLPT N3 · DAY 14</h1>
-  <div class="sub" id="sub">spaced repetition · click card to reveal answer</div>
-  <div id="cardWrap">
-    <div class="card hidden">
-      <div class="jp">締切</div>
-      <div class="reading">しめきり · shimekiri</div>
-      <div class="gloss">deadline; closing date</div>
-    </div>
-    <div class="hint">▼ click card to reveal</div>
-    <div class="progress">0 of 8 reviewed</div>
-  </div>
-  <script>
-  var deck=[
-    {jp:'締切',reading:'しめきり · shimekiri',gloss:'deadline; closing date'},
-    {jp:'取引',reading:'とりひき · torihiki',gloss:'transaction; dealing'},
-    {jp:'建築',reading:'けんちく · kenchiku',gloss:'architecture; building'},
-    {jp:'効率',reading:'こうりつ · kouritsu',gloss:'efficiency'},
-    {jp:'責任',reading:'せきにん · sekinin',gloss:'responsibility; duty'},
-    {jp:'解決',reading:'かいけつ · kaiketsu',gloss:'resolution; settlement'},
-    {jp:'影響',reading:'えいきょう · eikyou',gloss:'influence; effect'},
-    {jp:'経験',reading:'けいけん · keiken',gloss:'experience'}
-  ];
-  var idx=0,revealed=false,reviewed=0,total=deck.length,ratings={again:0,hard:0,good:0};
-  function render(){
-    var wrap=document.getElementById('cardWrap');
-    if(idx>=deck.length){
-      wrap.innerHTML='<div class="done"><h2>All done!</h2>'+
-        '<div class="stats">Reviewed '+total+' cards · '+ratings.good+' good · '+ratings.hard+' hard · '+ratings.again+' again</div>'+
-        '<button onclick="restart()">Start over</button></div>';
-      return;
-    }
-    var c=deck[idx];
-    var html='<div class="card '+(revealed?'':'hidden')+'" id="theCard">'+
-      '<div class="jp">'+c.jp+'</div>'+
-      '<div class="reading">'+c.reading+'</div>'+
-      '<div class="gloss">'+c.gloss+'</div>'+
-      '</div>';
-    if(revealed){
-      html+='<div class="controls">'+
-        '<button class="btn bad" data-rate="again">Again</button>'+
-        '<button class="btn hard" data-rate="hard">Hard</button>'+
-        '<button class="btn good" data-rate="good">Good</button>'+
-      '</div>';
-    } else {
-      html+='<div class="hint">▼ click card to reveal</div>';
-    }
-    html+='<div class="progress">'+reviewed+' of '+total+' reviewed</div>';
-    wrap.innerHTML=html;
-    var card=document.getElementById('theCard');
-    if(card&&!revealed)card.onclick=function(){revealed=true;render();};
-    wrap.querySelectorAll('[data-rate]').forEach(function(b){
-      b.onclick=function(){
-        var r=b.dataset.rate;ratings[r]++;reviewed++;
-        if(r==='again')deck.push(deck[idx]);
-        idx++;revealed=false;render();
-      };
-    });
-  }
-  function restart(){idx=0;revealed=false;reviewed=0;ratings={again:0,hard:0,good:0};deck.sort(function(){return Math.random()-0.5;});render();}
-  render();
-  <\/script>
-  </body></html>`,
-
-  habitChart: `<!DOCTYPE html><html><head><style>
-    body{font-family:Georgia,serif;background:#f5f2eb;margin:0;padding:30px;color:#2a2519}
-    h1{font-size:32px;margin:0 0 4px;font-weight:400;font-style:italic}
-    .sub{color:#8a7e6a;margin-bottom:24px;font-size:14px}
-    .row{display:grid;grid-template-columns:120px repeat(30,1fr);gap:2px;margin-bottom:4px;align-items:center}
-    .lbl{font-size:13px;text-align:right;padding-right:10px;color:#5a4f42}
-    .cell{aspect-ratio:1;background:#e5dfd2;border-radius:2px;cursor:pointer;transition:transform .12s,box-shadow .12s}
-    .cell:hover{transform:scale(1.18);box-shadow:0 2px 6px rgba(0,0,0,.15);z-index:1;position:relative}
-    .cell.done{background:#7a8b3d}.cell.partial{background:#c9b85d}
-    .head{font-size:10px;color:#999;text-align:center;font-family:monospace}
-    .footer{margin-top:24px;padding-top:18px;border-top:1px dotted #c8bca5;font-size:12px;color:#8a7e6a;font-style:italic;text-align:center;line-height:1.6}
-    .legend{display:inline-flex;gap:18px;margin-top:6px}
-    .legend span{display:inline-flex;align-items:center;gap:6px;font-style:normal;font-family:monospace}
-    .legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
-  </style></head><body>
-  <h1>30 days, faithfully kept.</h1>
-  <div class="sub">a quiet record of small commitments · click any cell to mark</div>
-  <div id="grid">
-  <div class="row"><div></div>${Array.from({length:30},(_,i)=>`<div class="head">${i+1}</div>`).join('')}</div>
-  <div class="row"><div class="lbl">Read 30 min</div>${Array.from({length:30},()=>{const r=Math.random();return `<div class="cell ${r>.3?'done':r>.15?'partial':''}"></div>`}).join('')}</div>
-  <div class="row"><div class="lbl">No phone AM</div>${Array.from({length:30},()=>{const r=Math.random();return `<div class="cell ${r>.4?'done':r>.2?'partial':''}"></div>`}).join('')}</div>
-  <div class="row"><div class="lbl">Walk 5k</div>${Array.from({length:30},()=>{const r=Math.random();return `<div class="cell ${r>.35?'done':r>.18?'partial':''}"></div>`}).join('')}</div>
-  <div class="row"><div class="lbl">Stretch</div>${Array.from({length:30},()=>{const r=Math.random();return `<div class="cell ${r>.45?'done':r>.25?'partial':''}"></div>`}).join('')}</div>
-  <div class="row"><div class="lbl">Journal</div>${Array.from({length:30},()=>{const r=Math.random();return `<div class="cell ${r>.5?'done':r>.3?'partial':''}"></div>`}).join('')}</div>
-  </div>
-  <div class="footer">
-    Each click cycles the day: empty → partial → done → empty.
-    <div class="legend">
-      <span><i style="background:#e5dfd2"></i>none</span>
-      <span><i style="background:#c9b85d"></i>partial</span>
-      <span><i style="background:#7a8b3d"></i>done</span>
-    </div>
-  </div>
-  <script>
-  var habits=['Read 30 min','No phone AM','Walk 5k','Stretch','Journal'];
-  var thresholds=[[0.30,0.15],[0.40,0.20],[0.35,0.18],[0.45,0.25],[0.50,0.30]];
-  var data={};
-  for(var h=0;h<habits.length;h++){data[h]=[];for(var d=0;d<30;d++){var r=Math.random();var th=thresholds[h];data[h].push(r>th[0]?2:r>th[1]?1:0);}}
-  function render(){
-    var html='<div class="row"><div></div>';
-    for(var i=1;i<=30;i++)html+='<div class="head">'+i+'</div>';
-    html+='</div>';
-    for(var h=0;h<habits.length;h++){
-      html+='<div class="row"><div class="lbl">'+habits[h]+'</div>';
-      for(var d=0;d<30;d++){
-        var s=data[h][d],cls=s===2?'done':s===1?'partial':'';
-        html+='<div class="cell '+cls+'" data-h="'+h+'" data-d="'+d+'" title="'+habits[h]+' · day '+(d+1)+'"></div>';
-      }
-      html+='</div>';
-    }
-    document.getElementById('grid').innerHTML=html;
-    document.querySelectorAll('.cell').forEach(function(c){
-      c.addEventListener('click',function(){
-        var h=+c.dataset.h,d=+c.dataset.d;
-        data[h][d]=(data[h][d]+1)%3;
-        render();
-      });
-    });
-  }
-  render();
-  <\/script>
-  </body></html>`,
-
-  recipeCard: `<!DOCTYPE html><html><head><style>
-    body{font-family:Georgia,serif;background:#fffaf2;margin:0;padding:40px;color:#3a2a18;max-width:560px;margin:auto}
-    .top{border-bottom:3px double #a85d2a;padding-bottom:16px;margin-bottom:20px}
-    h1{font-size:42px;margin:0;font-weight:400;font-style:italic;color:#a85d2a}.sub{color:#8a7050;font-size:14px;margin-top:4px}
-    .meta{display:flex;gap:18px;margin-top:12px;font-size:12px;color:#5a4530;font-family:monospace;text-transform:uppercase;letter-spacing:.08em}
-    h2{font-size:13px;text-transform:uppercase;letter-spacing:.2em;color:#a85d2a;margin:24px 0 10px;font-weight:700}
-    ul,ol{padding-left:20px;line-height:1.7}li{margin-bottom:6px}
-  </style></head><body>
-  <div class="top"><h1>Nonna's Lemon Cake</h1><div class="sub">handed down, not down-shifted</div>
-    <div class="meta"><span>🕐 1h 15m</span><span>👥 serves 8</span><span>★ easy</span></div></div>
-  <h2>Ingredients</h2>
-  <ul><li>3 lemons, zest + juice</li><li>225g unsalted butter, soft</li><li>225g caster sugar</li><li>4 eggs, room temp</li><li>225g self-raising flour</li><li>2 tbsp warm milk</li></ul>
-  <h2>Method</h2>
-  <ol><li>Heat oven to 180°C. Line a loaf tin.</li><li>Cream butter and sugar until pale, about 4 minutes.</li><li>Add eggs one at a time, then zest. Fold in flour and milk.</li><li>Bake 50 minutes until a skewer comes out clean.</li><li>While warm, brush with lemon juice and a spoon of sugar.</li></ol>
-  </body></html>`,
-
-  businessLetter: `<!DOCTYPE html><html><head><style>
-    body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#ffffff;margin:0;padding:50px 30px;color:#1a1a1a;display:flex;justify-content:center;min-height:100vh;box-sizing:border-box}
-    .letter{max-width:520px;background:#fff;padding:42px 48px;border:1px solid #eaeaea;box-shadow:0 1px 0 rgba(0,0,0,.02)}
-    .from{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#8a8a8a;margin-bottom:22px;font-weight:500}
-    h1{font-weight:500;font-size:17px;margin:0 0 18px;color:#0a0a0a;letter-spacing:-0.01em}
-    p{font-size:14px;line-height:1.65;margin:0 0 12px;color:#333}
-    .sig{margin-top:24px;font-size:14px;color:#0a0a0a;font-weight:500}
-    .role{font-size:12px;color:#888;margin-top:2px;font-weight:400}
-    .meta{margin-top:24px;padding-top:14px;border-top:1px solid #eee;font-size:11px;color:#999;display:flex;justify-content:space-between}
-  </style></head><body><div class="letter">
-  <div class="from">A note of thanks</div>
-  <h1>Hi David,</h1>
-  <p>Thank you for taking the extra hour after Tuesday's meeting to walk me through the integration architecture. The whiteboard sketch you drew finally made the data flow click — three reads of the spec hadn't.</p>
-  <p>I'll follow up once we've shipped the first version. Owe you a coffee.</p>
-  <div class="sig">— Tomas</div>
-  <div class="role">Engineering</div>
-  <div class="meta"><span>Sent via Hey</span><span>May 18, 2026</span></div>
-  </div></body></html>`,
-
-  jaResume: `<!DOCTYPE html><html><head><style>
-    body{font-family:'Hiragino Mincho ProN','Yu Mincho',serif;background:#fff;margin:0;padding:30px;color:#1a1a1a;font-size:13px}
-    h1{font-size:24px;font-weight:400;margin:0 0 8px;letter-spacing:.1em;text-align:center}
-    .sub{text-align:center;color:#666;font-size:11px;margin-bottom:20px}
-    table{width:100%;border-collapse:collapse}td,th{border:1px solid #333;padding:6px 10px;vertical-align:top;font-weight:400}
-    th{background:#f0eee6;width:80px;text-align:left;font-size:12px}
-    .photo{width:80px;height:100px;border:1px solid #333;float:right;background:#f8f8f0;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;margin-left:10px}
-  </style></head><body>
-  <h1>履　歴　書</h1><div class="sub">令和7年3月17日現在</div>
-  <table>
-    <tr><th>ふりがな</th><td>たなか　はなこ</td><td rowspan="3" style="width:90px"><div class="photo">写真</div></td></tr>
-    <tr><th>氏　名</th><td style="font-size:18px;padding:14px 10px">田中　花子</td></tr>
-    <tr><th>生年月日</th><td>1995年6月12日生　(満29歳)　女</td></tr>
-    <tr><th>現住所</th><td colspan="2">〒150-0001　東京都渋谷区神宮前1-2-3　メゾン青山301</td></tr>
-    <tr><th>電話</th><td colspan="2">090-1234-5678</td></tr>
-  </table>
-  <div style="margin-top:14px;font-size:12px;font-weight:600">学歴・職歴</div>
-  <table style="margin-top:6px">
-    <tr><th>年</th><th>月</th><th>内　容</th></tr>
-    <tr><td>2014</td><td>3</td><td>東京都立青山高等学校 卒業</td></tr>
-    <tr><td>2018</td><td>3</td><td>早稲田大学 文学部 卒業</td></tr>
-    <tr><td>2018</td><td>4</td><td>株式会社サンライズ 入社</td></tr>
-  </table>
-  </body></html>`
-};
-
-// ─── Seed data ───
-const seedPrompts = [
-  {
-    id: 'p001',
-    title: 'Weekly meal planner with grocery roll-up',
-    description: 'A 7-day Mediterranean meal plan that auto-generates a consolidated shopping list.',
-    author: 'mira_tanaka', authorName: 'Mira Tanaka',
-    date: '2026-05-12', tag: 'planner',
-    tags: ['planner', 'food', 'weekly', 'shopping'],
-    model: 'Claude Opus 4.7', license: 'CC0 — Public domain',
-    systemPrompt: 'You are a meticulous nutritionist and home cook. You design realistic week-long meal plans that ordinary people can actually execute on a weekday.',
-    userPrompt: 'Generate a single-file HTML weekly meal planner for a {{DIET}} diet at ~{{CALORIES}} cal/day. Output a 7-day table (breakfast/lunch/dinner) followed by a consolidated grocery list grouped by aisle. Include a "🔀 Regenerate menu" button that picks new meals from a JS pool, and a 🖨 Print button. Style: warm cream paper, serif headings.',
-    context: 'Household: {{HOUSEHOLD}}. {{NOTES}}',
-    variables: [
-      { key: 'DIET', label: 'Diet style', default: 'Mediterranean', hint: 'e.g. Mediterranean, vegan, low-carb, Japanese home cooking' },
-      { key: 'CALORIES', label: 'Calories per day', default: '1800', hint: 'Per adult' },
-      { key: 'HOUSEHOLD', label: 'Household', default: '2 adults', hint: 'Who you\'re feeding' },
-      { key: 'NOTES', label: 'Quirks & traditions', default: 'No fish allergies. Friday is pizza night by tradition.', hint: 'Allergies, rituals, things you won\'t budge on' }
-    ],
-    usage: [
-      'Replace the diet style ("Mediterranean") with your own to re-roll the menu.',
-      'Increase calories per day for athletes or growing teens.',
-      'Pipe the grocery list into Instacart by adjusting the final prompt block.'
-    ],
-    downloads: 1284, forks: 47, parentId: null,
-    html: sampleOutputs.mealPlanner
-  },
-  {
-    id: 'p002',
-    title: 'Retro terminal revenue dashboard',
-    description: 'Dark, monospaced KPI cards with a sparkline — feels like a Bloomberg terminal.',
-    author: 'tomas_lind', authorName: 'Tomas Lind',
-    date: '2026-05-09', tag: 'dashboard',
-    tags: ['dashboard', 'finance', 'kpi', 'retro'],
-    model: 'Claude Sonnet 4.6', license: 'CC-BY — Attribution',
-    systemPrompt: 'You are a senior product designer. You produce dashboards that feel inhabited, not generated. Avoid purple gradients and Inter font.',
-    userPrompt: 'Build a single-file HTML revenue dashboard with three KPI cards (MRR, Churn, LTV) and a 7-day bar chart. Animate the numbers counting up from 0 on load. Add hover tooltips on the bars showing per-day revenue. Use a dark navy background, cyan accent, very thin display weights for the numbers. Mono labels.',
-    context: 'Numbers are illustrative — placeholder values are fine.',
-    usage: [
-      'Swap the three KPIs for your team\'s metrics.',
-      'Wire `fetch()` to your analytics endpoint to make it live.',
-      'Adjust the cyan accent to your brand color.'
-    ],
-    downloads: 892, forks: 31, parentId: null,
-    coverEligible: true,
-    editorsNote: 'Tomas proves dashboards don\'t have to look like they were designed by a committee. The retro terminal aesthetic isn\'t just nostalgic — the thin display weights and cyan accent make the numbers genuinely scannable. Thirty-one forks and counting.',
-    html: sampleOutputs.retroDash
-  },
-  {
-    id: 'p003',
-    title: 'Heartfelt thank-you letter (handwritten feel)',
-    description: 'Generates a warm, specific thank-you letter that doesn\'t sound AI-written.',
-    author: 'eleanor_rosa', authorName: 'Eleanor Rosa',
-    date: '2026-05-15', tag: 'letter',
-    tags: ['letter', 'gratitude', 'family', 'writing'],
-    model: 'Claude Opus 4.7', license: 'CC0 — Public domain',
-    systemPrompt: 'You write personal letters with the cadence of someone who actually sat down with pen and paper. Specific. Slightly uneven. Never gushing.',
-    userPrompt: 'Write a thank-you letter from {{SENDER}} to {{RECIPIENT}}, who {{KINDNESS}}. The letter should feel specific — not generic gratitude. Output as a single-file HTML letter on warm paper.',
-    context: '{{DETAIL}}',
-    variables: [
-      { key: 'SENDER', label: 'Your name', default: 'Eleanor', hint: 'How you sign letters', required: true },
-      { key: 'RECIPIENT', label: 'Recipient', default: 'Margaret', hint: 'The person you\'re thanking', required: true },
-      { key: 'KINDNESS', label: 'What they did', default: 'brought a casserole and a handwritten card while my family was going through a difficult week', hint: 'The specific kindness — be concrete' },
-      { key: 'DETAIL', label: 'A small detail to anchor it', default: 'The casserole arrived warm. It was the first night we\'d sat at the table together in two weeks.', hint: 'One sensory or timing detail that makes it real' }
-    ],
-    usage: [
-      'Replace names and the specific kindness — keep the structure.',
-      'Adjust the closing line to match how you actually sign letters.',
-      'For business thank-yous, raise formality in the system prompt.'
-    ],
-    downloads: 2103, forks: 88, parentId: null,
-    coverEligible: true,
-    editorsNote: 'Eleanor\'s thank-you prompt has been forked 88 times since she posted it in May — more than any other letter template in the archive. What makes it work is what it refuses to do: no bullet points, no gratitude listicles, just one specific memory rendered with the cadence of real handwriting.',
-    html: sampleOutputs.thankYou,
-    versions: [
-      {
-        v: 1,
-        date: '2026-05-10',
-        systemPrompt: 'You write thoughtful thank-you letters that feel personal and heartfelt. Take your time. Use rich, descriptive language to express gratitude. Reference shared moments and weave in details that make the recipient feel genuinely appreciated. Don\'t be afraid to be a little sentimental.',
-        userPrompt: 'Write a thank-you letter from Eleanor to Margaret, who brought a casserole and a handwritten card while my family was going through a difficult week. Output as a single-file HTML letter on warm paper.',
-        context: 'The casserole arrived warm. It was the first night we\'d sat at the table together in two weeks.',
-        model: 'Claude Opus 4.7',
-        variables: [],
-        changelog: 'First draft. Captured the warmth I wanted but the model still reaches for stock phrases like "from the bottom of my heart." Need to tighten.',
-        html: sampleOutputs.thankYouV1
-      },
-      {
-        v: 2,
-        date: '2026-05-13',
-        systemPrompt: 'You write personal letters with the cadence of someone who actually sat down with pen and paper. Specific. Slightly uneven. Never gushing.',
-        userPrompt: 'Write a thank-you letter from Eleanor to Margaret, who brought a casserole and a handwritten card while my family was going through a difficult week. The letter should feel specific — not generic gratitude. Output as a single-file HTML letter on warm paper.',
-        context: 'The casserole arrived warm. It was the first night we\'d sat at the table together in two weeks.',
-        model: 'Claude Opus 4.7',
-        variables: [],
-        changelog: 'Added specificity constraint. The model was producing generic thank-yous that could apply to anyone — now it anchors on the concrete detail. Also tightened the system prompt: "Never gushing" is doing a lot of work.',
-        html: sampleOutputs.thankYouV2
-      },
-      {
-        v: 3,
-        date: '2026-05-15',
-        systemPrompt: 'You write personal letters with the cadence of someone who actually sat down with pen and paper. Specific. Slightly uneven. Never gushing.',
-        userPrompt: 'Write a thank-you letter from {{SENDER}} to {{RECIPIENT}}, who {{KINDNESS}}. The letter should feel specific — not generic gratitude. Output as a single-file HTML letter on warm paper.',
-        context: '{{DETAIL}}',
-        model: 'Claude Opus 4.7',
-        variables: [
-          { key: 'SENDER', label: 'Your name', default: 'Eleanor', hint: 'How you sign letters', required: true },
-          { key: 'RECIPIENT', label: 'Recipient', default: 'Margaret', hint: 'The person you\'re thanking', required: true },
-          { key: 'KINDNESS', label: 'What they did', default: 'brought a casserole and a handwritten card while my family was going through a difficult week', hint: 'The specific kindness — be concrete' },
-          { key: 'DETAIL', label: 'A small detail to anchor it', default: 'The casserole arrived warm. It was the first night we\'d sat at the table together in two weeks.', hint: 'One sensory or timing detail that makes it real' }
-        ],
-        changelog: 'Introduced {{RECIPIENT}} and {{KINDNESS}} variables so others can personalize without editing the prompt. Kept the tone anchored by requiring a sensory detail.',
-        html: sampleOutputs.thankYou
-      }
-    ]
-  },
-  {
-    id: 'p004',
-    title: 'Wordle clone — finished puzzle showcase',
-    description: 'A playable-feeling Wordle layout. Great template for any 5×6 guessing game.',
-    author: 'kenji_arai', authorName: 'Kenji Arai',
-    date: '2026-04-30', tag: 'game',
-    tags: ['game', 'puzzle', 'css-grid'],
-    model: 'GPT-5', license: 'CC-BY — Attribution',
-    systemPrompt: 'You build interactive HTML toys that work in a single file. Vanilla JS only.',
-    userPrompt: 'Build a single-file Wordle clone — fully playable. 5×6 grid, on-screen QWERTY keyboard plus physical keyboard input, Enter to submit, Backspace to delete. Use the canonical Wordle color logic: green for correct position, yellow for wrong position, gray for not in word. Pick the answer randomly from a small word list. Show a "Play again" button when the game ends.',
-    context: '',
-    usage: [
-      'Replace BLANT with any 5-letter word.',
-      'Add a keyboard input layer for full playability.',
-      'Swap the tile colors for an accessible palette.'
-    ],
-    downloads: 612, forks: 19, parentId: null,
-    html: sampleOutputs.wordle
-  },
-  {
-    id: 'p005',
-    title: 'JLPT vocabulary flashcards — SRS layout',
-    description: 'A spaced-repetition study card with reading, gloss, and Again/Hard/Good buttons.',
-    author: 'mira_tanaka', authorName: 'Mira Tanaka',
-    date: '2026-05-02', tag: 'study',
-    tags: ['study', 'japanese', 'flashcards', 'srs'],
-    model: 'Claude Opus 4.7', license: 'CC0 — Public domain',
-    systemPrompt: 'You design study interfaces that respect the learner\'s time. No animations that delay review. No emoji unless serving information.',
-    userPrompt: 'Create a single-file HTML flashcard reviewer for {{SUBJECT}} vocabulary. Build a deck of 8 cards inline. Each card shows the kanji on top, then click the card to reveal the reading (hiragana + romaji) and English gloss. Three buttons (Again / Hard / Good): "Again" pushes the card back to the end of the deck, the others advance. Show a progress indicator. {{THEME}} theme. End with a "Start over" summary screen.',
-    context: 'Example card: {{EXAMPLE}}',
-    variables: [
-      { key: 'SUBJECT', label: 'Study subject', default: 'JLPT N3', hint: 'e.g. JLPT N3, GRE vocab, medical terminology' },
-      { key: 'THEME', label: 'Color theme', default: 'Dark', hint: 'Dark or Light' },
-      { key: 'EXAMPLE', label: 'Example card', default: '締切 (しめきり / shimekiri) — deadline; closing date.', hint: 'One sample so the model knows the format' }
-    ],
-    usage: [
-      'Replace the JLPT level by swapping the deck label.',
-      'Connect to a real SRS algorithm (SM-2 or FSRS) by binding the buttons.',
-      'Adjust colors for a light-mode version.'
-    ],
-    downloads: 1456, forks: 62, parentId: null,
-    coverEligible: true,
-    editorsNote: 'A study-tool prompt that respects the learner\'s time. Mira stripped away every animation that delays a review cycle and built the progress bar to feel honest, not gamified. Sixty-two forks so far, spanning Korean, Mandarin, and even GRE vocabulary.',
-    html: sampleOutputs.flashcards
-  },
-  {
-    id: 'p006',
-    title: '30-day habit tracker — quiet edition',
-    description: 'A serene, paper-feeling habit grid. No streaks. No notifications. Just a record.',
-    author: 'eleanor_rosa', authorName: 'Eleanor Rosa',
-    date: '2026-05-14', tag: 'planner',
-    tags: ['planner', 'habits', 'self', 'minimal'],
-    model: 'Claude Opus 4.7', license: 'CC0 — Public domain',
-    systemPrompt: 'You design interfaces that feel like ink on paper. Quiet typography. No gamification. The user is not a player.',
-    userPrompt: 'Generate a single-file HTML habit tracker showing five habits across 30 days as a grid. Each cell is clickable and cycles empty → partial (muted gold) → done (olive green) → empty. Use a warm cream background. Italic serif heading. No streak counter. Show a small legend at the bottom.',
-    context: 'Habits: Read 30 min, No phone AM, Walk 5k, Stretch, Journal.',
-    usage: [
-      'Edit the five habit labels directly in the HTML.',
-      'Replace the random fill with your actual data.',
-      'Print at 11"×17" for a physical wall tracker.'
-    ],
-    downloads: 789, forks: 24, parentId: 'p005',
-    html: sampleOutputs.habitChart
-  },
-  {
-    id: 'p007',
-    title: 'Nonna\'s lemon cake — recipe card',
-    description: 'Italian-grandmother-energy recipe card with double-rule headers and italic title.',
-    author: 'tomas_lind', authorName: 'Tomas Lind',
-    date: '2026-05-06', tag: 'letter',
-    tags: ['recipe', 'baking', 'family'],
-    model: 'GPT-4o', license: 'CC0 — Public domain',
-    systemPrompt: 'You preserve family recipes as if you were typesetting them for a cookbook. Warm but precise.',
-    userPrompt: 'Format my grandmother\'s lemon cake recipe as a single-file HTML recipe card. Italic display title. Double-rule under the header. Ingredients as a bullet list, method as a numbered list. Serif typography throughout.',
-    context: 'Ingredients and method provided inline by user.',
-    usage: [
-      'Drop in any family recipe — keep the typographic shell.',
-      'Print as a 5"×7" card for the kitchen drawer.',
-      'Translate to your grandmother\'s language for the gift version.'
-    ],
-    downloads: 423, forks: 11, parentId: null,
-    html: sampleOutputs.recipeCard
-  },
-  {
-    id: 'p008',
-    title: '履歴書 — Japanese resume template',
-    description: 'A faithful Rirekisho table layout for job applications in Japan.',
-    author: 'kenji_arai', authorName: 'Kenji Arai',
-    date: '2026-05-10', tag: 'planner',
-    tags: ['japan', 'resume', 'career', 'template'],
-    model: 'Claude Sonnet 4.6', license: 'CC-BY — Attribution',
-    systemPrompt: '日本のビジネス慣行を尊重する。履歴書のフォーマットは標準的なものに従う。',
-    userPrompt: '日本式の履歴書（リレキショ）を一枚のHTMLファイルで作成してください。氏名、ふりがな、生年月日、住所、学歴・職歴の標準的な表組みを含むこと。明朝体を使用。',
-    context: '田中花子、29歳、東京在住、早稲田大学卒、株式会社サンライズ勤務。',
-    usage: [
-      '名前と経歴を自分のものに置き換えてください。',
-      'A4サイズで印刷できるように余白を調整してください。',
-      '写真欄に実際の証明写真を埋め込むこともできます。'
-    ],
-    downloads: 967, forks: 38, parentId: null,
-    coverEligible: true,
-    editorsNote: 'A bilingual cover entry that shows the platform\'s range. Kenji\'s Rirekisho template follows the exact table conventions Japanese employers expect — right down to the furigana row and photo placeholder. Thirty-eight forks, mostly from job-seekers prepping for spring hiring.',
-    html: sampleOutputs.jaResume
-  },
-  {
-    id: 'p009',
-    title: 'Professional thank-you note (business tone)',
-    description: 'A fork of Eleanor\'s letter prompt, tuned for post-meeting business thank-yous.',
-    author: 'tomas_lind', authorName: 'Tomas Lind',
-    date: '2026-05-18', tag: 'letter',
-    tags: ['letter', 'business', 'professional', 'writing'],
-    model: 'Claude Opus 4.7', license: 'CC0 — Public domain',
-    systemPrompt: 'You write professional correspondence that sounds human, not corporate. Warm but not casual. Specific but not over-familiar.',
-    userPrompt: 'Write a professional thank-you note from {{SENDER}} to {{RECIPIENT}}, who {{KINDNESS}}. Keep it under 150 words. The tone should be warm but appropriate for a business relationship. Output as a single-file HTML letter on clean white paper with minimal styling.',
-    context: '{{DETAIL}}',
-    variables: [
-      { key: 'SENDER', label: 'Your name', default: 'Tomas', hint: 'How you sign professional emails', required: true },
-      { key: 'RECIPIENT', label: 'Recipient', default: 'David Chen', hint: 'The person you\'re thanking', required: true },
-      { key: 'KINDNESS', label: 'What they did', default: 'took an extra hour after our meeting to walk me through the integration architecture', hint: 'The specific professional kindness' },
-      { key: 'DETAIL', label: 'A detail', default: 'The whiteboard sketch he drew finally made the data flow click.', hint: 'One concrete detail' }
-    ],
-    usage: [
-      'Swap names and the specific kindness for your situation.',
-      'For more formal tone, add "address the recipient as Mr./Ms." to the system prompt.',
-      'Remove the 150-word limit for longer letters of recommendation.'
-    ],
-    downloads: 312, forks: 8, parentId: 'p003',
-    html: sampleOutputs.businessLetter
-  }
-];
+// ─── Seed data (loaded from manifest.json + htmls/*.html at boot) ───
+let seedPrompts = [];
 
 // ─── Storage ───
 const STORAGE_KEY = 'promptshare_v4';
@@ -4098,68 +3412,7 @@ function saveData(prompts) {
 
 // ─── Profile data store (separate localStorage key) ───
 const PROFILE_KEY = 'promptshare_profiles_v1';
-const seedProfiles = {
-  mira_tanaka: {
-    handle: 'mira_tanaka',
-    name: 'Mira Tanaka',
-    bio: 'Tokyo-based product designer. Writes prompts for the small tools of daily life.',
-    email: 'mira@promptshare.example',
-    location: 'Tokyo, Japan',
-    website: 'https://mira.design',
-    avatar: null,
-    joined: '2026-01-15',
-    followers: ['eleanor_rosa', 'tomas_lind'],
-    following: ['kenji_arai']
-  },
-  tomas_lind: {
-    handle: 'tomas_lind',
-    name: 'Tomas Lind',
-    bio: 'Stockholm. Designing interfaces with the patience of a furniture maker.',
-    email: 'tomas@promptshare.example',
-    location: 'Stockholm, Sweden',
-    website: 'https://tomaslind.se',
-    avatar: null,
-    joined: '2026-02-02',
-    followers: ['mira_tanaka', 'kenji_arai', 'eleanor_rosa'],
-    following: ['eleanor_rosa']
-  },
-  eleanor_rosa: {
-    handle: 'eleanor_rosa',
-    name: 'Eleanor Rosa',
-    bio: 'Letters, recipes, quiet rituals. Lives in Lisbon.',
-    email: 'eleanor@promptshare.example',
-    location: 'Lisbon, Portugal',
-    website: '',
-    avatar: null,
-    joined: '2026-01-22',
-    followers: ['mira_tanaka', 'tomas_lind', 'kenji_arai'],
-    following: ['mira_tanaka']
-  },
-  kenji_arai: {
-    handle: 'kenji_arai',
-    name: 'Kenji Arai',
-    bio: 'Software engineer. Builds toys that don\'t feel like products.',
-    email: 'kenji@promptshare.example',
-    location: 'Osaka, Japan',
-    website: 'https://kenji.dev',
-    avatar: null,
-    joined: '2026-03-01',
-    followers: ['tomas_lind'],
-    following: ['mira_tanaka', 'tomas_lind', 'eleanor_rosa']
-  },
-  you: {
-    handle: 'you',
-    name: 'You',
-    bio: 'New to PromptShare. Click "Edit profile" to add a bio.',
-    email: '',
-    location: '',
-    website: '',
-    avatar: null,
-    joined: new Date().toISOString().slice(0,10),
-    followers: [],
-    following: []
-  }
-};
+let seedProfiles = {};
 
 function loadProfiles() {
   try {
@@ -4173,7 +3426,7 @@ function saveProfiles() {
   try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles)); }
   catch(e) { console.warn('Could not persist profiles:', e); }
 }
-let profiles = loadProfiles();
+let profiles = {};
 function getProfile(handle) {
   if (!profiles[handle]) {
     // Auto-create stub profile from prompt data
@@ -4214,17 +3467,7 @@ function toggleFollow(theirHandle) {
   return nowFollowing;
 }
 
-let prompts = loadData();
-// Migration: add p009 for installs missing it
-if (!prompts.find(p => p.id === 'p009')) {
-  const p009Seed = seedPrompts.find(p => p.id === 'p009');
-  if (p009Seed) {
-    prompts.push(JSON.parse(JSON.stringify(p009Seed)));
-    saveData(prompts);
-  }
-}
-// Migration: ensure top-level fields mirror latest version when versions exist
-prompts.forEach(p => { if (p.versions && p.versions.length) syncTopLevelFromLatest(p); });
+let prompts = [];
 
 // ─── Versioning helpers ───
 function syncTopLevelFromLatest(p) {
@@ -4318,6 +3561,7 @@ document.querySelectorAll('[data-nav]').forEach(el => {
     if (target === 'gallery') renderGallery();
     if (target === 'upload') showView('upload');
     if (target === 'profile') renderProfile('you'); // Always YOUR profile from nav
+    if (target === 'settings') renderSettings();
   });
 });
 
@@ -4330,6 +3574,7 @@ function titleWithEmphasis(title) {
 }
 
 function renderGallery() {
+  renderTagChips();
   // ── Public list excludes private forks (your forks live in Library) ──
   const publicPrompts = prompts.filter(p => !(p.author === 'you' && p.parentId));
 
@@ -5649,7 +4894,7 @@ htmlFile.addEventListener('change', (e) => {
   reader.readAsText(f);
 });
 
-document.getElementById('uploadForm').addEventListener('submit', (e) => {
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!uploadedHtml) { toast('Drop an HTML file first.'); return; }
   const fd = new FormData(e.target);
@@ -5702,7 +4947,26 @@ document.getElementById('uploadForm').addEventListener('submit', (e) => {
   };
   prompts.unshift(newPrompt);
   saveData(prompts);
-  toast('Published · "' + newPrompt.title + '"');
+
+  // If GitHub sync is configured, publish to repo (uploads otherwise live only in localStorage)
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const cfg = getSyncConfig();
+  if (cfg.repo && cfg.pat) {
+    const origLabel = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '↑ Pushing to GitHub…'; }
+    try {
+      await pushPromptToGitHub(newPrompt);
+      toast('Published to GitHub · "' + newPrompt.title + '"');
+    } catch (err) {
+      console.error(err);
+      toast('Saved locally — GitHub push failed: ' + err.message);
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
+    }
+  } else {
+    toast('Saved locally · "' + newPrompt.title + '" (configure GitHub in ⚙ Settings to publish)');
+  }
+
   e.target.reset();
   uploadedHtml = '';
   fileDrop.classList.remove('has-file');
@@ -5716,13 +4980,30 @@ document.getElementById('uploadForm').addEventListener('submit', (e) => {
 });
 
 // ─── Filter / search / sort wiring ───
-document.querySelectorAll('.chip').forEach(c => {
-  c.addEventListener('click', () => {
-    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
-    c.classList.add('active');
-    currentFilter = c.dataset.filter;
-    renderGallery();
+function renderTagChips() {
+  const counts = {};
+  prompts.forEach(p => {
+    if (p.author === 'you' && p.parentId) return; // skip private forks
+    const tagSet = new Set();
+    if (p.tag) tagSet.add(p.tag);
+    if (Array.isArray(p.tags)) p.tags.forEach(t => tagSet.add(t));
+    tagSet.forEach(t => { if (t) counts[t] = (counts[t] || 0) + 1; });
   });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const host = document.getElementById('tagChips');
+  if (!host) return;
+  host.innerHTML = sorted.map(([t, n]) => {
+    const active = currentFilter === t ? ' active' : '';
+    return '<button class="chip' + active + '" data-filter="' + escapeAttr(t) + '">' + escapeHtml(t) + ' <span class="chip-count">' + n + '</span></button>';
+  }).join('');
+}
+document.querySelector('.filter-bar').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip');
+  if (!c) return;
+  document.querySelectorAll('.filter-bar .chip').forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+  currentFilter = c.dataset.filter;
+  renderGallery();
 });
 document.getElementById('searchInput').addEventListener('input', (e) => {
   currentSearch = e.target.value;
@@ -6054,10 +5335,206 @@ function checkUndeclaredVars() {
   if (el) el.addEventListener('input', checkUndeclaredVars);
 });
 
-// ─── Bootstrap ───
-if (!handleCompareHash()) {
-  renderGallery();
+// ─── GitHub sync (PAT-driven upload) ───
+const SYNC_KEY = 'prompton_sync_v1';
+function getSyncConfig() {
+  try {
+    const raw = localStorage.getItem(SYNC_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  // Default to the deploy origin if it looks like a github.io URL
+  let repo = '';
+  const m = location.host.match(/^([^.]+)\.github\.io$/);
+  if (m) {
+    const segs = location.pathname.split('/').filter(Boolean);
+    if (segs[0]) repo = m[1] + '/' + segs[0];
+  }
+  return { repo: repo, branch: 'main', pat: '' };
 }
+function saveSyncConfig(cfg) {
+  try { localStorage.setItem(SYNC_KEY, JSON.stringify(cfg)); } catch (e) {}
+  updateSyncBadge();
+}
+function updateSyncBadge() {
+  const cfg = getSyncConfig();
+  const a = document.querySelector('.nav-settings');
+  if (a) a.classList.toggle('connected', !!(cfg.pat && cfg.repo));
+}
+function b64utf8(str) {
+  // btoa fails on multi-byte chars; encode via TextEncoder + binary string
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+async function ghFetch(path, opts) {
+  const cfg = getSyncConfig();
+  if (!cfg.repo || !cfg.pat) throw new Error('Configure repo and PAT in Settings first.');
+  const url = 'https://api.github.com/repos/' + cfg.repo + path;
+  const headers = Object.assign({
+    'Authorization': 'Bearer ' + cfg.pat,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  }, (opts && opts.headers) || {});
+  const r = await fetch(url, Object.assign({}, opts, { headers }));
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error('GitHub ' + r.status + ': ' + txt.slice(0, 200));
+  }
+  return r.json();
+}
+async function ghGetSha(path) {
+  const cfg = getSyncConfig();
+  try {
+    const j = await ghFetch('/contents/' + encodeURIComponent(path) + '?ref=' + encodeURIComponent(cfg.branch));
+    return j.sha;
+  } catch (e) {
+    if (String(e.message).indexOf('404') >= 0) return null;
+    throw e;
+  }
+}
+async function ghPutFile(path, content, message, sha) {
+  const cfg = getSyncConfig();
+  const body = {
+    message: message,
+    content: b64utf8(content),
+    branch: cfg.branch
+  };
+  if (sha) body.sha = sha;
+  return ghFetch('/contents/' + encodeURIComponent(path), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+async function pushPromptToGitHub(prompt) {
+  // 1. Write the HTML file
+  const htmlPath = 'htmls/' + prompt.id + '.html';
+  const htmlSha = await ghGetSha(htmlPath);  // null for create, existing sha for update
+  await ghPutFile(htmlPath, prompt.html || '', 'Prompton: add ' + prompt.id + ' html', htmlSha);
+  // 2. Update manifest.json — read fresh then append/replace this prompt
+  const cfg = getSyncConfig();
+  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+  const manText = atob(manRaw.content.replace(/\s/g, ''));
+  let manifest;
+  try { manifest = JSON.parse(manText); }
+  catch (e) { manifest = []; }
+  // Strip html field from the prompt before storing in manifest
+  const meta = JSON.parse(JSON.stringify(prompt));
+  delete meta.html;
+  if (meta.versions) meta.versions = meta.versions.map(v => { const c = {...v}; delete c.html; return c; });
+  const existingIdx = manifest.findIndex(p => p.id === prompt.id);
+  if (existingIdx >= 0) manifest[existingIdx] = meta;
+  else manifest.unshift(meta);
+  await ghPutFile('manifest.json', JSON.stringify(manifest, null, 2), 'Prompton: update manifest for ' + prompt.id, manRaw.sha);
+  // Keep the in-memory seedPrompts in sync so reloads see the same view
+  if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+    const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
+    if (sIdx >= 0) seedPrompts[sIdx] = JSON.parse(JSON.stringify(prompt));
+    else seedPrompts.unshift(JSON.parse(JSON.stringify(prompt)));
+  }
+}
+function renderSettings() {
+  const cfg = getSyncConfig();
+  document.getElementById('syncRepo').value = cfg.repo || '';
+  document.getElementById('syncBranch').value = cfg.branch || 'main';
+  document.getElementById('syncPat').value = cfg.pat || '';
+  const status = document.getElementById('syncStatus');
+  status.className = 'settings-status';
+  status.textContent = '';
+  if (cfg.repo && cfg.pat) {
+    status.className = 'settings-status info';
+    status.innerHTML = 'Configured: <code>' + escapeHtml(cfg.repo) + '</code> on branch <code>' + escapeHtml(cfg.branch || 'main') + '</code>. Click "Test connection" to verify.';
+  }
+  showView('settings');
+}
+document.getElementById('settingsForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const cfg = {
+    repo: document.getElementById('syncRepo').value.trim(),
+    branch: (document.getElementById('syncBranch').value.trim() || 'main'),
+    pat: document.getElementById('syncPat').value.trim()
+  };
+  saveSyncConfig(cfg);
+  const status = document.getElementById('syncStatus');
+  status.className = 'settings-status ok';
+  status.textContent = 'Saved. Uploads will now publish to ' + (cfg.repo || '(no repo)') + '.';
+});
+document.getElementById('syncTestBtn').addEventListener('click', async () => {
+  // Save current form first so getSyncConfig reads the latest values
+  saveSyncConfig({
+    repo: document.getElementById('syncRepo').value.trim(),
+    branch: (document.getElementById('syncBranch').value.trim() || 'main'),
+    pat: document.getElementById('syncPat').value.trim()
+  });
+  const status = document.getElementById('syncStatus');
+  status.className = 'settings-status info';
+  status.textContent = 'Testing…';
+  try {
+    const repoInfo = await ghFetch('');
+    const cfg = getSyncConfig();
+    status.className = 'settings-status ok';
+    status.innerHTML = '✓ Connected. Repo: <code>' + escapeHtml(repoInfo.full_name) + '</code> · default branch: <code>' + escapeHtml(repoInfo.default_branch) + '</code> · using: <code>' + escapeHtml(cfg.branch) + '</code>';
+  } catch (e) {
+    status.className = 'settings-status err';
+    status.textContent = e.message;
+  }
+});
+document.getElementById('syncClearBtn').addEventListener('click', () => {
+  if (!confirm('Clear stored PAT?')) return;
+  localStorage.removeItem(SYNC_KEY);
+  document.getElementById('syncPat').value = '';
+  document.getElementById('syncRepo').value = '';
+  document.getElementById('syncBranch').value = '';
+  const status = document.getElementById('syncStatus');
+  status.className = 'settings-status info';
+  status.textContent = 'Token cleared.';
+  updateSyncBadge();
+});
+
+// ─── Remote data loader (manifest.json + htmls/*.html) ───
+async function fetchSeed() {
+  const [manifest, profileSeed] = await Promise.all([
+    fetch('manifest.json').then(r => { if (!r.ok) throw new Error('manifest.json ' + r.status); return r.json(); }),
+    fetch('profiles.json').then(r => { if (!r.ok) throw new Error('profiles.json ' + r.status); return r.json(); })
+  ]);
+  const htmlJobs = [];
+  for (const p of manifest) {
+    htmlJobs.push(fetch('htmls/' + p.id + '.html').then(r => r.ok ? r.text() : '').then(h => { p.html = h; }));
+    if (p.versions) {
+      p.versions.forEach((v, i) => {
+        const vNum = v.v != null ? v.v : (i + 1);
+        htmlJobs.push(fetch('htmls/' + p.id + '_v' + vNum + '.html').then(r => r.ok ? r.text() : '').then(h => { v.html = h; }));
+      });
+    }
+  }
+  await Promise.all(htmlJobs);
+  seedPrompts = manifest;
+  seedProfiles = profileSeed;
+  if (seedProfiles.you && !seedProfiles.you.joined) seedProfiles.you.joined = new Date().toISOString().slice(0, 10);
+}
+
+// ─── Bootstrap ───
+(async () => {
+  try {
+    await fetchSeed();
+  } catch (e) {
+    console.warn('Remote data fetch failed - using localStorage cache.', e);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) seedPrompts = JSON.parse(raw);
+      const rawP = localStorage.getItem(PROFILE_KEY);
+      if (rawP) seedProfiles = JSON.parse(rawP);
+    } catch (e2) {}
+  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts)); } catch(e){}
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(seedProfiles)); } catch(e){}
+  prompts = JSON.parse(JSON.stringify(seedPrompts));
+  profiles = JSON.parse(JSON.stringify(seedProfiles));
+  prompts.forEach(p => { if (p.versions && p.versions.length) syncTopLevelFromLatest(p); });
+  updateSyncBadge();
+  if (!handleCompareHash()) renderGallery();
+})();
 </script>
 </body>
 </html>
