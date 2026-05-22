@@ -4156,7 +4156,7 @@ function renderDetail(id, viewingVersionNum) {
   }
 
   const isYours = p.author === 'you';
-  const canSaveNewVersion = isYours && !isViewingPast;
+  const canSaveNewVersion = (isYours || isOwner()) && !isViewingPast;
 
   // Auto-detect undeclared {{TOKEN}} variables in the prompt text. Any token
   // that appears in systemPrompt/userPrompt/context but isn't in view.variables
@@ -4882,12 +4882,16 @@ async function saveMetadata(promptId, fields) {
   }
 }
 
-function saveNewVersion(promptId, fields) {
+async function saveNewVersion(promptId, fields) {
   const p = prompts.find(x => x.id === promptId);
   if (!p) return;
 
+  // Snapshot for revert-on-failure
+  const prevState = JSON.stringify({ versions: p.versions, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt, context: p.context, model: p.model, html: p.html, date: p.date });
+
   // If no versions yet, seed v1 from current state first
-  if (!p.versions || !p.versions.length) {
+  const seededV1 = !p.versions || !p.versions.length;
+  if (seededV1) {
     p.versions = [{
       v: 1,
       date: p.date,
@@ -4917,8 +4921,45 @@ function saveNewVersion(promptId, fields) {
   p.versions.push(newVersion);
   syncTopLevelFromLatest(p);
   saveData(prompts);
-  toast(`Saved v${nextV} — "${fields.changelog.slice(0, 40)}${fields.changelog.length > 40 ? '…' : ''}"`);
+  toast(`Saved v${nextV} locally — "${fields.changelog.slice(0, 40)}${fields.changelog.length > 40 ? '…' : ''}"`);
   renderDetail(promptId);
+
+  // Push to GitHub if owner — uploads any missing per-version HTML files and re-PUTs manifest.
+  if (isOwner()) {
+    try {
+      await syncVersionsToGitHub(p);
+      toast(`v${nextV} pushed to GitHub — Pages may take a minute to refresh`);
+    } catch (err) {
+      console.error('Version push failed:', err);
+      // Revert local state on push failure so the local view doesn't drift from remote.
+      const prev = JSON.parse(prevState);
+      Object.assign(p, prev);
+      saveData(prompts);
+      renderDetail(promptId);
+      alert('Push to GitHub failed: ' + err.message + '\n\nLocal changes reverted to match remote.');
+    }
+  }
+}
+
+// Upload any per-version HTML files that aren't on GitHub yet, then re-PUT the manifest.
+async function syncVersionsToGitHub(prompt) {
+  if (!prompt.versions || !prompt.versions.length) return;
+  for (const v of prompt.versions) {
+    const vNum = v.v;
+    const path = 'htmls/' + prompt.id + '_v' + vNum + '.html';
+    const existing = await ghGetSha(path);
+    if (!existing) {
+      await ghPutFile(path, v.html || '', 'Prompton: add ' + prompt.id + ' v' + vNum + ' html', null);
+    }
+  }
+  // Also keep the top-level htmls/<id>.html in sync with the latest version's HTML
+  // so links to the canonical HTML show the latest content.
+  const latestHtml = prompt.versions[prompt.versions.length - 1].html || '';
+  const topPath = 'htmls/' + prompt.id + '.html';
+  const topSha = await ghGetSha(topPath);
+  await ghPutFile(topPath, latestHtml, 'Prompton: refresh top-level html for ' + prompt.id, topSha);
+  // Update manifest with new versions[]
+  await updatePromptMetadataOnGitHub(prompt);
 }
 
 // ── Template substitution helpers ──
