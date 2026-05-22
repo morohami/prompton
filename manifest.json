@@ -74,37 +74,6 @@
     "variables": []
   },
   {
-    "id": "p1779555000002",
-    "title": "ホテルと金 ─ Vol. I (draft 2026-05-21)",
-    "description": "「ホテルと金」Vol. 1 の中間ドラフト（2026-05-21時点）。最終版に向けた途中経過のアーカイブ。",
-    "systemPrompt": "",
-    "userPrompt": "ホテルと金 Vol. I の途中ドラフト。最終版との差分を保持するためアーカイブ目的で投稿。",
-    "context": "2026-05-21 時点のスナップショット。",
-    "model": "Claude Opus 4.7",
-    "license": "CC0 — Public domain",
-    "tags": [
-      "productivity",
-      "data",
-      "design",
-      "editorial",
-      "education",
-      "experiment",
-      "finance",
-      "food",
-      "fun",
-      "japan"
-    ],
-    "tag": "productivity",
-    "author": "you",
-    "authorName": "You",
-    "date": "2026-05-23",
-    "downloads": 0,
-    "forks": 0,
-    "parentId": null,
-    "usage": [],
-    "variables": []
-  },
-  {
     "id": "p1779555000003",
     "title": "世界のホテル・不動産ビジネスモデル完全マップ (74モデル)",
     "description": "所有 × 運営 × 収益化 × アセット × 顧客の5軸で74のホテル・不動産ビジネスモデルをマップ化。バブルチャート + フィルター可能なカードグリッド。",
