@@ -3840,10 +3840,14 @@ function normalizeTag(t) {
 // Render clickable chips for curated + previously-used tags into a mount,
 // excluding tags already present in the linked input. Clicking a chip
 // appends the tag to the input and re-renders.
-function mountCuratedTagChips(inputId, mountId) {
+// `excludeTags` (optional) hides those tags from the suggestions even if
+// they're "past" tags — used by the metadata editor so removing a tag
+// from the input doesn't re-suggest it as a chip.
+function mountCuratedTagChips(inputId, mountId, excludeTags) {
   const input = document.getElementById(inputId);
   const mount = document.getElementById(mountId);
   if (!input || !mount) return;
+  const excluded = new Set((excludeTags || []).map(normalizeTag).filter(Boolean));
   const refresh = () => {
     const present = new Set(input.value.split(',').map(s => normalizeTag(s.trim())).filter(Boolean));
     // Past tags: any tag that appears on at least one prompt.
@@ -3853,10 +3857,10 @@ function mountCuratedTagChips(inputId, mountId) {
       if (Array.isArray(p.tags)) p.tags.forEach(t => past.add(normalizeTag(t)));
     });
     const curatedSet = new Set(tagConfig.curated || []);
-    // Show curated first, then any past tags not in curated; skip whatever is already in the input.
+    // Show curated first, then any past tags not in curated; skip whatever is already in the input or in excludeTags.
     const ordered = [
-      ...(tagConfig.curated || []).filter(t => !present.has(t)),
-      ...[...past].filter(t => t && !curatedSet.has(t) && !present.has(t)).sort()
+      ...(tagConfig.curated || []).filter(t => !present.has(t) && !excluded.has(t)),
+      ...[...past].filter(t => t && !curatedSet.has(t) && !present.has(t) && !excluded.has(t)).sort()
     ];
     mount.innerHTML = ordered.map(t => {
       const isCurated = curatedSet.has(t);
@@ -4369,7 +4373,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn secondary" id="forkBtn">⑂ Fork</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">⇄ Compare with original</button>` : ''}
         ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">✎ Save new version</button>` : ''}
-        ${isOwner() ? `<button class="btn secondary" id="editMetadataBtn" title="Edit title / description / tags / license">✎ Edit metadata</button>` : ''}
+        ${isOwner() ? `<button class="btn secondary" id="editMetadataBtn" title="Edit title / description / tags / license">✎ Edit</button>` : ''}
         ${isOwner() ? `<button class="btn danger" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">🗑 Delete</button>` : ''}
       </div>
     </div>
@@ -5013,7 +5017,7 @@ function openMetadataEditor(promptId) {
       </div>
     </div>
   `;
-  mountCuratedTagChips('metaTagsInput', 'curatedTagChipsMeta');
+  mountCuratedTagChips('metaTagsInput', 'curatedTagChipsMeta', p.tags || []);
   document.getElementById('metadataCancelBtn').addEventListener('click', () => { mount.innerHTML = ''; });
   document.getElementById('metadataSaveBtn').addEventListener('click', () => {
     const editor = document.getElementById('metadataEditor');
@@ -6274,7 +6278,9 @@ async function ghFetch(path, opts) {
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28'
   }, (opts && opts.headers) || {});
-  const r = await fetch(url, Object.assign({}, opts, { headers }));
+  // 'no-store' prevents the browser from serving a stale Contents-API GET
+  // (which would return an out-of-date sha and cause 409 on the next PUT).
+  const r = await fetch(url, Object.assign({ cache: 'no-store' }, opts, { headers }));
   if (!r.ok) {
     const txt = await r.text();
     throw new Error('GitHub ' + r.status + ': ' + txt.slice(0, 200));
