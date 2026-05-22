@@ -72,7 +72,10 @@
       "data-viz",
       "japan",
       "interactive",
-      "dashboard"
+      "dashboard",
+      "system-prompt",
+      "tools",
+      "tutorial"
     ],
     "tag": "hotel",
     "author": "you",
