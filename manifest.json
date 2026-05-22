@@ -454,7 +454,8 @@
         ],
         "changelog": "Introduced {{RECIPIENT}} and {{KINDNESS}} variables so others can personalize without editing the prompt. Kept the tone anchored by requiring a sensory detail."
       }
-    ]
+    ],
+    "thumb": "thumbs/p003.jpg"
   },
   {
     "id": "p004",
