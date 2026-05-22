@@ -130,7 +130,23 @@
       "meta",
       "spotify-style",
       "single-file",
-      "archive"
+      "archive",
+      "fun",
+      "japan",
+      "kkk",
+      "longform",
+      "marketing",
+      "music",
+      "narrative",
+      "philosophy",
+      "planner",
+      "productivity",
+      "prompt-engineering",
+      "research",
+      "sddd",
+      "ss",
+      "story",
+      "system-prompt"
     ],
     "tag": "prompton",
     "author": "you",
@@ -140,7 +156,9 @@
     "forks": 0,
     "parentId": null,
     "usage": [],
-    "variables": []
+    "variables": [],
+    "reproPrompt": "",
+    "devNotes": ""
   },
   {
     "id": "p1779555000006",
