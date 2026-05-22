@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国名と政治体制の矛盾マップ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0c10;color:#c8c4b8;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+.header{text-align:center;padding:28px 20px 10px}
+.header::after{content:'';display:block;width:120px;height:1px;background:linear-gradient(90deg,transparent,#8b7a5e,transparent);margin:14px auto 0}
+.header h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#d4c9a8;letter-spacing:2px}
+.header .sub{font-size:11px;color:#6b6456;margin-top:5px;letter-spacing:4px;text-transform:uppercase}
+.stats-bar{display:flex;justify-content:center;gap:28px;padding:10px 20px 6px;font-family:'JetBrains Mono',monospace;font-size:11px}
+.stat{text-align:center;opacity:0;transition:opacity .4s}.stat.v{opacity:1}
+.stat .n{font-size:26px;font-weight:500;color:#d4c9a8;line-height:1}
+.stat .l{color:#6b6456;font-size:9px;letter-spacing:1px;margin-top:2px}
+.ctrls{display:flex;justify-content:center;gap:8px;padding:6px 16px 10px;flex-wrap:wrap}
+.cb{position:relative;background:linear-gradient(145deg,#1a1c22,#12141a);border:1px solid #2a2520;border-radius:6px;padding:10px 18px;color:#6b6456;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:1px;cursor:pointer;transition:all .3s;text-transform:uppercase}
+.cb::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#2a2520;margin-right:8px;vertical-align:middle;transition:all .3s}
+.cb:hover{border-color:#4a4030;color:#a09880}
+.cb.on{border-color:#8b7a5e;color:#d4c9a8;box-shadow:0 0 20px rgba(139,122,94,.15)}
+.cb.on::before{box-shadow:0 0 8px 2px var(--gc,#c9a84c);background:var(--gc,#c9a84c)}
+.cb[data-f="d"]{--gc:#e8b84c}.cb[data-f="p"]{--gc:#e05555}.cb[data-f="r"]{--gc:#4ca8e8}.cb[data-f="m"]{--gc:#c870e8}
+.mt{display:flex;justify-content:center;padding:0 16px 8px;gap:12px;align-items:center}
+.mt label{font-size:11px;color:#6b6456;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.tgs{width:36px;height:18px;background:#1a1c22;border:1px solid #2a2520;border-radius:9px;position:relative;cursor:pointer;transition:all .3s}
+.tgs.on{background:#2a2818;border-color:#8b7a5e}
+.tgs .k{width:14px;height:14px;background:#4a4030;border-radius:50%;position:absolute;top:1px;left:1px;transition:all .3s}
+.tgs.on .k{left:19px;background:#c9a84c;box-shadow:0 0 6px rgba(201,168,76,.4)}
+.mw{position:relative;width:100%;max-width:1100px;margin:0 auto;padding:0 16px;aspect-ratio:2/1;min-height:300px}
+.mc{position:relative;width:100%;height:100%;background:radial-gradient(ellipse at 50% 50%,rgba(20,22,28,1),rgba(10,12,16,1));border:1px solid #1a1c22;border-radius:8px;overflow:hidden}
+.mc::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(139,122,94,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(139,122,94,.03) 1px,transparent 1px);background-size:50px 50px;pointer-events:none}
+.ml{position:absolute;left:0;right:0;height:1px;background:rgba(139,122,94,.06);pointer-events:none}
+#wc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.dot{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(100,95,85,.25);transform:translate(-50%,-50%);cursor:pointer;transition:all .5s cubic-bezier(.175,.885,.32,1.275);z-index:1}
+.dot.hi{z-index:10}
+.dot.hi.ok{background:#4ce870;box-shadow:0 0 10px 3px rgba(76,232,112,.5),0 0 25px 5px rgba(76,232,112,.2);width:9px;height:9px}
+.dot.hi.no{background:#e84c4c;box-shadow:0 0 10px 3px rgba(232,76,76,.5),0 0 25px 5px rgba(232,76,76,.2);width:9px;height:9px}
+.dot.hi.pa{background:#e8c84c;box-shadow:0 0 10px 3px rgba(232,200,76,.5),0 0 25px 5px rgba(232,200,76,.2);width:9px;height:9px}
+.dot.hi.nu{background:#e8c84c;box-shadow:0 0 10px 3px rgba(232,200,76,.5),0 0 25px 5px rgba(232,200,76,.2);width:9px;height:9px}
+.dot.dim{opacity:.08}
+.tip{position:fixed;background:linear-gradient(145deg,#1c1e24,#14161c);border:1px solid #2a2520;border-radius:8px;padding:14px 16px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:1000;max-width:340px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.tip.v{opacity:1}
+.tip .tn{font-family:'Playfair Display',serif;font-size:14px;color:#d4c9a8;margin-bottom:2px}
+.tip .to{font-size:10px;color:#6b6456;margin-bottom:8px;line-height:1.4;white-space:pre-line}
+.tip .ts2{font-size:11px;color:#a09880;padding:6px 8px;background:rgba(139,122,94,.08);border-radius:4px;margin-bottom:6px;line-height:1.5;white-space:pre-line}
+.tip .tm{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:3px;display:inline-block}
+.tip .tm.ok{color:#4ce870;background:rgba(76,232,112,.1)}
+.tip .tm.no{color:#e84c4c;background:rgba(232,76,76,.1)}
+.tip .tm.pa{color:#e8c84c;background:rgba(232,200,76,.1)}
+.tip .tt{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.tip .tg{font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.5px;font-weight:500}
+.tg.td{background:rgba(232,184,76,.15);color:#e8b84c}
+.tg.tp{background:rgba(224,85,85,.15);color:#e05555}
+.tg.tr{background:rgba(76,168,232,.15);color:#4ca8e8}
+.lg{display:flex;justify-content:center;gap:20px;padding:8px 16px;flex-wrap:wrap;opacity:0;transition:opacity .4s}.lg.v{opacity:1}
+.li{display:flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.5px;color:#6b6456}
+.ld{width:8px;height:8px;border-radius:50%}
+.ld.g{background:#4ce870;box-shadow:0 0 4px rgba(76,232,112,.4)}
+.ld.r{background:#e84c4c;box-shadow:0 0 4px rgba(232,76,76,.4)}
+.ld.y{background:#e8c84c;box-shadow:0 0 4px rgba(232,200,76,.4)}
+.ld.x{background:rgba(100,95,85,.3)}
+.lp{max-width:1100px;margin:10px auto 24px;padding:0 16px}
+.lh{font-family:'Playfair Display',serif;font-size:14px;color:#8b7a5e;letter-spacing:1px;padding:6px 0;border-bottom:1px solid #1a1c22;display:none}
+.lh.v{display:block}
+.cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:5px;padding:6px 0;max-height:380px;overflow-y:auto}
+.cl::-webkit-scrollbar{width:4px}
+.cl::-webkit-scrollbar-track{background:transparent}
+.cl::-webkit-scrollbar-thumb{background:#2a2520;border-radius:2px}
+.cc{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:rgba(26,28,34,.5);border:1px solid #1a1c22;border-radius:4px;font-size:11px;transition:all .2s}
+.cc:hover{border-color:#2a2520;background:rgba(26,28,34,.8)}
+.ci{width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.ci.ok{background:#4ce870}.ci.no{background:#e84c4c}.ci.pa{background:#e8c84c}
+.cn{font-weight:500;color:#a09880}
+.cs{color:#5a5648;font-size:10px;margin-top:2px}
+.meth{max-width:800px;margin:0 auto 40px;padding:16px;font-size:10px;color:#4a4538;line-height:1.7;text-align:center;border-top:1px solid #1a1c22}
+.meth strong{color:#6b6456}
+@media(max-width:600px){.header h1{font-size:16px}.ctrls{gap:5px}.cb{padding:8px 10px;font-size:10px}.stats-bar{gap:14px}.stat .n{font-size:20px}.cl{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>名は体を表すか？</h1>
+<div class="sub">Does the Name Match the Reality?</div>
+</div>
+<div class="mw"><div class="mc" id="map">
+<canvas id="wc"></canvas>
+<div class="ml" style="top:23%"></div><div class="ml" style="top:38%"></div>
+<div class="ml" style="top:50%"></div><div class="ml" style="top:62%"></div>
+</div></div>
+<div class="stats-bar">
+<div class="stat" id="s1"><div class="n" id="s1n">-</div><div class="l">HIGHLIGHTED</div></div>
+<div class="stat" id="s2"><div class="n" id="s2n">-</div><div class="l">NAME ≈ REALITY</div></div>
+<div class="stat" id="s3"><div class="n" id="s3n">-</div><div class="l">CONTRADICTION</div></div>
+</div>
+<div class="ctrls">
+<button class="cb" data-f="d">Democratic</button>
+<button class="cb" data-f="p">People's</button>
+<button class="cb" data-f="r">Republic</button>
+<button class="cb" data-f="m">Mixed（2語以上）</button>
+</div>
+<div class="mt"><label><span>一致/矛盾を表示</span><div class="tgs" id="tog"><div class="k"></div></div></label></div>
+<div class="lg" id="leg">
+<div class="li"><div class="ld g"></div>名前と一致</div>
+<div class="li"><div class="ld y"></div>部分一致</div>
+<div class="li"><div class="ld r"></div>矛盾あり</div>
+<div class="li"><div class="ld x"></div>非該当</div>
+</div>
+<div class="lp"><div class="lh" id="lh"></div><div class="cl" id="cl"></div></div>
+<div class="meth">
+<strong>判定基準（バイアス排除のため客観事実のみ）:</strong><br>
+「Democratic」→ 競争的複数政党選挙＋政権交代の実績/可能性<br>
+「People's」→ 国民の実効的政治参加の仕組み<br>
+「Republic」→ 国家元首が世襲君主ではない（共和制の定義）
+</div>
+<div class="tip" id="tip">
+<div class="tn" id="tn"></div><div class="to" id="to"></div>
+<div class="ts2" id="ts2"></div><div class="tm" id="tm"></div>
+<div class="tt" id="tt"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script>
+const C=[
+["北朝鮮","Democratic People's Republic of Korea\n朝鮮民主主義人民共和国",40,127,["d","p","r"],"一党制・世襲統治。金一族三代。選挙は単一候補のみ。\nOne-party hereditary rule. Kim dynasty, 3 generations. Single-candidate elections.",{d:"mismatch",p:"mismatch",r:"mismatch"}],
+["ラオス","Lao People's Democratic Republic\nラオス人民民主共和国",18,105,["d","p","r"],"一党制。人民革命党が憲法上の唯一の政党。\nOne-party. People's Revolutionary Party is sole constitutional party.",{d:"mismatch",p:"mismatch",r:"match"}],
+["アルジェリア","People's Democratic Republic of Algeria\nアルジェリア人民民主共和国",28,3,["d","p","r"],"大統領制。複数政党だが軍が強い影響力。野党活動に制約。\nPresidential. Multi-party but military holds strong influence. Opposition constrained.",{d:"partial",p:"partial",r:"match"}],
+["コンゴ民主共和国","Democratic Republic of the Congo\nコンゴ民主共和国",-4.3,21.8,["d","r"],"半大統領制。2019年初の平和的政権交代。選挙不正の指摘もあり。\nSemi-presidential. First peaceful transfer 2019. Election irregularities reported.",{d:"partial",r:"match"}],
+["サントメ・プリンシペ","Democratic Republic of São Tomé and Príncipe\nサントメ・プリンシペ民主共和国",0.2,6.6,["d","r"],"半大統領制。複数政党制で定期的政権交代。\nSemi-presidential. Multi-party with regular power alternation.",{d:"match",r:"match"}],
+["東ティモール","Democratic Republic of Timor-Leste\n東ティモール民主共和国",-8.5,125.7,["d","r"],"半大統領制。2002年独立以来、複数回の平和的政権交代。\nSemi-presidential. Multiple peaceful transfers since 2002.",{d:"match",r:"match"}],
+["エチオピア","Federal Democratic Republic of Ethiopia\nエチオピア連邦民主共和国",9,38.7,["d","r"],"連邦議院内閣制。ティグレ内戦(2020-22)、野党弾圧、報道制限。\nFederal parliamentary. Tigray war (2020-22), opposition jailed, press restricted.",{d:"partial",r:"match"}],
+["スリランカ","Democratic Socialist Republic of Sri Lanka\nスリランカ民主社会主義共和国",7.8,80.7,["d","r"],"半大統領制。競争的選挙と政権交代の実績あり。\nSemi-presidential. Competitive elections with power transfer history.",{d:"match",r:"match"}],
+["ネパール","Federal Democratic Republic of Nepal\nネパール連邦民主共和国",28.2,84.2,["d","r"],"連邦議院内閣制。2008年王制廃止。複数政党で連立交代。\nFederal parliamentary. Monarchy abolished 2008. Multi-party coalition changes.",{d:"match",r:"match"}],
+["中国","People's Republic of China\n中華人民共和国",35,105,["p","r"],"一党制。共産党が憲法上の指導政党。主席任期制限2018年撤廃。\nOne-party. CCP constitutionally the leading party. Term limits removed 2018.",{p:"mismatch",r:"match"}],
+["バングラデシュ","People's Republic of Bangladesh\nバングラデシュ人民共和国",23.7,90.4,["p","r"],"議院内閣制。2024年学生抗議で首相辞任。暫定政府運営中。\nParliamentary. 2024 student protests forced PM out. Interim govt in place.",{p:"partial",r:"match"}],
+["フランス","French Republic\nフランス共和国",46.6,2.2,["r"],"半大統領制。競争的選挙。定期的政権交代。\nSemi-presidential. Competitive elections. Regular power alternation.",{r:"match"}],
+["ドイツ","Federal Republic of Germany\nドイツ連邦共和国",51.2,10.4,["r"],"連邦議院内閣制。複数政党。\nFederal parliamentary. Multi-party.",{r:"match"}],
+["イタリア","Italian Republic\nイタリア共和国",41.9,12.5,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["インド","Republic of India\nインド共和国",20.6,79,["r"],"連邦議院内閣制。世界最大の民主主義国。\nFederal parliamentary. World's largest democracy.",{r:"match"}],
+["韓国","Republic of Korea\n大韓民国",36.5,127.8,["r"],"大統領制。競争的選挙。2024年戒厳令→弾劾。\nPresidential. Competitive elections. 2024 martial law→impeachment.",{r:"match"}],
+["台湾","Republic of China (Taiwan)\n中華民国",23.7,121,["r"],"半大統領制。競争的選挙。定期的政権交代。\nSemi-presidential. Competitive elections. Regular power alternation.",{r:"match"}],
+["ブラジル","Federative Republic of Brazil\nブラジル連邦共和国",-14.2,-51.9,["r"],"連邦大統領制。複数政党。2022年平和的政権交代。\nFederal presidential. Multi-party. 2022 peaceful transfer.",{r:"match"}],
+["アルゼンチン","Argentine Republic\nアルゼンチン共和国",-34.6,-58.4,["r"],"連邦大統領制。複数政党。2023年政権交代。\nFederal presidential. Multi-party. 2023 power transfer.",{r:"match"}],
+["南アフリカ","Republic of South Africa\n南アフリカ共和国",-30.6,22.9,["r"],"議院内閣制。2024年ANC過半数割れ→連立政権。\nParliamentary. 2024 ANC lost majority→coalition.",{r:"match"}],
+["インドネシア","Republic of Indonesia\nインドネシア共和国",-0.8,113.9,["r"],"大統領制。複数政党。平和的政権交代の実績。\nPresidential. Multi-party. Peaceful transfer history.",{r:"match"}],
+["フィリピン","Republic of the Philippines\nフィリピン共和国",12.9,121.8,["r"],"大統領制。複数政党。\nPresidential. Multi-party.",{r:"match"}],
+["チリ","Republic of Chile\nチリ共和国",-35.7,-71.5,["r"],"大統領制。複数政党。定期的政権交代。\nPresidential. Multi-party. Regular power alternation.",{r:"match"}],
+["コロンビア","Republic of Colombia\nコロンビア共和国",4.6,-74.3,["r"],"大統領制。複数政党。2022年初の左派政権。\nPresidential. Multi-party. First left-wing president 2022.",{r:"match"}],
+["ペルー","Republic of Peru\nペルー共和国",-9.2,-75,["r"],"大統領制。複数政党だが政治的不安定。\nPresidential. Multi-party but politically unstable.",{r:"match"}],
+["ポーランド","Republic of Poland\nポーランド共和国",51.9,19.1,["r"],"半大統領制。複数政党。2023年政権交代。\nSemi-presidential. Multi-party. 2023 power transfer.",{r:"match"}],
+["チェコ","Czech Republic\nチェコ共和国",49.8,15.5,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["ポルトガル","Portuguese Republic\nポルトガル共和国",39.4,-8.2,["r"],"半大統領制。複数政党。\nSemi-presidential. Multi-party.",{r:"match"}],
+["フィンランド","Republic of Finland\nフィンランド共和国",61.9,25.7,["r"],"半大統領制。複数政党。\nSemi-presidential. Multi-party.",{r:"match"}],
+["アイルランド","Republic of Ireland\nアイルランド共和国",53.4,-8.2,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["アイスランド","Republic of Iceland\nアイスランド共和国",65,-18,["r"],"議院内閣制。世界最古の議会の一つ。\nParliamentary. One of world's oldest parliaments.",{r:"match"}],
+["エストニア","Republic of Estonia\nエストニア共和国",58.6,25,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["ラトビア","Republic of Latvia\nラトビア共和国",56.9,24.1,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["リトアニア","Republic of Lithuania\nリトアニア共和国",55.2,23.9,["r"],"半大統領制。複数政党。\nSemi-presidential. Multi-party.",{r:"match"}],
+["オーストリア","Republic of Austria\nオーストリア共和国",47.5,14.6,["r"],"連邦議院内閣制。複数政党。\nFederal parliamentary. Multi-party.",{r:"match"}],
+["ギリシャ","Hellenic Republic\nギリシャ共和国",39.1,21.8,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["クロアチア","Republic of Croatia\nクロアチア共和国",45.1,15.2,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["スロベニア","Republic of Slovenia\nスロベニア共和国",46.2,14.8,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["スロバキア","Slovak Republic\nスロバキア共和国",48.7,19.7,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["コスタリカ","Republic of Costa Rica\nコスタリカ共和国",9.7,-83.8,["r"],"大統領制。1948年以降軍廃止。安定した民主制。\nPresidential. Military abolished 1948. Stable democracy.",{r:"match"}],
+["ウルグアイ","Oriental Republic of Uruguay\nウルグアイ東方共和国",-32.5,-55.8,["r"],"大統領制。南米で最も安定した民主制の一つ。\nPresidential. One of S. America's most stable democracies.",{r:"match"}],
+["ドミニカ共和国","Dominican Republic\nドミニカ共和国",18.7,-70.2,["r"],"大統領制。複数政党。定期的政権交代。\nPresidential. Multi-party. Regular power alternation.",{r:"match"}],
+["トリニダード","Republic of Trinidad and Tobago\nトリニダード・トバゴ共和国",10.7,-61.2,["r"],"議院内閣制。複数政党。\nParliamentary. Multi-party.",{r:"match"}],
+["パナマ","Republic of Panama\nパナマ共和国",8.5,-80.8,["r"],"大統領制。複数政党。\nPresidential. Multi-party.",{r:"match"}],
+["ガーナ","Republic of Ghana\nガーナ共和国",7.9,-1,["r"],"大統領制。定期的政権交代。西アフリカの民主制モデル。\nPresidential. Regular alternation. W. Africa's democracy model.",{r:"match"}],
+["ボツワナ","Republic of Botswana\nボツワナ共和国",-22.3,24.7,["r"],"議院内閣制。2024年初の政権交代。\nParliamentary. First-ever power transfer 2024.",{r:"match"}],
+["モーリシャス","Republic of Mauritius\nモーリシャス共和国",-20.3,57.6,["r"],"議院内閣制。複数政党。定期的政権交代。\nParliamentary. Multi-party. Regular alternation.",{r:"match"}],
+["セネガル","Republic of Senegal\nセネガル共和国",14.5,-14.5,["r"],"大統領制。2024年野党勝利。平和的政権交代。\nPresidential. Opposition won 2024. Peaceful transfer.",{r:"match"}],
+["ケニア","Republic of Kenya\nケニア共和国",-0.02,37.9,["r"],"大統領制。2022年平和的政権交代。\nPresidential. 2022 peaceful power transfer.",{r:"match"}],
+["マルタ","Republic of Malta\nマルタ共和国",35.9,14.4,["r"],"議院内閣制。二大政党。\nParliamentary. Two-party system.",{r:"match"}],
+["キプロス","Republic of Cyprus\nキプロス共和国",35.1,33.4,["r"],"大統領制。複数政党。\nPresidential. Multi-party.",{r:"match"}],
+["フィジー","Republic of Fiji\nフィジー共和国",-17.7,178,["r"],"議院内閣制。2022年政権交代。\nParliamentary. 2022 power transfer.",{r:"match"}],
+["モルドバ","Republic of Moldova\nモルドバ共和国",47.4,28.4,["r"],"議院内閣制。2024年EU加盟国民投票。\nParliamentary. 2024 EU accession referendum.",{r:"match"}],
+["ジョージア","Republic of Georgia\nジョージア",42.3,43.4,["r"],"議院内閣制。ジョージアの夢党が支配的。2024年大規模抗議。\nParliamentary. Georgian Dream dominant. 2024 mass protests.",{r:"match"}],
+["キルギス","Kyrgyz Republic\nキルギス共和国",41.2,74.8,["r"],"大統領制。中央アジアで最も政権交代が多い。\nPresidential. Most power changes in Central Asia.",{r:"match"}],
+["キューバ","Republic of Cuba\nキューバ共和国",21.5,-79,["r"],"一党制。共産党が唯一の政党。\nOne-party. Communist Party sole party.",{r:"partial"}],
+["イラン","Islamic Republic of Iran\nイラン・イスラム共和国",32.4,53.7,["r"],"神権共和制。最高指導者が最高権力。立候補者審査制。\nTheocratic republic. Supreme Leader ultimate power. Candidates vetted.",{r:"partial"}],
+["ベネズエラ","Bolivarian Republic of Venezuela\nベネズエラ・ボリバル共和国",6.4,-66.6,["r"],"大統領制。マドゥロ2013年以降。2024年選挙結果係争中。\nPresidential. Maduro since 2013. 2024 election results disputed.",{r:"match"}],
+["ベラルーシ","Republic of Belarus\nベラルーシ共和国",53.7,27.9,["r"],"大統領制。ルカシェンコ1994年以降。2020年抗議弾圧。\nPresidential. Lukashenko since 1994. 2020 protest crackdown.",{r:"match"}],
+["トルコ","Republic of Türkiye\nトルコ共和国",39,35.2,["r"],"大統領制。エルドアン2003年以降。\nPresidential. Erdoğan since 2003.",{r:"match"}],
+["ハンガリー","Republic of Hungary\nハンガリー",47.2,19.5,["r"],"議院内閣制。フィデス党2010年以降連続政権。\nParliamentary. Fidesz since 2010.",{r:"match"}],
+["セルビア","Republic of Serbia\nセルビア共和国",44,21,["r"],"議院内閣制。進歩党が支配的。\nParliamentary. Progressive Party dominant.",{r:"match"}],
+["シンガポール","Republic of Singapore\nシンガポール共和国",1.35,103.8,["r"],"議院内閣制。PAP1965年以降連続政権。\nParliamentary. PAP since 1965.",{r:"match"}],
+["エジプト","Arab Republic of Egypt\nエジプト・アラブ共和国",26.8,30.8,["r"],"大統領制。シシ2014年以降。競争限定的。\nPresidential. Sisi since 2014. Competition limited.",{r:"match"}],
+["トルクメニスタン","Republic of Turkmenistan\nトルクメニスタン",39,59.6,["r"],"大統領制。ベルドイムハメドフ一族。個人崇拝。\nPresidential. Berdimuhamedov family. Personality cult.",{r:"partial"}],
+["タジキスタン","Republic of Tajikistan\nタジキスタン共和国",38.9,71.3,["r"],"大統領制。ラフモン1994年以降。実質一党支配。\nPresidential. Rahmon since 1994. De facto one-party.",{r:"match"}],
+["カザフスタン","Republic of Kazakhstan\nカザフスタン共和国",48,67,["r"],"大統領制。トカエフ2019年以降。競争限定的。\nPresidential. Tokayev since 2019. Competition limited.",{r:"match"}],
+["ウズベキスタン","Republic of Uzbekistan\nウズベキスタン共和国",41.4,64.6,["r"],"大統領制。ミルジヨエフ2016年以降。競争限定的。\nPresidential. Mirziyoyev since 2016. Competition limited.",{r:"match"}],
+["ミャンマー","Republic of the Union of Myanmar\nミャンマー連邦共和国",19.8,96.2,["r"],"2021年軍事クーデター。軍事政権。内戦状態。\n2021 military coup. Junta rule. Civil war ongoing.",{r:"partial"}],
+["パキスタン","Islamic Republic of Pakistan\nパキスタン・イスラム共和国",30.4,69.3,["r"],"連邦議院内閣制。軍が強い影響力。\nFederal parliamentary. Military influential.",{r:"match"}],
+["ナイジェリア","Federal Republic of Nigeria\nナイジェリア連邦共和国",9.1,8.7,["r"],"連邦大統領制。複数政党。政権交代実績あり。\nFederal presidential. Multi-party. Transfer history.",{r:"match"}],
+["イラク","Republic of Iraq\nイラク共和国",33.2,43.7,["r"],"連邦議院内閣制。宗派間権力分配。\nFederal parliamentary. Sectarian power-sharing.",{r:"match"}],
+["レバノン","Lebanese Republic\nレバノン共和国",33.9,35.9,["r"],"議院内閣制・宗派制。宗教権力分配が憲法規定。\nConfessional parliamentary. Religious power-sharing.",{r:"match"}],
+["チュニジア","Republic of Tunisia\nチュニジア共和国",34,9,["r"],"大統領制。2021年大統領が議会停止・権力集中。\nPresidential. President suspended parliament 2021.",{r:"match"}],
+["ルワンダ","Republic of Rwanda\nルワンダ共和国",-1.9,29.9,["r"],"大統領制。カガメ2000年以降。野党環境制約。\nPresidential. Kagame since 2000. Opposition constrained.",{r:"match"}],
+["ウガンダ","Republic of Uganda\nウガンダ共和国",1.4,32.3,["r"],"大統領制。ムセベニ1986年以降。任期制限撤廃。\nPresidential. Museveni since 1986. Term limits removed.",{r:"match"}],
+["ジンバブエ","Republic of Zimbabwe\nジンバブエ共和国",-19,29.2,["r"],"大統領制。ZANU-PF独立以来支配。\nPresidential. ZANU-PF dominant since independence.",{r:"match"}],
+["カメルーン","Republic of Cameroon\nカメルーン共和国",7.4,12.4,["r"],"大統領制。ビヤ1982年以降。\nPresidential. Biya since 1982.",{r:"match"}],
+["赤道ギニア","Republic of Equatorial Guinea\n赤道ギニア共和国",1.65,10.3,["r"],"大統領制。オビアン1979年以降。世界最長在任。\nPresidential. Obiang since 1979. World's longest-serving.",{r:"match"}],
+["コンゴ共和国","Republic of the Congo\nコンゴ共和国",-4.3,15.3,["r"],"大統領制。サスヌゲソ1979年以降。\nPresidential. Sassou Nguesso since 1979.",{r:"match"}],
+["中央アフリカ","Central African Republic\n中央アフリカ共和国",6.6,20.9,["r"],"大統領制。内戦の歴史。\nPresidential. History of civil wars.",{r:"match"}],
+["タンザニア","United Republic of Tanzania\nタンザニア連合共和国",-6.4,34.9,["r"],"大統領制。CCM独立以来与党。\nPresidential. CCM ruling since independence.",{r:"match"}],
+["モザンビーク","Republic of Mozambique\nモザンビーク共和国",-18.7,35.5,["r"],"大統領制。FRELIMO独立以来与党。\nPresidential. FRELIMO since independence.",{r:"match"}],
+["マダガスカル","Republic of Madagascar\nマダガスカル共和国",-18.8,46.9,["r"],"半大統領制。クーデターと選挙の繰り返し。\nSemi-presidential. Cycle of coups and elections.",{r:"match"}],
+["マリ","Republic of Mali\nマリ共和国",17.6,-4,["r"],"軍事暫定政権(2020-21年クーデター)。\nMilitary transitional govt (2020-21 coups).",{r:"partial"}],
+["ブルキナファソ","Republic of Burkina Faso\nブルキナファソ",12.4,-1.6,["r"],"軍事暫定政権(2022年クーデター)。\nMilitary transitional govt (2022 coup).",{r:"partial"}],
+["ニジェール","Republic of Niger\nニジェール共和国",17.6,8.1,["r"],"軍事政権(2023年クーデター)。\nMilitary govt (2023 coup).",{r:"partial"}],
+["ギニア","Republic of Guinea\nギニア共和国",9.9,-11.4,["r"],"軍事暫定政権(2021年クーデター)。\nMilitary transitional govt (2021 coup).",{r:"partial"}],
+["スーダン","Republic of the Sudan\nスーダン共和国",12.9,30.2,["r"],"2023年以降内戦。統一政府事実上機能せず。\nCivil war since 2023. Govt non-functional.",{r:"partial"}],
+["ソマリア","Federal Republic of Somalia\nソマリア連邦共和国",5.2,46.2,["r"],"連邦議院内閣制(名目上)。紛争継続。\nFederal parliamentary (nominal). Conflict ongoing.",{r:"partial"}],
+["イエメン","Republic of Yemen\nイエメン共和国",15.5,48.5,["r"],"内戦2014年以降。フーシ派が首都制圧。\nCivil war since 2014. Houthis hold capital.",{r:"partial"}],
+["シリア","Syrian Arab Republic\nシリア・アラブ共和国",35,38.5,["r"],"2024年アサド政権崩壊。暫定政府。新体制未確立。\nPost-Assad 2024. Transitional govt. New system not established.",{r:"partial"}],
+["ニカラグア","Republic of Nicaragua\nニカラグア共和国",12.9,-85.2,["r"],"大統領制。オルテガ2007年以降。野党投獄・追放。\nPresidential. Ortega since 2007. Opposition jailed/exiled.",{r:"match"}],
+["エルサルバドル","Republic of El Salvador\nエルサルバドル共和国",13.8,-88.9,["r"],"大統領制。ブケレ2019年以降。非常事態延長。\nPresidential. Bukele since 2019. Extended emergency.",{r:"match"}],
+["ホンジュラス","Republic of Honduras\nホンジュラス共和国",15.2,-86.2,["r"],"大統領制。2022年政権交代。\nPresidential. 2022 power transfer.",{r:"match"}],
+["グアテマラ","Republic of Guatemala\nグアテマラ共和国",15.8,-90.2,["r"],"大統領制。2024年アレバロ就任。\nPresidential. Arévalo took office 2024.",{r:"match"}],
+["エクアドル","Republic of Ecuador\nエクアドル共和国",-1.8,-78.2,["r"],"大統領制。複数政党だが不安定。\nPresidential. Multi-party but unstable.",{r:"match"}],
+["パラグアイ","Republic of Paraguay\nパラグアイ共和国",-23.4,-58.4,["r"],"大統領制。コロラド党が長期支配。\nPresidential. Colorado Party long-dominant.",{r:"match"}],
+["ベトナム","Socialist Republic of Vietnam\nベトナム社会主義共和国",14.1,108.3,["r"],"一党制。共産党が唯一の合法政党。\nOne-party. Communist Party sole legal party.",{r:"match"}],
+["チャド","Republic of Chad\nチャド共和国",15.5,18.7,["r"],"大統領制。デビ一族1990年以降。父→息子継承。\nPresidential. Déby family since 1990. Father→son.",{r:"match"}],
+["ソマリランド","Republic of Somaliland\nソマリランド共和国",9.5,44,["r"],"大統領制。国際未承認だが独自の選挙と政権交代を実施。\nPresidential. Internationally unrecognized but holds own elections and transfers.",{r:"match"}],
+];
+
+function proj(lat,lng,w,h){
+const x=((lng+180)/360)*w;
+const lr=lat*Math.PI/180;
+const mn=Math.log(Math.tan(Math.PI/4+lr/2));
+const y=h/2-w*mn/(2*Math.PI);
+return[Math.max(6,Math.min(w-6,x)),Math.max(6,Math.min(h-6,y))];
+}
+
+function projRaw(lat,lng,w,h){
+lat=Math.max(-85,Math.min(85,lat));
+const x=((lng+180)/360)*w;
+const lr=lat*Math.PI/180;
+const mn=Math.log(Math.tan(Math.PI/4+lr/2));
+const y=h/2-w*mn/(2*Math.PI);
+return[x,y];
+}
+
+let af=null,sm=false;
+const mc=document.getElementById('map'),tip=document.getElementById('tip'),dots=[];
+const cvs=document.getElementById('wc');
+let worldData=null;
+
+function drawGeoFeatures(ctx,geojson,w,h,fill){
+let features;
+if(geojson.type==='FeatureCollection')features=geojson.features;
+else if(geojson.type==='Feature')features=[geojson];
+else return;
+features.forEach(function(f){
+const geom=f.geometry;
+let polys;
+if(geom.type==='Polygon')polys=[geom.coordinates];
+else if(geom.type==='MultiPolygon')polys=geom.coordinates;
+else return;
+polys.forEach(function(polygon){
+polygon.forEach(function(ring){
+ctx.beginPath();
+ring.forEach(function(c,i){
+const p=projRaw(c[1],c[0],w,h);
+if(i===0)ctx.moveTo(p[0],p[1]);
+else ctx.lineTo(p[0],p[1]);
+});
+ctx.closePath();
+if(fill)ctx.fill();
+ctx.stroke();
+});
+});
+});
+}
+
+function drawGeoLines(ctx,mesh,w,h){
+if(!mesh||!mesh.coordinates)return;
+ctx.beginPath();
+mesh.coordinates.forEach(function(line){
+line.forEach(function(c,i){
+const p=projRaw(c[1],c[0],w,h);
+if(i===0)ctx.moveTo(p[0],p[1]);
+else ctx.lineTo(p[0],p[1]);
+});
+});
+ctx.stroke();
+}
+
+function drawWorld(){
+if(!worldData)return;
+const rect=mc.getBoundingClientRect();
+const dpr=window.devicePixelRatio||1;
+const w=rect.width,h=rect.height;
+cvs.width=w*dpr;cvs.height=h*dpr;
+const ctx=cvs.getContext('2d');
+ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+const land=topojson.feature(worldData,worldData.objects.land);
+ctx.fillStyle='rgba(139,122,94,0.07)';
+ctx.strokeStyle='rgba(139,122,94,0.2)';
+ctx.lineWidth=0.6;
+drawGeoFeatures(ctx,land,w,h,true);
+const borders=topojson.mesh(worldData,worldData.objects.countries,function(a,b){return a!==b});
+ctx.strokeStyle='rgba(139,122,94,0.09)';
+ctx.lineWidth=0.3;
+drawGeoLines(ctx,borders,w,h);
+}
+
+async function loadWorld(){
+try{
+const r=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+worldData=await r.json();
+drawWorld();
+}catch(e){console.warn('Map data load failed:',e)}
+}
+
+function build(){
+const r=mc.getBoundingClientRect(),w=r.width,h=r.height;
+C.forEach((c,i)=>{
+const[x,y]=proj(c[2],c[3],w,h);
+const d=document.createElement('div');d.className='dot';
+d.style.left=(x/w*100)+'%';d.style.top=(y/h*100)+'%';d.dataset.i=i;
+d.addEventListener('mouseenter',e=>showTip(e,i));
+d.addEventListener('mousemove',moveTip);
+d.addEventListener('mouseleave',()=>tip.classList.remove('v'));
+d.addEventListener('touchstart',e=>{e.preventDefault();showTip(e.touches[0],i)});
+mc.appendChild(d);dots.push(d);
+});
+}
+function showTip(e,i){
+const[n,o,,,tags,sys,mo]=C[i];
+document.getElementById('tn').textContent=n;
+document.getElementById('to').textContent=o;
+document.getElementById('ts2').textContent=sys;
+const tm=document.getElementById('tm');
+if(af&&sm){const m=getM(tags,mo,af);
+const lb={match:'一致 / Match',partial:'部分一致 / Partial',mismatch:'矛盾 / Contradiction'};
+tm.textContent=lb[m]||'';tm.className='tm '+(m==='match'?'ok':m==='partial'?'pa':'no');
+tm.style.display=m?'inline-block':'none';}else{tm.style.display='none'}
+const tt=document.getElementById('tt');tt.innerHTML='';
+tags.forEach(t=>{const s=document.createElement('span');
+s.className='tg '+(t==='d'?'td':t==='p'?'tp':'tr');
+s.textContent=t==='d'?'DEMOCRATIC':t==='p'?"PEOPLE'S":'REPUBLIC';tt.appendChild(s);});
+tip.classList.add('v');moveTip(e);
+}
+function moveTip(e){
+const x=e.clientX||e.pageX,y=e.clientY||e.pageY;
+let l=x+12,t=y+12;
+if(l+340>window.innerWidth)l=x-340-12;
+if(t+200>window.innerHeight)t=y-200-12;
+tip.style.left=l+'px';tip.style.top=t+'px';
+}
+function filt(tags,f){
+if(f==='d')return tags.includes('d');if(f==='p')return tags.includes('p');
+if(f==='r')return tags.includes('r');if(f==='m')return tags.length>=2;return false;
+}
+function getM(tags,mo,f){
+let w='match',h=false;
+const ck=f==='m'?tags:(f==='d'?['d']:f==='p'?['p']:['r']);
+ck.forEach(t=>{if(tags.includes(t)&&mo[t]){h=true;
+if(mo[t]==='mismatch')w='mismatch';
+else if(mo[t]==='partial'&&w!=='mismatch')w='partial';}});
+return h?w:null;
+}
+function update(){
+let tot=0,ok=0,no=0;
+dots.forEach((d,i)=>{const tags=C[i][4],mo=C[i][6];d.className='dot';
+if(!af)return;
+if(filt(tags,af)){tot++;
+if(sm){const m=getM(tags,mo,af);d.classList.add('hi',m==='match'?'ok':m==='mismatch'?'no':'pa');
+if(m==='match')ok++;else if(m==='mismatch')no++;}
+else{d.classList.add('hi','nu')}}else{d.classList.add('dim')}});
+const s1=document.getElementById('s1'),s2=document.getElementById('s2'),s3=document.getElementById('s3');
+if(af){document.getElementById('s1n').textContent=tot;s1.classList.add('v');
+if(sm){document.getElementById('s2n').textContent=ok;document.getElementById('s3n').textContent=no;s2.classList.add('v');s3.classList.add('v')}
+else{s2.classList.remove('v');s3.classList.remove('v')}}
+else{s1.classList.remove('v');s2.classList.remove('v');s3.classList.remove('v')}
+document.getElementById('leg').classList.toggle('v',!!(af&&sm));
+updateList();
+}
+function updateList(){
+const lh=document.getElementById('lh'),cl=document.getElementById('cl');cl.innerHTML='';
+if(!af){lh.classList.remove('v');return}
+const fl=C.map((c,i)=>({i,n:c[0],o:c[1],tags:c[4],sys:c[5],mo:c[6]})).filter(c=>filt(c.tags,af));
+if(sm)fl.sort((a,b)=>{const ma=getM(a.tags,a.mo,af),mb=getM(b.tags,b.mo,af);
+const o={mismatch:0,partial:1,match:2};return(o[ma]??1)-(o[mb]??1)});
+const lb={d:'"Democratic"を含む国',p:'"People\'s"を含む国',r:'"Republic"を含む国',m:'複数の修飾語を含む国'};
+lh.textContent=`${lb[af]} — ${fl.length}カ国`;lh.classList.add('v');
+fl.forEach(c=>{const m=sm?getM(c.tags,c.mo,af):null;
+const cd=document.createElement('div');cd.className='cc';
+cd.innerHTML=`<div class="ci ${m==='match'?'ok':m==='mismatch'?'no':'pa'}"></div><div><div class="cn">${c.n}</div><div class="cs">${c.sys.split('\\n')[0]}</div></div>`;
+cl.appendChild(cd)});
+}
+document.querySelectorAll('.cb').forEach(b=>b.addEventListener('click',()=>{
+const f=b.dataset.f;if(af===f){af=null;b.classList.remove('on')}
+else{document.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');af=f}
+update()}));
+document.getElementById('tog').addEventListener('click',function(){sm=!sm;this.classList.toggle('on',sm);update()});
+build();
+loadWorld();
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{dots.forEach(d=>d.remove());dots.length=0;build();drawWorld();update()},250)});
+</script>
+</body>
+</html>
