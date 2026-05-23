@@ -3710,33 +3710,35 @@
 <section class="view" id="view-upload">
   <span class="back-link" data-nav="gallery">← Back to gallery</span>
   <div class="upload-wrap">
-    <h1>Share a <em>recipe</em>.</h1>
-    <p class="lede">Drop your HTML, paste the prompt that made it. Three fields, one click.</p>
+    <h1>Share <em>prompton</em>.</h1>
+    <p class="lede">Drop your HTML, paste the prompt that made it. Or drop several files at once for a bulk publish.</p>
 
     <form id="uploadForm">
 
-      <!-- 1. HTML file -->
+      <!-- 1. HTML file(s) -->
       <div class="upload-block">
         <label class="upload-label">Your HTML output <span class="req">*</span></label>
-        <p class="upload-help">Drop the file your AI generated. We'll grab the title from the &lt;title&gt; tag and show you a live preview.</p>
+        <p class="upload-help">Drop one file for the full single-prompt flow, or drop multiple to bulk-publish them in a single commit.</p>
         <label class="file-drop large" id="fileDrop">
           <div class="drop-title" id="dropTitle">Drop .html here</div>
           <div class="drop-hint" id="dropHint">
             click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>
           </div>
-          <input type="file" name="htmlFile" accept=".html,text/html" style="display:none" id="htmlFile" />
+          <input type="file" name="htmlFile" accept=".html,text/html" multiple style="display:none" id="htmlFile" />
         </label>
         <div class="html-preview" id="htmlPreview" style="display:none">
           <div class="preview-label">↑ Live preview · <span id="previewSize"></span></div>
           <iframe id="previewIframe" sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
+        <!-- Bulk queue: visible only when 2+ files are dropped. -->
+        <div id="bulkQueue" class="bulk-queue" style="margin-top:12px;display:none"></div>
       </div>
 
       <!-- 2. Prompt -->
-      <div class="upload-block">
+      <div class="upload-block" id="promptBlock">
         <label class="upload-label">The prompt <span class="req">*</span></label>
         <p class="upload-help">Paste whatever you sent to the AI. If you used <code>[SYSTEM]</code> / <code>[USER]</code> / <code>[CONTEXT]</code> blocks, we'll split them automatically. Otherwise it all goes into the User instruction.</p>
-        <textarea name="quickPrompt" id="quickPromptField" required placeholder="Paste your prompt here…
+        <textarea name="quickPrompt" id="quickPromptField" placeholder="Paste your prompt here…
 
 Example:
 [SYSTEM]
@@ -3748,14 +3750,14 @@ Generate a weekly meal planner for a {{DIET}} diet."></textarea>
       </div>
 
       <!-- 3. Title -->
-      <div class="upload-block">
+      <div class="upload-block" id="titleBlock">
         <label class="upload-label">Title <span class="req">*</span></label>
-        <p class="upload-help">A short name for this recipe. Auto-filled when you drop the HTML.</p>
-        <input type="text" name="title" id="titleInput" required placeholder="e.g. Weekly meal planner with grocery list" />
+        <p class="upload-help">A short name for this prompt. Auto-filled when you drop the HTML.</p>
+        <input type="text" name="title" id="titleInput" placeholder="e.g. Weekly meal planner with grocery list" />
       </div>
 
       <!-- Advanced (collapsed) -->
-      <details class="upload-advanced">
+      <details class="upload-advanced" id="uploadAdvanced">
         <summary>▾ Advanced — variables, model, license, tags, description</summary>
         <div class="advanced-fields">
           <div class="field">
@@ -3882,23 +3884,6 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       <div class="settings-status" id="thumbStatus"></div>
     </div>
 
-    <div class="tag-curation" id="bulkUploadPanel">
-      <h2>Bulk upload</h2>
-      <p class="lede">Drop several .html files at once — Prompton will publish them all in a single commit. Each file becomes its own prompt; you can edit titles before publishing and fill in prompt text / tags later via Edit.</p>
-      <div class="settings-field">
-        <label class="file-drop large" id="bulkFileDrop" style="margin-top:0">
-          <div class="drop-title" id="bulkDropTitle">Drop .html files here</div>
-          <div class="drop-hint">click to browse · drag &amp; drop multiple</div>
-          <input type="file" id="bulkFileInput" accept=".html,text/html" multiple style="display:none" />
-        </label>
-        <div id="bulkQueue" class="bulk-queue" style="margin-top:12px"></div>
-      </div>
-      <div class="settings-actions">
-        <button type="button" id="bulkPublishBtn" class="btn-primary" disabled>Publish 0 prompts</button>
-        <button type="button" id="bulkClearBtn" class="btn-text" disabled>Clear queue</button>
-      </div>
-      <div class="settings-status" id="bulkStatus"></div>
-    </div>
   </div>
 </section>
 
@@ -6026,10 +6011,93 @@ function handleHtmlFile(f) {
   reader.readAsText(f);
 }
 
+// Multi-file entry point: if exactly one file is dropped and we're not
+// already in bulk mode, use the single-prompt flow. Otherwise enter (or
+// stay in) bulk mode and append each file to the queue.
+function handleHtmlFiles(fileList) {
+  const files = Array.from(fileList || []).filter(f =>
+    /\.html?$/i.test(f.name) || (f.type && /html/i.test(f.type))
+  );
+  if (!files.length) return;
+  if (files.length === 1 && bulkQueue.length === 0) {
+    handleHtmlFile(files[0]);
+    return;
+  }
+  // Bulk path
+  enterBulkMode();
+  Promise.all(files.map(f => f.text().then(text => ({
+    filename: f.name,
+    title: parseBulkTitle(text, f.name),
+    html: text
+  })))).then(entries => {
+    bulkQueue.push(...entries);
+    renderBulkQueue();
+  });
+}
+
+// ─── Bulk upload state + UI (lives inside the Share form) ───
+const bulkQueue = [];
+function parseBulkTitle(html, filename) {
+  const m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (m && m[1].trim()) return m[1].trim();
+  return filename.replace(/\.html?$/i, '').replace(/[_-]+/g, ' ').trim() || filename;
+}
+function enterBulkMode() {
+  document.body.classList.add('bulk-mode');
+  // Hide single-prompt fields
+  const ids = ['promptBlock', 'titleBlock', 'uploadAdvanced', 'htmlPreview'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  document.getElementById('bulkQueue').style.display = '';
+  document.getElementById('dropTitle').textContent = 'Bulk mode — drop more .html files to add';
+  document.getElementById('dropHint').innerHTML = 'click to browse · drag &amp; drop · titles edit below';
+  fileDrop.classList.add('has-file');
+}
+function exitBulkMode() {
+  document.body.classList.remove('bulk-mode');
+  ['promptBlock', 'titleBlock', 'uploadAdvanced'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = '';
+  });
+  document.getElementById('bulkQueue').style.display = 'none';
+  document.getElementById('bulkQueue').innerHTML = '';
+  document.getElementById('dropTitle').textContent = 'Drop .html here';
+  document.getElementById('dropHint').innerHTML = 'click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>';
+  fileDrop.classList.remove('has-file');
+  updateBulkSubmit();
+}
+function renderBulkQueue() {
+  const queueEl = document.getElementById('bulkQueue');
+  queueEl.innerHTML = bulkQueue.map((q, i) =>
+    `<div class="bulk-row" data-i="${i}">
+       <span class="fname" title="${escapeAttr(q.filename)}">${escapeHtml(q.filename)}</span>
+       <input class="title" type="text" value="${escapeAttr(q.title)}" placeholder="Title…">
+       <button type="button" class="x" title="Remove">×</button>
+     </div>`
+  ).join('');
+  queueEl.querySelectorAll('.bulk-row').forEach(row => {
+    const i = +row.dataset.i;
+    row.querySelector('input.title').addEventListener('input', (e) => { bulkQueue[i].title = e.target.value; });
+    row.querySelector('.x').addEventListener('click', () => {
+      bulkQueue.splice(i, 1);
+      if (!bulkQueue.length) { exitBulkMode(); return; }
+      renderBulkQueue();
+    });
+  });
+  updateBulkSubmit();
+}
+function updateBulkSubmit() {
+  const btn = document.querySelector('#uploadForm button[type="submit"]');
+  if (!btn) return;
+  if (bulkQueue.length) {
+    btn.textContent = `Publish ${bulkQueue.length} prompt${bulkQueue.length === 1 ? '' : 's'} →`;
+  } else {
+    btn.textContent = 'Publish prompt →';
+  }
+}
+
 // Note: fileDrop is a <label> wrapping the file input, so clicking it
 // natively opens the OS file picker. Do NOT add a manual click handler —
 // that would open the picker twice.
-htmlFile.addEventListener('change', (e) => handleHtmlFile(e.target.files[0]));
+htmlFile.addEventListener('change', (e) => { handleHtmlFiles(e.target.files); e.target.value = ''; });
 
 // Drag & drop on the drop zone
 ;['dragenter', 'dragover'].forEach(evt => {
@@ -6052,7 +6120,7 @@ fileDrop.addEventListener('drop', (e) => {
   fileDrop.classList.remove('dragover');
   const dt = e.dataTransfer;
   if (!dt) return;
-  if (dt.files && dt.files.length) { handleHtmlFile(dt.files[0]); return; }
+  if (dt.files && dt.files.length) { handleHtmlFiles(dt.files); return; }
   // Some apps drop text/html or text/plain instead of a file
   const html = dt.getData('text/html') || dt.getData('text/plain');
   if (html && /<\s*html|<\s*!DOCTYPE/i.test(html)) {
@@ -6072,9 +6140,9 @@ window.addEventListener('drop', (e) => {
   const view = document.getElementById('view-upload');
   if (view && view.classList.contains('active') && !fileDrop.contains(e.target)) {
     e.preventDefault();
-    // If file was dropped anywhere on the upload page, route it to the dropzone
+    // If file(s) dropped anywhere on the upload page, route to the dropzone
     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-      handleHtmlFile(e.dataTransfer.files[0]);
+      handleHtmlFiles(e.dataTransfer.files);
     }
   }
 });
@@ -6107,6 +6175,8 @@ document.addEventListener('paste', (e) => {
 
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  // Bulk path takes over when 2+ files are queued — single-prompt UI is hidden.
+  if (bulkQueue.length) { return submitBulkUpload(e.target); }
   if (!uploadedHtml) { toast('Drop an HTML file first.'); return; }
   const fd = new FormData(e.target);
 
@@ -6199,6 +6269,109 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   if (adv) adv.open = false;
   renderDetail(newPrompt.id);
 });
+
+// Bulk submit — Tree API single commit for all htmls + OG pages + manifest,
+// then a second commit for thumbs once they finish rendering.
+async function submitBulkUpload(formEl) {
+  if (!isOwner()) {
+    toast('Configure GitHub in ⚙ Settings before publishing.');
+    return;
+  }
+  const submitBtn = formEl.querySelector('button[type="submit"]');
+  const origLabel = submitBtn ? submitBtn.textContent : '';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Pushing bulk commit…'; }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const youName = (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You');
+  const newPrompts = bulkQueue.map((q, i) => ({
+    id: 'p' + (Date.now() + i),
+    title: q.title,
+    description: '',
+    systemPrompt: '', userPrompt: '(bulk-uploaded — paste original prompt via Edit)', context: '',
+    model: 'Claude Opus 4.7',
+    license: 'CC0 — Public domain',
+    tags: [], tag: 'other',
+    author: 'you', authorName: youName,
+    date: today,
+    downloads: 0, forks: 0, parentId: null,
+    usage: [], variables: [],
+    html: cleanupHtml(q.html)
+  }));
+
+  let manSha = null, manifest = [];
+  try {
+    const cfg = getSyncConfig();
+    const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+    manSha = manRaw.sha;
+    manifest = JSON.parse(b64ToUtf8(manRaw.content)) || [];
+  } catch (err) {
+    toast('Failed to read manifest: ' + err.message);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
+    return;
+  }
+  const metaList = newPrompts.map(p => { const m = JSON.parse(JSON.stringify(p)); delete m.html; return m; });
+  const nextManifest = [...metaList, ...manifest];
+
+  const files = [];
+  for (const p of newPrompts) {
+    files.push({ path: 'htmls/' + p.id + '.html', content: p.html });
+    files.push({ path: 'p/' + p.id + '/index.html', content: generateOGPageHtml(p) });
+  }
+  files.push({ path: 'manifest.json', content: JSON.stringify(nextManifest, null, 2) });
+
+  try {
+    await ghBulkCommit(files, 'Prompton: bulk upload ' + newPrompts.length + ' prompts');
+  } catch (err) {
+    console.error('Bulk commit failed:', err);
+    toast('Bulk commit failed: ' + err.message);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
+    return;
+  }
+
+  for (const p of newPrompts) {
+    prompts.unshift(p);
+    seedPrompts.unshift(JSON.parse(JSON.stringify(p)));
+  }
+  saveData(prompts);
+  bulkQueue.length = 0;
+  exitBulkMode();
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publish prompt →'; }
+  toast(`Published ${newPrompts.length} prompts · generating thumbnails…`);
+  renderGallery();
+
+  // Second commit: thumbnails + manifest with thumb fields
+  (async () => {
+    const thumbFiles = [];
+    for (const p of newPrompts) {
+      try {
+        const blob = await generateThumbnail(p.html);
+        const path = 'thumbs/' + p.id + '.jpg';
+        thumbFiles.push({ path: path, content: blob });
+        p.thumb = path;
+        const s = seedPrompts.find(x => x.id === p.id);
+        if (s) s.thumb = path;
+      } catch (e) { console.warn('Bulk thumb failed for ' + p.id + ':', e); }
+    }
+    if (!thumbFiles.length) return;
+    try {
+      const cfg2 = getSyncConfig();
+      const manRaw2 = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg2.branch));
+      const m2 = JSON.parse(b64ToUtf8(manRaw2.content)) || [];
+      const byId = new Map(m2.map(e => [e.id, e]));
+      for (const p of newPrompts) {
+        const e = byId.get(p.id);
+        if (e) e.thumb = 'thumbs/' + p.id + '.jpg';
+      }
+      thumbFiles.push({ path: 'manifest.json', content: JSON.stringify(m2, null, 2) });
+      await ghBulkCommit(thumbFiles, 'Prompton: bulk thumbnails for ' + newPrompts.length + ' prompts');
+      toast(`✓ ${newPrompts.length} prompts + thumbnails done.`);
+      renderGallery();
+    } catch (err) {
+      console.warn('Bulk thumb commit failed:', err);
+      toast(`Published ${newPrompts.length} prompts · thumbnails failed (see console).`);
+    }
+  })();
+}
 
 // ─── Filter / search / sort wiring ───
 function renderTagChips() {
@@ -6940,178 +7113,6 @@ document.getElementById('thumbRegenBtn').addEventListener('click', async () => {
   status.textContent = `✓ Regenerated ${done} thumbnail${done === 1 ? '' : 's'}` + (failed ? ` · ${failed} failed (see console).` : '.');
   renderGallery();
 });
-// ─── Bulk upload (multiple HTMLs in a single commit) ───
-(() => {
-  const drop = document.getElementById('bulkFileDrop');
-  const input = document.getElementById('bulkFileInput');
-  const queueEl = document.getElementById('bulkQueue');
-  const publishBtn = document.getElementById('bulkPublishBtn');
-  const clearBtn = document.getElementById('bulkClearBtn');
-  const statusEl = document.getElementById('bulkStatus');
-  if (!drop) return;
-  let queue = [];
-
-  const updateButtons = () => {
-    publishBtn.disabled = queue.length === 0;
-    clearBtn.disabled = queue.length === 0;
-    publishBtn.textContent = `Publish ${queue.length} prompt${queue.length === 1 ? '' : 's'}`;
-  };
-  const renderQueue = () => {
-    if (!queue.length) { queueEl.innerHTML = ''; updateButtons(); return; }
-    queueEl.innerHTML = queue.map((q, i) =>
-      `<div class="bulk-row" data-i="${i}">
-         <span class="fname" title="${escapeAttr(q.filename)}">${escapeHtml(q.filename)}</span>
-         <input class="title" type="text" value="${escapeAttr(q.title)}" placeholder="Title…">
-         <button type="button" class="x" title="Remove">×</button>
-       </div>`
-    ).join('');
-    queueEl.querySelectorAll('.bulk-row').forEach(row => {
-      const i = +row.dataset.i;
-      row.querySelector('input.title').addEventListener('input', (e) => { queue[i].title = e.target.value; });
-      row.querySelector('.x').addEventListener('click', () => { queue.splice(i, 1); renderQueue(); });
-    });
-    updateButtons();
-  };
-  const parseTitle = (html, filename) => {
-    const m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    if (m && m[1].trim()) return m[1].trim();
-    return filename.replace(/\.html?$/i, '').replace(/[_-]+/g, ' ').trim() || filename;
-  };
-  const acceptFiles = async (fileList) => {
-    const files = Array.from(fileList || []).filter(f => /\.html?$/i.test(f.name));
-    if (!files.length) return;
-    for (const f of files) {
-      const text = await f.text();
-      queue.push({ filename: f.name, title: parseTitle(text, f.name), html: text });
-    }
-    renderQueue();
-  };
-
-  input.addEventListener('change', () => acceptFiles(input.files).then(() => { input.value = ''; }));
-  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('has-file'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('has-file'));
-  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('has-file'); acceptFiles(e.dataTransfer.files); });
-  clearBtn.addEventListener('click', () => { queue = []; renderQueue(); statusEl.textContent = ''; statusEl.className = 'settings-status'; });
-
-  publishBtn.addEventListener('click', async () => {
-    if (!isOwner()) {
-      statusEl.className = 'settings-status err';
-      statusEl.textContent = 'Configure GitHub above first — bulk upload writes to the repo.';
-      return;
-    }
-    if (!queue.length) return;
-    publishBtn.disabled = true; clearBtn.disabled = true;
-    statusEl.className = 'settings-status info';
-    statusEl.textContent = 'Preparing commit…';
-
-    const today = new Date().toISOString().slice(0, 10);
-    const youName = (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You');
-    const newPrompts = queue.map((q, i) => ({
-      id: 'p' + (Date.now() + i),
-      title: q.title,
-      description: '',
-      systemPrompt: '', userPrompt: '(bulk-uploaded — paste original prompt via Edit)', context: '',
-      model: 'Claude Opus 4.7',
-      license: 'CC0 — Public domain',
-      tags: [], tag: 'other',
-      author: 'you', authorName: youName,
-      date: today,
-      downloads: 0, forks: 0, parentId: null,
-      usage: [], variables: [],
-      html: cleanupHtml(q.html)
-    }));
-
-    // Read current manifest, splice in the new entries (no html field)
-    let manSha = null, manifest = [];
-    try {
-      const cfg = getSyncConfig();
-      const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-      manSha = manRaw.sha;
-      manifest = JSON.parse(b64ToUtf8(manRaw.content)) || [];
-    } catch (err) {
-      statusEl.className = 'settings-status err';
-      statusEl.textContent = 'Failed to read manifest: ' + err.message;
-      updateButtons();
-      return;
-    }
-    const metaList = newPrompts.map(p => { const m = JSON.parse(JSON.stringify(p)); delete m.html; return m; });
-    const nextManifest = [...metaList, ...manifest];
-
-    // Build the bulk-commit file list: each html + the updated manifest + OG pages
-    const files = [];
-    for (const p of newPrompts) {
-      files.push({ path: 'htmls/' + p.id + '.html', content: p.html });
-      files.push({ path: 'p/' + p.id + '/index.html', content: generateOGPageHtml(p) });
-    }
-    files.push({ path: 'manifest.json', content: JSON.stringify(nextManifest, null, 2) });
-
-    try {
-      statusEl.textContent = `Pushing ${files.length} files in one commit…`;
-      await ghBulkCommit(files, 'Prompton: bulk upload ' + newPrompts.length + ' prompts');
-    } catch (err) {
-      console.error('Bulk commit failed:', err);
-      statusEl.className = 'settings-status err';
-      statusEl.textContent = 'Bulk commit failed: ' + err.message;
-      updateButtons();
-      return;
-    }
-
-    // Local state sync
-    for (const p of newPrompts) {
-      prompts.unshift(p);
-      seedPrompts.unshift(JSON.parse(JSON.stringify(p)));
-    }
-    saveData(prompts);
-    queue = []; renderQueue();
-    statusEl.className = 'settings-status ok';
-    statusEl.textContent = `✓ Published ${newPrompts.length} prompts in one commit. Generating thumbnails in background…`;
-    renderGallery();
-
-    // Background: generate all thumbnails LOCALLY first (no per-file commits),
-    // then push every thumb + the manifest in a single second commit so the
-    // bulk-upload history stays at two commits total.
-    (async () => {
-      const thumbFiles = [];
-      for (const p of newPrompts) {
-        try {
-          const blob = await generateThumbnail(p.html);
-          const path = 'thumbs/' + p.id + '.jpg';
-          thumbFiles.push({ path: path, content: blob });
-          p.thumb = path;
-          const s = seedPrompts.find(x => x.id === p.id);
-          if (s) s.thumb = path;
-        } catch (e) { console.warn('Bulk thumb failed for ' + p.id + ':', e); }
-      }
-      if (!thumbFiles.length) {
-        statusEl.textContent = `✓ Published ${newPrompts.length} prompts · no thumbnails generated.`;
-        return;
-      }
-      // Re-fetch the manifest (it grew when ghBulkCommit landed) so we can
-      // splice in the new `thumb` fields without losing anything else.
-      try {
-        const cfg2 = getSyncConfig();
-        const manRaw2 = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg2.branch));
-        const m2 = JSON.parse(b64ToUtf8(manRaw2.content)) || [];
-        const byId = new Map(m2.map(e => [e.id, e]));
-        for (const p of newPrompts) {
-          const e = byId.get(p.id);
-          if (e) e.thumb = 'thumbs/' + p.id + '.jpg';
-        }
-        thumbFiles.push({ path: 'manifest.json', content: JSON.stringify(m2, null, 2) });
-        await ghBulkCommit(thumbFiles, 'Prompton: bulk thumbnails for ' + newPrompts.length + ' prompts');
-      } catch (err) {
-        console.warn('Bulk thumb commit failed:', err);
-        statusEl.className = 'settings-status info';
-        statusEl.textContent = `Published ${newPrompts.length} prompts · thumbnails failed (${err.message}).`;
-        return;
-      }
-      statusEl.className = 'settings-status ok';
-      statusEl.textContent = `✓ Published ${newPrompts.length} prompts + thumbnails (2 commits).`;
-      renderGallery();
-    })();
-  });
-})();
-
 document.getElementById('tagSaveBtn').addEventListener('click', async () => {
   const status = document.getElementById('tagSaveStatus');
   status.className = 'settings-status info';
