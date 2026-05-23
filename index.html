@@ -3849,15 +3849,10 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
     <div class="tag-curation" id="tagCurationPanel">
       <h2>Tag curation</h2>
-      <p class="lede">Curate the chips suggested on upload, and map aliases so similar tags collapse into one.</p>
+      <p class="lede">Tags come from your prompts. The list below is the union of every tag attached to a prompt, after normalization through the alias map. Add aliases below to fold variants like <code>ai</code> → <code>AI</code> together.</p>
       <div class="settings-field">
-        <label>Curated tags <span class="hint">Shown as suggestion chips on the upload form</span></label>
+        <label>Tags in use <span class="hint">Auto-derived from prompts on save — no manual entry</span></label>
         <div class="tag-list" id="curatedTagList"></div>
-        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
-          <input type="text" id="curatedTagAddInput" placeholder="add a tag…" style="flex:0 0 220px;max-width:100%" />
-          <button type="button" class="btn-secondary" id="curatedTagAddBtn">Add</button>
-          <button type="button" class="btn-text" id="curatedRemoveUnusedBtn" style="display:none;color:#d04848" title="Drop curated tags that no prompt is using. Click 'Save tag config' to publish.">Remove 0 unused tags</button>
-        </div>
       </div>
       <div class="settings-field">
         <label>Aliases <span class="hint">left side → right side. e.g. "ai" → "AI"</span></label>
@@ -6998,31 +6993,35 @@ function getUsedTagSet() {
   return used;
 }
 
+// Auto-derive the sorted list of tags actually used by at least one prompt.
+// This is the single source of truth for `tagConfig.curated` — no manual entry.
+function deriveCuratedTags() {
+  const used = getUsedTagSet();
+  return Array.from(used).filter(Boolean).sort((a, b) => a.localeCompare(b));
+}
+// Per-tag usage count for the read-only display in Settings.
+function getTagUsageCounts() {
+  const counts = {};
+  (typeof prompts !== 'undefined' ? prompts : []).forEach(p => {
+    const seen = new Set();
+    if (p.tag) seen.add(normalizeTag(p.tag));
+    if (Array.isArray(p.tags)) p.tags.forEach(t => seen.add(normalizeTag(t)));
+    seen.forEach(t => { if (t) counts[t] = (counts[t] || 0) + 1; });
+  });
+  return counts;
+}
+
 function renderTagCurationPanel() {
   const curatedHost = document.getElementById('curatedTagList');
   if (!curatedHost) return;
-  const sorted = [...(tagConfig.curated || [])].sort((a, b) => a.localeCompare(b));
-  const used = getUsedTagSet();
-  const unusedCount = sorted.filter(t => !used.has(normalizeTag(t))).length;
-  curatedHost.innerHTML = sorted.map(t => {
-    const isUnused = !used.has(normalizeTag(t));
-    const cls = 'tag-pill' + (isUnused ? ' unused' : '');
-    const title = isUnused ? 'Not used by any prompt' : 'Used by prompts';
-    return `<span class="${cls}" title="${title}">${escapeHtml(t)} <button class="x" type="button" data-rm-curated="${escapeAttr(t)}" title="Remove">×</button></span>`;
-  }).join('') || '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No curated tags yet — add one below.</span>';
-
-  // Bulk action: clear all unused curated tags in one click (state only — the
-  // user still has to click "Save tag config" to push the change to tags.json).
-  const unusedBtn = document.getElementById('curatedRemoveUnusedBtn');
-  if (unusedBtn) {
-    if (unusedCount > 0) {
-      unusedBtn.style.display = '';
-      unusedBtn.textContent = `Remove ${unusedCount} unused tag${unusedCount === 1 ? '' : 's'}`;
-      unusedBtn.disabled = false;
-    } else {
-      unusedBtn.style.display = 'none';
-    }
-  }
+  const derived = deriveCuratedTags();
+  const counts = getTagUsageCounts();
+  // Keep in-memory tagConfig.curated in sync with what's actually in use, so
+  // the upload tag picker reads from a clean, alias-normalized list.
+  tagConfig.curated = derived;
+  curatedHost.innerHTML = derived.length
+    ? derived.map(t => `<span class="tag-pill" title="Used by ${counts[t] || 0} prompt${counts[t] === 1 ? '' : 's'}">${escapeHtml(t)} <span class="chip-count" style="opacity:.6;font-size:11px;margin-left:4px">${counts[t] || 0}</span></span>`).join('')
+    : '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No tags yet — tag a prompt to see it here.</span>';
 
   const aliasHost = document.getElementById('aliasList');
   if (!aliasHost) return;
@@ -7035,32 +7034,6 @@ function renderTagCurationPanel() {
     ).join('');
   }
 }
-// Wire curation panel handlers (the renderSettings function calls render below).
-document.getElementById('curatedTagAddBtn').addEventListener('click', () => {
-  const input = document.getElementById('curatedTagAddInput');
-  const t = (input.value || '').trim();
-  if (!t) return;
-  const normalized = normalizeTag(t);
-  if (!tagConfig.curated.includes(normalized)) tagConfig.curated.push(normalized);
-  input.value = '';
-  renderTagCurationPanel();
-});
-document.getElementById('curatedTagAddInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('curatedTagAddBtn').click(); }
-});
-document.getElementById('curatedRemoveUnusedBtn').addEventListener('click', () => {
-  const used = getUsedTagSet();
-  tagConfig.curated = (tagConfig.curated || []).filter(t => used.has(normalizeTag(t)));
-  renderTagCurationPanel();
-  toast('Unused curated tags removed — click "Save tag config" to publish.');
-});
-document.getElementById('curatedTagList').addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-rm-curated]');
-  if (!btn) return;
-  const t = btn.dataset.rmCurated;
-  tagConfig.curated = tagConfig.curated.filter(x => x !== t);
-  renderTagCurationPanel();
-});
 document.getElementById('aliasAddBtn').addEventListener('click', () => {
   const from = (document.getElementById('aliasFromInput').value || '').trim();
   const to = (document.getElementById('aliasToInput').value || '').trim();
@@ -7117,8 +7090,9 @@ document.getElementById('tagSaveBtn').addEventListener('click', async () => {
   const status = document.getElementById('tagSaveStatus');
   status.className = 'settings-status info';
   status.textContent = 'Saving…';
-  // Normalize curated through itself to canonicalize, dedupe, sort
-  tagConfig.curated = [...new Set(tagConfig.curated.map(normalizeTag).filter(Boolean))].sort();
+  // Tags are auto-derived from prompts — recompute fresh on every save so
+  // tags.json always reflects what's actually in use today.
+  tagConfig.curated = deriveCuratedTags();
   if (!isOwner()) {
     // No PAT — just keep it in memory + localStorage cache so chips still help locally.
     try { localStorage.setItem('prompton_tags_v1', JSON.stringify(tagConfig)); } catch(e) {}
@@ -7204,6 +7178,9 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   prompts = JSON.parse(JSON.stringify(seedPrompts));
   profiles = JSON.parse(JSON.stringify(seedProfiles));
   prompts.forEach(p => { if (p.versions && p.versions.length) syncTopLevelFromLatest(p); });
+  // Auto-derive the curated tag list from actual prompt usage so the picker
+  // suggestions stay in sync without any manual curation.
+  if (typeof deriveCuratedTags === 'function') tagConfig.curated = deriveCuratedTags();
   updateSyncBadge();
   window._uploadTagPicker = mountTagPicker('uploadTagPicker', []);
   if (!handleCompareHash()) renderGallery();
