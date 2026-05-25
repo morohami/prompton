@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>東京 今昔マップ — Tokyo Through Time</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1a1d24;
+    --ink-soft: #232730;
+    --ink-deep: #0f1116;
+    --cream: #e8e3d6;
+    --cream-dim: #a8a397;
+    --vermillion: #c54f3e;
+    --vermillion-glow: rgba(197, 79, 62, 0.25);
+    --gold: #c8a96a;
+    --line: #3a3d44;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%; overflow: hidden;
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--ink); color: var(--cream);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* === Maps === */
+  #mapWrap { position: absolute; inset: 0; }
+  #map, #mapCompare {
+    position: absolute; inset: 0;
+    background: #efeae0;
+  }
+  #map { z-index: 1; }
+  #mapCompare {
+    z-index: 2;
+    pointer-events: none;
+    clip-path: inset(0);
+    -webkit-clip-path: inset(0);
+    transition: opacity 0.12s linear;
+  }
+
+  /* === Brand === */
+  .brand {
+    position: absolute; top: 16px; left: 16px; z-index: 1000;
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    padding: 13px 20px 11px;
+    border-left: 3px solid var(--vermillion);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+  .brand h1 {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 19px; font-weight: 500; letter-spacing: 0.08em;
+    color: var(--cream); line-height: 1;
+  }
+  .brand .en {
+    font-size: 9px; color: var(--cream-dim); letter-spacing: 0.22em;
+    margin-top: 7px; text-transform: uppercase; font-weight: 300;
+  }
+
+  /* === Info badge === */
+  .info-badge {
+    position: absolute; top: 16px; right: 16px; z-index: 1000;
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    padding: 10px 16px;
+    border-right: 3px solid var(--gold);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    min-width: 180px; max-width: 260px;
+  }
+  .info-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; line-height: 1.4;
+  }
+  .info-row + .info-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .info-row .swatch {
+    width: 10px; height: 10px; flex-shrink: 0;
+  }
+  .info-row .swatch.bottom { background: var(--cream); }
+  .info-row .swatch.top { background: var(--vermillion); }
+  .info-row .lab {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 10px; color: var(--cream-dim); letter-spacing: 0.06em;
+    min-width: 16px;
+  }
+  .info-row .name {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; color: var(--cream);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* === Bottom panel === */
+  .panel {
+    position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 1000;
+    background: rgba(15, 17, 22, 0.94);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 16px 22px 18px;
+    border-top: 2px solid var(--vermillion);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+    max-width: 980px; margin: 0 auto;
+  }
+  .row { display: flex; gap: 14px; align-items: center; }
+  .row + .row {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* === Layer pickers === */
+  .picker-group {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    min-width: 0;
+  }
+  .picker-label {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.1em; color: var(--cream);
+    font-weight: 500; display: flex; align-items: center; gap: 7px;
+    flex-shrink: 0;
+  }
+  .picker-label .swatch {
+    width: 10px; height: 10px; display: inline-block;
+  }
+  .picker-label.bottom .swatch { background: var(--cream); }
+  .picker-label.top .swatch { background: var(--vermillion); }
+
+  .layer-picker {
+    flex: 1; min-width: 0;
+    background: var(--ink-soft); color: var(--cream);
+    border: 1px solid var(--line);
+    padding: 9px 32px 9px 11px;
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: 12px; letter-spacing: 0.03em;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    cursor: pointer; border-radius: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%23a8a397' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.15s;
+  }
+  .layer-picker:focus { outline: none; border-color: var(--vermillion); }
+  .layer-picker:hover { border-color: var(--cream-dim); }
+  .layer-picker option, .layer-picker optgroup {
+    background: var(--ink-deep); color: var(--cream);
+    font-family: "Noto Sans JP", sans-serif;
+  }
+  .layer-picker optgroup { font-style: normal; color: var(--gold); font-weight: 500; }
+
+  /* === Opacity slider === */
+  .slider-wrap { flex: 1; display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .slider {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 2px; background: var(--line); outline: none;
+    cursor: pointer; min-width: 60px;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--vermillion); cursor: pointer;
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+    transition: transform 0.15s;
+  }
+  .slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .slider::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--vermillion); cursor: pointer; border: none;
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+  }
+  .slider-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--cream); min-width: 42px;
+    text-align: right;
+  }
+  .slider-label {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.12em; color: var(--cream-dim);
+    flex-shrink: 0; min-width: 48px;
+  }
+
+  /* === Compare button === */
+  .compare-btn {
+    padding: 9px 18px;
+    background: transparent; border: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.2s;
+    font-weight: 500; flex-shrink: 0;
+  }
+  .compare-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
+  .compare-btn.active {
+    background: var(--vermillion); border-color: var(--vermillion);
+    color: var(--cream);
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+  }
+
+  /* === Swipe handle === */
+  .swipe-handle {
+    position: absolute; top: 0; bottom: 0; width: 3px;
+    background: var(--vermillion);
+    cursor: ew-resize; z-index: 998;
+    box-shadow: 0 0 20px rgba(197, 79, 62, 0.7), 0 0 40px rgba(197, 79, 62, 0.3);
+    display: none;
+    transform: translateX(-50%);
+    touch-action: none;
+  }
+  .swipe-handle.active { display: block; }
+  .swipe-handle::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--vermillion);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(197, 79, 62, 0.3);
+  }
+  .swipe-handle::after {
+    content: '⇆'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--cream); font-size: 18px; font-weight: bold;
+    pointer-events: none;
+  }
+  .swipe-label {
+    position: absolute; top: 90px; z-index: 997;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--cream); background: rgba(15, 17, 22, 0.85);
+    padding: 6px 12px; pointer-events: none;
+    backdrop-filter: blur(8px);
+    display: none;
+    max-width: 40vw;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .swipe-label.active { display: block; }
+  .swipe-label.bottom { left: 16px; }
+  .swipe-label.top { right: 16px; }
+  .swipe-label .swatch {
+    display: inline-block; width: 8px; height: 8px;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .swipe-label.bottom .swatch { background: var(--cream); }
+  .swipe-label.top .swatch { background: var(--vermillion); }
+
+  /* === Leaflet overrides === */
+  .leaflet-control-attribution {
+    background: rgba(15, 17, 22, 0.88) !important;
+    color: var(--cream-dim) !important;
+    font-size: 10px !important; padding: 4px 10px !important;
+    border: none !important;
+    max-width: 70vw;
+  }
+  .leaflet-control-attribution a { color: var(--gold) !important; }
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+    margin-top: 80px !important;
+  }
+  .leaflet-control-zoom a {
+    background: rgba(15, 17, 22, 0.92) !important;
+    color: var(--cream) !important;
+    border-color: var(--line) !important;
+    backdrop-filter: blur(8px);
+  }
+  .leaflet-control-zoom a:hover {
+    background: var(--vermillion) !important;
+    color: var(--cream) !important;
+  }
+
+  /* === Hint === */
+  .hint {
+    position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; color: var(--cream-dim);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 13px; letter-spacing: 0.1em;
+    background: rgba(15, 17, 22, 0.88);
+    padding: 10px 20px; backdrop-filter: blur(8px);
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.4s;
+    border-left: 2px solid var(--gold);
+    text-align: center; max-width: 480px;
+  }
+  .hint.show { opacity: 1; }
+
+  /* === Mobile === */
+  @media (max-width: 720px) {
+    .panel { padding: 12px 14px 14px; bottom: 8px; left: 8px; right: 8px; }
+    .row { flex-wrap: wrap; gap: 10px; }
+    .row + .row { padding-top: 10px; margin-top: 10px; }
+    .picker-group { flex: 1 1 100%; min-width: 0; }
+    .slider-wrap { flex: 1 1 100%; }
+    .slider-label { min-width: 0; }
+    .info-badge { display: none; }
+    .brand { padding: 9px 14px 7px; }
+    .brand h1 { font-size: 15px; }
+    .brand .en { font-size: 8px; margin-top: 5px; }
+    .compare-btn { padding: 11px 14px; flex: 1; }
+    .leaflet-control-zoom { margin-top: 70px !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="mapWrap">
+  <div id="map"></div>
+  <div id="mapCompare"></div>
+</div>
+
+<div class="swipe-handle" id="swipeHandle"></div>
+<div class="swipe-label bottom" id="swipeLabelLeft"><span class="swatch"></span><span id="swipeLabelLeftText">下のレイヤー</span></div>
+<div class="swipe-label top" id="swipeLabelRight"><span class="swatch"></span><span id="swipeLabelRightText">上のレイヤー</span></div>
+
+<div class="brand">
+  <h1>東京 今昔マップ</h1>
+  <div class="en">Tokyo · Through Time</div>
+</div>
+
+<div class="info-badge">
+  <div class="info-row">
+    <span class="swatch bottom"></span>
+    <span class="lab">下</span>
+    <span class="name" id="badgeBottom">…</span>
+  </div>
+  <div class="info-row">
+    <span class="swatch top"></span>
+    <span class="lab">上</span>
+    <span class="name" id="badgeTop">…</span>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="row">
+    <div class="picker-group">
+      <div class="picker-label bottom"><span class="swatch"></span>下</div>
+      <select class="layer-picker" id="bottomPicker" aria-label="下のレイヤー"></select>
+    </div>
+    <div class="picker-group">
+      <div class="picker-label top"><span class="swatch"></span>上</div>
+      <select class="layer-picker" id="topPicker" aria-label="上のレイヤー"></select>
+    </div>
+  </div>
+  <div class="row">
+    <span class="slider-label">透過</span>
+    <div class="slider-wrap">
+      <input type="range" min="0" max="100" value="80" class="slider" id="opacitySlider" />
+      <div class="slider-val" id="opacityVal">80%</div>
+    </div>
+    <button class="compare-btn" id="compareBtn">⇆ 比較</button>
+  </div>
+</div>
+
+<div class="hint" id="hint"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+
+// ============================================================
+// レイヤーカタログ
+// 各レイヤーは { id, cat, label, year, url, attr, min, max } の形
+// cat: 'modern' | 'aerial' | 'topo'
+// 既存の URL は GSI 地理院タイル + OpenStreetMap で安定動作確認済み
+// 地形図 (qchizu) は実行時に URL パターンを検出して追加する
+// ============================================================
+const GSI_ATTR = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>';
+const ALL_LAYERS = [
+  // 現代地図
+  { id: 'pale', cat: 'modern', label: '淡色地図 (現代)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 2, max: 18 },
+  { id: 'std', cat: 'modern', label: '標準地図 (現代)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 2, max: 18 },
+  { id: 'seamlessphoto', cat: 'modern', label: '衛星写真 (現代)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
+    attr: GSI_ATTR + '（シームレス空中写真）', min: 2, max: 18 },
+  { id: 'osm', cat: 'modern', label: 'OpenStreetMap',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    min: 0, max: 19 },
+  { id: 'blank', cat: 'modern', label: '白地図 (注記なし)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/blank/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 5, max: 14 },
+  { id: 'relief', cat: 'modern', label: '色別標高図',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 5, max: 15 },
+  { id: 'hillshademap', cat: 'modern', label: '陰影起伏図',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 2, max: 16 },
+
+  // 航空写真 (年代別)
+  { id: 'ort_USA10', cat: 'aerial', label: '航空写真 1945–1950 (米軍撮影)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_USA10/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 8, max: 17 },
+  { id: 'ort_old10', cat: 'aerial', label: '航空写真 1961–1964',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_old10/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 8, max: 17 },
+  { id: 'gazo1', cat: 'aerial', label: '航空写真 1974–1978',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo1/{z}/{x}/{y}.jpg',
+    attr: GSI_ATTR, min: 10, max: 17 },
+  { id: 'gazo2', cat: 'aerial', label: '航空写真 1979–1983',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo2/{z}/{x}/{y}.jpg',
+    attr: GSI_ATTR, min: 10, max: 17 },
+  { id: 'gazo3', cat: 'aerial', label: '航空写真 1984–1986',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo3/{z}/{x}/{y}.jpg',
+    attr: GSI_ATTR, min: 10, max: 17 },
+  { id: 'gazo4', cat: 'aerial', label: '航空写真 1987–1990',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo4/{z}/{x}/{y}.jpg',
+    attr: GSI_ATTR, min: 10, max: 17 },
+  { id: 'ort', cat: 'aerial', label: '航空写真 2007以降 (最新正射)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg',
+    attr: GSI_ATTR, min: 2, max: 18 },
+  // 地形図 (qchizu) は実行時に追加される ↓
+];
+
+const TOPO_META = [
+  { nn: '01', year: '1952–1958' },
+  { nn: '02', year: '1959–1962' },
+  { nn: '03', year: '1963–1966' },
+  { nn: '04', year: '1967–1970' },
+  { nn: '05', year: '1971–1975' },
+  { nn: '06', year: '1976–1980' },
+  { nn: '07', year: '1981–1988' },
+  { nn: '08', year: '1989–1994' },
+];
+
+const CAT_LABEL = {
+  modern: '現代地図 (今)',
+  aerial: '航空写真 (年代別・空からの写真)',
+  topo:   '地形図 1:3,000 (東京都・年代別・古い地図)',
+};
+
+function findLayer(id) { return ALL_LAYERS.find(l => l.id === id); }
+
+// ============================================================
+// qchizu 東京1:3,000 地形図の URL パターン自動検出
+// ============================================================
+const TEST_Z = 16, TEST_X = 58222, TEST_Y = 25813;
+const URL_CANDIDATES = [
+  'https://mapdata.qchizu2.xyz/13p/tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu.xyz/13p/tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu.jp/13p/tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu2.xyz/13p/tokyo_{NN}/{z}/{x}/{y}.webp',
+  'https://mapdata.qchizu.xyz/13p/tokyo_{NN}/{z}/{x}/{y}.webp',
+  'https://mapdata.qchizu2.xyz/01_topo/13p/tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu.xyz/01_topo/13p/tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu2.xyz/13p/tokyo/{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu.xyz/13p/tokyo/{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu2.xyz/13p_tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu.xyz/13p_tokyo_{NN}/{z}/{x}/{y}.png',
+  'https://mapdata.qchizu2.xyz/01_topo/13p_tokyo/{NN}/{z}/{x}/{y}.png',
+];
+
+function testTile(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const t = setTimeout(() => { img.src = ''; resolve(false); }, 6000);
+    img.onload = () => { clearTimeout(t); resolve(img.naturalWidth > 0); };
+    img.onerror = () => { clearTimeout(t); resolve(false); };
+    img.crossOrigin = 'anonymous';
+    img.src = url;
+  });
+}
+
+async function detectTopoPattern() {
+  for (const pattern of URL_CANDIDATES) {
+    const url = pattern.replace('{NN}', '03').replace('{z}', TEST_Z).replace('{x}', TEST_X).replace('{y}', TEST_Y);
+    console.log('[検出] 試行:', url);
+    if (await testTile(url)) {
+      console.log('[検出] ✅ 成功:', pattern);
+      return pattern;
+    }
+  }
+  return null;
+}
+
+function addTopoLayers(pattern) {
+  TOPO_META.forEach(m => {
+    ALL_LAYERS.push({
+      id: 'tokyo_' + m.nn,
+      cat: 'topo',
+      label: `地形図 ${m.year}`,
+      url: pattern.replace('{NN}', m.nn),
+      attr: '<a href="https://qchizu.jp/" target="_blank">全国Q地図（東京都1:3,000地形図）</a>',
+      min: 13, max: 19,
+    });
+  });
+}
+
+// ============================================================
+// 2画面同期 Leaflet マップ
+// ============================================================
+const baseOptions = {
+  center: [35.677762, 139.772218],
+  zoom: 16, minZoom: 5, maxZoom: 19,
+  zoomAnimation: false, // 2マップ間のズーム同期を確実にするため無効化
+  fadeAnimation: true,
+  wheelDebounceTime: 20,
+};
+
+const mapA = L.map('map', Object.assign({}, baseOptions, { zoomControl: true, attributionControl: true }));
+const mapB = L.map('mapCompare', Object.assign({}, baseOptions, { zoomControl: false, attributionControl: false }));
+
+// === 一方向同期 (mapA を主、mapB が追従) ===
+// mapB は pointer-events: none なので入力は受けない → 同期は片方向で十分
+let syncLock = false;
+function syncBToA() {
+  if (syncLock) return;
+  syncLock = true;
+  mapB.setView(mapA.getCenter(), mapA.getZoom(), { animate: false });
+  syncLock = false;
+}
+mapA.on('move zoom zoomend resize', syncBToA);
+syncBToA();
+
+// ============================================================
+// レイヤー状態
+// ============================================================
+let bottomLayerObj = null, topLayerObj = null;
+let bottomLayerId = 'pale';
+let topLayerId = 'ort_old10';
+let bottomAttrStr = null, topAttrStr = null;
+let opacity = 0.8;
+let compareActive = false;
+let swipeX = window.innerWidth / 2;
+
+const mapCompareDiv = document.getElementById('mapCompare');
+const swipeHandle = document.getElementById('swipeHandle');
+const swipeLabelL = document.getElementById('swipeLabelLeft');
+const swipeLabelR = document.getElementById('swipeLabelRight');
+const swipeLabelLText = document.getElementById('swipeLabelLeftText');
+const swipeLabelRText = document.getElementById('swipeLabelRightText');
+const badgeBottom = document.getElementById('badgeBottom');
+const badgeTop = document.getElementById('badgeTop');
+
+function setBottomLayer(id) {
+  const def = findLayer(id);
+  if (!def) return;
+  if (bottomLayerObj) {
+    mapA.removeLayer(bottomLayerObj);
+    if (bottomAttrStr) mapA.attributionControl.removeAttribution(bottomAttrStr);
+  }
+  bottomLayerObj = L.tileLayer(def.url, {
+    minZoom: def.min, maxZoom: 19, maxNativeZoom: def.max,
+    attribution: def.attr,
+  }).addTo(mapA);
+  bottomAttrStr = def.attr;
+  bottomLayerId = id;
+  badgeBottom.textContent = def.label;
+  swipeLabelLText.textContent = def.label;
+}
+
+function setTopLayer(id) {
+  const def = findLayer(id);
+  if (!def) return;
+  if (topLayerObj) {
+    mapB.removeLayer(topLayerObj);
+    if (topAttrStr) mapA.attributionControl.removeAttribution(topAttrStr);
+  }
+  topLayerObj = L.tileLayer(def.url, {
+    minZoom: def.min, maxZoom: 19, maxNativeZoom: def.max,
+    attribution: def.attr,
+  }).addTo(mapB);
+  // mapB は attribution control を持たないので、mapA 側に上レイヤーの帰属を統合表示
+  if (def.attr) mapA.attributionControl.addAttribution(def.attr);
+  topAttrStr = def.attr;
+  topLayerId = id;
+  badgeTop.textContent = def.label;
+  swipeLabelRText.textContent = def.label;
+}
+
+// ============================================================
+// 透過・比較・スワイプ
+// ============================================================
+function applyOpacity() {
+  // 比較中は上レイヤーをくっきり見せたいので opacity 1。それ以外はスライダー値。
+  mapCompareDiv.style.opacity = compareActive ? '1' : opacity;
+}
+
+function setSwipeX(x) {
+  swipeX = Math.max(0, Math.min(window.innerWidth, x));
+  swipeHandle.style.left = swipeX + 'px';
+  if (!compareActive) return;
+  // mapCompare は inset:0 で全画面と一致するため、viewport 座標がそのまま使える
+  const rect = mapCompareDiv.getBoundingClientRect();
+  const localX = swipeX - rect.left;
+  const clip = `inset(0 0 0 ${localX}px)`;
+  mapCompareDiv.style.clipPath = clip;
+  mapCompareDiv.style.webkitClipPath = clip;
+}
+
+function applyCompare() {
+  document.getElementById('compareBtn').classList.toggle('active', compareActive);
+  swipeHandle.classList.toggle('active', compareActive);
+  swipeLabelL.classList.toggle('active', compareActive);
+  swipeLabelR.classList.toggle('active', compareActive);
+  if (compareActive) {
+    // 初回中央付近に寄せる
+    swipeX = Math.min(Math.max(swipeX, 80), Math.max(window.innerWidth - 80, 160));
+    setSwipeX(swipeX);
+  } else {
+    mapCompareDiv.style.clipPath = 'inset(0)';
+    mapCompareDiv.style.webkitClipPath = 'inset(0)';
+  }
+  applyOpacity();
+}
+
+// ============================================================
+// UI 配線
+// ============================================================
+const slider = document.getElementById('opacitySlider');
+const sliderVal = document.getElementById('opacityVal');
+slider.addEventListener('input', () => {
+  opacity = slider.value / 100;
+  sliderVal.textContent = slider.value + '%';
+  applyOpacity();
+});
+
+document.getElementById('compareBtn').addEventListener('click', () => {
+  compareActive = !compareActive;
+  applyCompare();
+  if (compareActive) showHint('ハンドルをドラッグして境界を移動できます', 2800);
+});
+
+// === ハンドルドラッグ ===
+let dragging = false;
+function startDrag(e) { dragging = true; e.preventDefault(); e.stopPropagation(); }
+function moveDrag(e) {
+  if (!dragging) return;
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  setSwipeX(x);
+}
+function endDrag() { dragging = false; }
+swipeHandle.addEventListener('mousedown', startDrag);
+swipeHandle.addEventListener('touchstart', startDrag, { passive: false });
+swipeHandle.addEventListener('pointerdown', e => e.stopPropagation());
+window.addEventListener('mousemove', moveDrag);
+window.addEventListener('touchmove', moveDrag, { passive: false });
+window.addEventListener('mouseup', endDrag);
+window.addEventListener('touchend', endDrag);
+window.addEventListener('resize', () => {
+  mapB.invalidateSize({ animate: false });
+  if (compareActive) setSwipeX(Math.min(swipeX, window.innerWidth));
+});
+
+// パン中も境界が画面上で固定されるよう、move のたびに再適用 (mapCompareDiv は動かないが念のため)
+mapA.on('move', () => { if (compareActive) setSwipeX(swipeX); });
+
+// === ドロップダウン構築 ===
+function buildPickerOptions(selectEl, selectedId) {
+  selectEl.innerHTML = '';
+  const groups = {};
+  ALL_LAYERS.forEach(l => {
+    if (!groups[l.cat]) groups[l.cat] = [];
+    groups[l.cat].push(l);
+  });
+  ['modern', 'aerial', 'topo'].forEach(cat => {
+    if (!groups[cat] || !groups[cat].length) return;
+    const og = document.createElement('optgroup');
+    og.label = CAT_LABEL[cat];
+    groups[cat].forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.label;
+      if (l.id === selectedId) opt.selected = true;
+      og.appendChild(opt);
+    });
+    selectEl.appendChild(og);
+  });
+}
+
+const bottomPicker = document.getElementById('bottomPicker');
+const topPicker = document.getElementById('topPicker');
+bottomPicker.addEventListener('change', () => setBottomLayer(bottomPicker.value));
+topPicker.addEventListener('change', () => setTopLayer(topPicker.value));
+
+function refreshPickers() {
+  buildPickerOptions(bottomPicker, bottomLayerId);
+  buildPickerOptions(topPicker, topLayerId);
+}
+
+// === ヒント ===
+const hint = document.getElementById('hint');
+function showHint(msg, dur) {
+  hint.textContent = msg;
+  hint.classList.add('show');
+  if (dur) setTimeout(() => hint.classList.remove('show'), dur);
+}
+
+// ============================================================
+// 起動
+// ============================================================
+refreshPickers();
+setBottomLayer(bottomLayerId);
+setTopLayer(topLayerId);
+applyOpacity();
+
+// バックグラウンドで地形図 URL 検出 → 完了後に地形図 8 世代を追加
+showHint('地形図タイルを検出中…');
+(async () => {
+  const pattern = await detectTopoPattern();
+  if (pattern) {
+    addTopoLayers(pattern);
+    showHint('✅ 地形図タイル検出成功 — ドロップダウンから選択できます', 2400);
+    // デフォルトの上レイヤーを 1963–66 地形図に切替
+    topLayerId = 'tokyo_03';
+    refreshPickers();
+    setTopLayer(topLayerId);
+  } else {
+    showHint('地形図タイル検出失敗 — 航空写真と現代地図のみ利用可', 5000);
+  }
+})();
+</script>
+</body>
+</html>
