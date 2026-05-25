@@ -708,6 +708,11 @@ function renderDetail(id, viewingVersionNum) {
     clearTimeout(btn._copyTimer);
     btn._copyTimer = setTimeout(() => { btn.classList.remove('success'); btn.innerHTML = originalHTML; }, 1800);
     document.querySelector('.detail-byline').innerHTML = document.querySelector('.detail-byline').innerHTML.replace(/[\d,]+ downloads/, formatNum(p.downloads) + ' downloads');
+    // Owner-only: persist the increment so the count survives reload + shows
+    // up on other devices. Fire-and-forget — local increment already happened.
+    if (isOwner()) {
+      bumpDownloadCountOnGitHub(p).catch(err => console.warn('Download count push failed:', err));
+    }
   });
 
   document.getElementById('forkBtn').addEventListener('click', () => {

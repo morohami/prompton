@@ -224,6 +224,27 @@ async function updatePromptMetadataOnGitHub(prompt) {
   try { await pushOGPageToGitHub(prompt); } catch (e) { console.warn('OG page refresh failed:', e); }
 }
 
+// Owner-only: persist a single increment of a prompt's download counter to
+// the manifest. Reads the live manifest (so concurrent edits don't clobber),
+// bumps just the `downloads` field for this prompt, PUTs it back. Best-effort
+// — failures don't undo the local increment.
+async function bumpDownloadCountOnGitHub(prompt) {
+  const cfg = getSyncConfig();
+  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+  const manText = b64ToUtf8(manRaw.content);
+  let manifest;
+  try { manifest = JSON.parse(manText); }
+  catch (e) { return; }
+  const idx = manifest.findIndex(p => p.id === prompt.id);
+  if (idx < 0) return;
+  manifest[idx].downloads = (manifest[idx].downloads || 0) + 1;
+  await ghPutFile('manifest.json', JSON.stringify(manifest, null, 2), 'Prompton: +1 download for ' + prompt.id, manRaw.sha);
+  if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+    const s = seedPrompts.find(x => x.id === prompt.id);
+    if (s) s.downloads = manifest[idx].downloads;
+  }
+}
+
 // Conservative HTML cleanup — safe on arbitrary prompt output.
 //   - Strip UTF-8 BOM
 //   - Normalize CRLF → LF
