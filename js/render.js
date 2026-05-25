@@ -6,6 +6,14 @@
 // renderCompare, renderTagChips, isOwner, pushPromptToGitHub, updatePromptMetadataOnGitHub,
 // deletePromptFromGitHub, ghGetSha, ghPutFile, cleanupHtml, pushThumbnailToGitHub.
 
+// Cache-bust thumbnail URLs. Without ?v=, browsers + the SW can hold onto an
+// older blob even after the file is regenerated on GitHub. `thumbVer` is a
+// monotonic timestamp set whenever pushThumbnailToGitHub uploads a fresh blob.
+function thumbUrl(p) {
+  if (!p || !p.thumb) return '';
+  return p.thumbVer ? `${p.thumb}?v=${p.thumbVer}` : p.thumb;
+}
+
 function titleWithEmphasis(title) {
   const words = (title || '').split(' ');
   if (words.length < 2) return escapeHtml(title);
@@ -28,7 +36,7 @@ function renderRankings(metric) {
 
   el.innerHTML = `
     <div class="rankings-wrap">
-      <h1>🏆 <em>Rankings</em></h1>
+      <h1><em>Rankings</em></h1>
       <p class="lede">Top prompts by ${metric}. Updated live from the manifest.</p>
       <div class="ranking-totals">
         <div><div class="num">${formatNum(totalDl)}</div><div class="lbl">Total downloads</div></div>
@@ -44,7 +52,7 @@ function renderRankings(metric) {
           const primary = p[metric] || 0;
           const other = p[labelOther] || 0;
           const thumb = p.thumb
-            ? `<img class="rank-thumb" loading="lazy" decoding="async" src="${escapeAttr(p.thumb)}" alt="">`
+            ? `<img class="rank-thumb" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
             : '<div class="rank-thumb empty"></div>';
           return `<li class="rank-row" data-go="${p.id}">
             <span class="rank-pos">${i + 1}</span>
@@ -127,7 +135,7 @@ function renderGallery() {
       '<div class="album-card" data-news-go="' + p.id + '">' +
         '<div class="album-thumb">' +
           (p.thumb
-            ? '<img class="thumb-img" loading="lazy" decoding="async" src="' + escapeAttr(p.thumb) + '" alt="">'
+            ? '<img class="thumb-img" loading="lazy" decoding="async" src="' + escapeAttr(thumbUrl(p)) + '" alt="">'
             : '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>') +
           '<button type="button" class="album-fullscreen" data-fullscreen-id="' + p.id + '" title="View this HTML fullscreen" aria-label="View fullscreen">⛶</button>' +
           '<div class="album-play" title="Open prompt">▶</div>' +
@@ -292,7 +300,7 @@ function renderGallery() {
     const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} knobs</span>` : '';
     const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
     const thumbInner = p.thumb
-      ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(p.thumb)}" alt="">`
+      ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
       : `<div class="thumb-mount card-thumb-mount" data-thumb-id="${p.id}"></div>`;
     card.innerHTML = `
       <div class="thumb-wrap">
@@ -652,12 +660,16 @@ function renderDetail(id, viewingVersionNum) {
     }).catch(() => toast('Copy failed — select and copy manually'));
   };
 
-  // Assign the prompt HTML to the live-preview iframe via JS instead of an
-  // inline srcdoc attribute. With a 70KB+ HTML payload some browsers (mobile
-  // Safari especially) choke on the giant escaped attribute, leaving the
-  // iframe blank. Setting `.srcdoc` directly sidesteps the attribute parser.
+  // Point the live-preview iframe at the real HTML file. Streaming parse is
+  // far faster than srcdoc for 70KB+ payloads, and the URL matches the
+  // standalone open link so the browser only fetches once.
   const previewIframe = document.getElementById('detailPreviewIframe');
-  if (previewIframe) previewIframe.srcdoc = view.html || '';
+  if (previewIframe) {
+    const previewSrc = isViewingPast
+      ? `htmls/${p.id}_v${viewing}.html`
+      : `htmls/${p.id}.html`;
+    previewIframe.src = previewSrc;
+  }
 
   // Wire actions
   document.getElementById('downloadBtn').addEventListener('click', (e) => {

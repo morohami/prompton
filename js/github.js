@@ -241,15 +241,16 @@ function cleanupHtml(raw) {
 }
 
 // ─── Thumbnail snapshots ───
-// Load html2canvas from CDN once. Returns a promise resolved to window.html2canvas.
+// Load html2canvas (vendored locally) once. Returns a promise resolved to
+// window.html2canvas. Vendored same-origin so Brave Shields / strict CSPs that
+// block cdnjs don't silently break thumbnail generation.
 function loadHtml2Canvas() {
   if (window.html2canvas) return Promise.resolve(window.html2canvas);
   if (window._h2cLoading) return window._h2cLoading;
   window._h2cLoading = new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.src = 'js/html2canvas.min.js';
     s.async = true;
-    s.crossOrigin = 'anonymous';
     s.onload = () => resolve(window.html2canvas);
     s.onerror = () => reject(new Error('html2canvas failed to load'));
     document.head.appendChild(s);
@@ -351,6 +352,9 @@ async function pushThumbnailToGitHub(prompt, html) {
   const path = 'thumbs/' + prompt.id + '.jpg';
   const sha = await ghGetSha(path);
   await ghPutBinaryFile(path, blob, 'Prompton: thumbnail for ' + prompt.id, sha);
+  // Stamp a cache buster so the browser fetches the fresh blob instead of an
+  // old copy from disk cache. Render sites read `p.thumbVer`.
+  prompt.thumbVer = Date.now();
   return path;
 }
 

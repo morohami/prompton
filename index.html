@@ -15,11 +15,11 @@
   <div class="brand" data-nav="gallery">Prompton <em>— recipes for AI</em></div>
   <nav class="nav-actions">
     <a data-nav="gallery">Browse</a>
-    <a data-nav="rankings">🏆 Rankings</a>
+    <a data-nav="rankings">Rankings</a>
     <a data-nav="profile">Profile</a>
     <a id="themeToggle" class="nav-theme" title="Toggle light/dark theme" aria-label="Toggle theme">☀</a>
     <a data-nav="settings" class="nav-settings" title="GitHub sync settings">⚙</a>
-    <button class="btn-upload" data-nav="upload">＋ Share a prompt</button>
+    <button class="btn-upload" data-nav="upload">＋ Share a prompton</button>
   </nav>
 </header>
 
@@ -1023,7 +1023,7 @@ document.getElementById('thumbRegenBtn').addEventListener('click', async () => {
       const path = await pushThumbnailToGitHub(p, p.html);
       p.thumb = path;
       const seed = seedPrompts.find(x => x.id === p.id);
-      if (seed) seed.thumb = path;
+      if (seed) { seed.thumb = path; seed.thumbVer = p.thumbVer; }
       await updatePromptMetadataOnGitHub(p);
       done++;
     } catch (e) {

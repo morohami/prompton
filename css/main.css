@@ -1,56 +1,57 @@
   /* ─── Theme variables ─── */
   /* Default (no data-theme yet): light palette — readability first */
+  /* Stanford / California / SF palette — Cardinal + gold on paper, Bay-night dark mode */
   :root, :root[data-theme="light"] {
-    --bg: #faf8f3;
-    --bg-2: #f3f0e8;
+    --bg: #fafaf6;               /* paper */
+    --bg-2: #f1ede3;
     --bg-elevated: #ffffff;
     --bg-card: #ffffff;
-    --bg-card-hover: #f6f2e9;
+    --bg-card-hover: #f5f1e6;
     --bg-top: #ffffff;
-    --text: #1a1a1a;
-    --text-secondary: #4d4d4d;
-    --text-muted: #707070;
-    --accent: #e8893a;           /* soft persimmon-orange */
-    --accent-hover: #d67625;
-    --accent-deep: #b85e15;
-    --accent-on: #1a1a1a;        /* dark text on soft orange — keeps the orange soft */
-    --border: rgba(0,0,0,0.08);
-    --border-strong: rgba(0,0,0,0.16);
-    --hover: rgba(0,0,0,0.04);
-    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.05);
-    --overlay-strong: rgba(0,0,0,0.55);
-    --surface-tint: rgba(0,0,0,0.04);
+    --text: #1c1c20;             /* ink */
+    --text-secondary: #4a4a52;
+    --text-muted: #6e6e74;
+    --accent: #8C1515;           /* Stanford Cardinal */
+    --accent-hover: #a31a1a;
+    --accent-deep: #6e1010;
+    --accent-on: #ffffff;
+    --border: #c4c4c2;           /* rule — solid so issue-line reads clearly */
+    --border-strong: #9d9d9b;
+    --hover: rgba(28,28,32,0.04);
+    --shadow: 0 1px 2px rgba(28,28,32,0.05), 0 4px 12px rgba(28,28,32,0.06);
+    --overlay-strong: rgba(28,28,32,0.55);
+    --surface-tint: rgba(28,28,32,0.04);
     --input-bg: #ffffff;
-    --input-focus-bg: #f9f5ec;
-    --kbd-bg: rgba(0,0,0,0.06);
-    --kbd-border: rgba(0,0,0,0.12);
-    --iframe-frame: rgba(0,0,0,0.08);
+    --input-focus-bg: #faf5e8;
+    --kbd-bg: rgba(28,28,32,0.06);
+    --kbd-border: rgba(28,28,32,0.14);
+    --iframe-frame: rgba(28,28,32,0.10);
   }
   :root[data-theme="dark"] {
-    --bg: #121212;
-    --bg-2: #181818;
-    --bg-elevated: #1a1a1a;
-    --bg-card: #181818;
-    --bg-card-hover: #282828;
-    --bg-top: rgba(0,0,0,0.75);
-    --text: #ffffff;
-    --text-secondary: #b3b3b3;
-    --text-muted: #6a6a6a;
-    --accent: #1db954;
-    --accent-hover: #1ed760;
-    --accent-deep: #169c46;
-    --accent-on: #000000;
-    --border: rgba(255,255,255,0.08);
-    --border-strong: rgba(255,255,255,0.18);
-    --hover: rgba(255,255,255,0.06);
-    --shadow: 0 4px 16px rgba(0,0,0,0.4);
-    --overlay-strong: rgba(0,0,0,0.75);
-    --surface-tint: rgba(255,255,255,0.06);
-    --input-bg: #1f1f1f;
-    --input-focus-bg: #2a2a2a;
-    --kbd-bg: rgba(255,255,255,0.08);
-    --kbd-border: rgba(255,255,255,0.12);
-    --iframe-frame: rgba(255,255,255,0.10);
+    --bg: #0e1014;               /* Bay night */
+    --bg-2: #14171c;
+    --bg-elevated: #181c22;
+    --bg-card: #14181e;
+    --bg-card-hover: #1f242c;
+    --bg-top: rgba(8,10,14,0.78);
+    --text: #e8e6e1;
+    --text-secondary: #b3b1ab;
+    --text-muted: #767870;
+    --accent: #b53a3a;           /* warm cardinal — readable on Bay night */
+    --accent-hover: #c75050;
+    --accent-deep: #8c2828;
+    --accent-on: #ffffff;
+    --border: #2a2e35;
+    --border-strong: #3d424b;
+    --hover: rgba(232,230,225,0.06);
+    --shadow: 0 4px 16px rgba(0,0,0,0.5);
+    --overlay-strong: rgba(0,0,0,0.78);
+    --surface-tint: rgba(232,230,225,0.05);
+    --input-bg: #1a1e25;
+    --input-focus-bg: #232830;
+    --kbd-bg: rgba(232,230,225,0.08);
+    --kbd-border: rgba(232,230,225,0.14);
+    --iframe-frame: rgba(232,230,225,0.10);
   }
 
   :root {
@@ -63,7 +64,7 @@
     --tomato: var(--accent);
     --tomato-deep: var(--accent-hover);
     --olive: var(--accent);
-    --mustard: #f0c245;
+    --mustard: #c9a14a;          /* California gold */
     --card: var(--bg-card);
   }
 

@@ -428,8 +428,9 @@ async function submitBulkUpload(formEl) {
         const path = 'thumbs/' + p.id + '.jpg';
         thumbFiles.push({ path: path, content: blob });
         p.thumb = path;
+        p.thumbVer = Date.now();
         const s = seedPrompts.find(x => x.id === p.id);
-        if (s) s.thumb = path;
+        if (s) { s.thumb = path; s.thumbVer = p.thumbVer; }
       } catch (e) { console.warn('Bulk thumb failed for ' + p.id + ':', e); }
     }
     if (!thumbFiles.length) return;
@@ -440,7 +441,7 @@ async function submitBulkUpload(formEl) {
       const byId = new Map(m2.map(e => [e.id, e]));
       for (const p of newPrompts) {
         const e = byId.get(p.id);
-        if (e) e.thumb = 'thumbs/' + p.id + '.jpg';
+        if (e) { e.thumb = 'thumbs/' + p.id + '.jpg'; e.thumbVer = p.thumbVer; }
       }
       thumbFiles.push({ path: 'manifest.json', content: JSON.stringify(m2, null, 2) });
       await ghBulkCommit(thumbFiles, 'Prompton: bulk thumbnails for ' + newPrompts.length + ' prompts');
