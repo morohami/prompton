@@ -86,6 +86,10 @@
     "testConn": "接続テスト",
     "clearToken": "保存済みトークンを削除",
     "tagTitle": "タグ管理",
+    "signIn": "GitHubでサインイン",
+    "signInHint": "OAuthバックエンドがデプロイ済みの場合（OAUTH_SETUP.md参照）、PATなしで書き込み可能。未デプロイ時は下のPATモードを使用。",
+    "signInBtn": "GitHubでサインイン",
+    "signOutBtn": "サインアウト",
     "language": "言語",
     "languageHint": "UI表示の言語設定（プロンプト本文には影響しません）"
   }

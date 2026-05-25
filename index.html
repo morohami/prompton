@@ -195,6 +195,17 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
   <div class="settings-wrap">
     <h1 data-i18n-html="settings.ghTitle">Sync with <em>GitHub</em>.</h1>
     <p class="lede">Your collection lives in a GitHub repo. New uploads are committed via the GitHub API using a Personal Access Token (PAT) you supply here. Read access stays public — only you can write.</p>
+
+    <div class="tag-curation" id="oauthPanel">
+      <h2 data-i18n="settings.signIn">Sign in with GitHub</h2>
+      <p class="lede" data-i18n="settings.signInHint">When the OAuth backend is deployed (see OAUTH_SETUP.md), sign in to write without a personal token. Falls back to PAT mode below if unavailable.</p>
+      <div class="settings-status" id="authStatus" style="margin-bottom:10px"></div>
+      <div class="settings-actions">
+        <a href="/auth/login?return_to=%23%2Fsettings" class="btn-secondary" id="signInLink" data-i18n="settings.signInBtn">Sign in with GitHub</a>
+        <button type="button" class="btn-text" id="signOutBtn" data-i18n="settings.signOutBtn" style="display:none">Sign out</button>
+      </div>
+    </div>
+
     <form id="settingsForm">
       <div class="settings-field">
         <label>Repository <span class="hint">user/repo — where the collection is stored</span></label>
@@ -1018,8 +1029,44 @@ function checkUndeclaredVars() {
 // generateOGPageHtml, pushOGPageToGitHub, deleteOGPageFromGitHub,
 // deletePromptFromGitHub, updatePromptMetadataOnGitHub, cleanupHtml,
 // blobToBase64, pushPromptToGitHub.
+// Fetch the auth status from the OAuth backend (if deployed) and reflect it
+// in the Settings panel. Graceful no-op when /auth/me 404s — most local
+// dev environments don't run the Functions.
+async function refreshAuthStatus() {
+  const status = document.getElementById('authStatus');
+  const signInLink = document.getElementById('signInLink');
+  const signOutBtn = document.getElementById('signOutBtn');
+  if (!status) return;
+  try {
+    const r = await fetch('/auth/me', { credentials: 'same-origin' });
+    if (!r.ok) throw new Error('no auth backend');
+    const me = await r.json();
+    if (me && me.login) {
+      status.className = 'settings-status ok';
+      status.textContent = '✓ Signed in as @' + me.login;
+      signInLink.style.display = 'none';
+      signOutBtn.style.display = '';
+    } else {
+      status.className = 'settings-status info';
+      status.textContent = 'Not signed in.';
+      signInLink.style.display = '';
+      signOutBtn.style.display = 'none';
+    }
+  } catch (e) {
+    status.className = 'settings-status info';
+    status.textContent = 'OAuth backend not deployed — using PAT mode.';
+    signInLink.style.display = 'none';
+    signOutBtn.style.display = 'none';
+  }
+}
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  try { await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch {}
+  refreshAuthStatus();
+});
+
 function renderSettings() {
   setRoute('settings');
+  refreshAuthStatus();
   const cfg = getSyncConfig();
   document.getElementById('syncRepo').value = cfg.repo || '';
   document.getElementById('syncBranch').value = cfg.branch || 'main';

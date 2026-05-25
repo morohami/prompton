@@ -86,6 +86,10 @@
     "testConn": "Test connection",
     "clearToken": "Clear stored token",
     "tagTitle": "Tag curation",
+    "signIn": "Sign in with GitHub",
+    "signInHint": "When the OAuth backend is deployed (see OAUTH_SETUP.md), sign in to write without a personal token. Falls back to PAT mode below if unavailable.",
+    "signInBtn": "Sign in with GitHub",
+    "signOutBtn": "Sign out",
     "language": "Language",
     "languageHint": "App language — affects UI labels only (prompt content stays unchanged)"
   }
