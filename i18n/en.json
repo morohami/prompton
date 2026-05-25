@@ -24,7 +24,7 @@
     "sortDl": "Most downloaded",
     "sortFk": "Most forked",
     "searchPlaceholder": "Search prompts, tags, authors…",
-    "compare": "⇄ Compare"
+    "compare": "Compare"
   },
   "detail": {
     "open": "↗ Open in Claude.ai",
@@ -38,7 +38,7 @@
     "compareOriginal": "⇄ Compare with original",
     "saveVersion": "✎ Save new version",
     "edit": "✎ Edit",
-    "delete": "🗑 Delete"
+    "delete": "Delete"
   },
   "profile": {
     "published": "Published",

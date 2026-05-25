@@ -55,16 +55,17 @@
   <div id="archiveHeader"></div>
 
   <div class="filter-bar">
-    <input type="text" class="search" id="searchInput" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search prompts, tags, authors…" />
-    <button class="chip active" data-filter="all" data-i18n="filter.all">All</button>
-    <span id="tagChips" class="tag-chips"></span>
+    <div class="search-wrap">
+      <input type="text" class="search" id="searchInput" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search prompts, tags, authors…" autocomplete="off" />
+      <div class="search-suggest" id="searchSuggest" role="listbox" aria-label="Suggestions"></div>
+    </div>
     <span class="sort-label" data-i18n="filter.sort">Sort:</span>
     <select id="sortSelect">
       <option value="new" data-i18n="filter.sortNew">Newest</option>
       <option value="downloads" data-i18n="filter.sortDl">Most downloaded</option>
       <option value="forks" data-i18n="filter.sortFk">Most forked</option>
     </select>
-    <button class="compare-toggle" id="compareToggle" type="button" data-i18n="filter.compare">⇄ Compare</button>
+    <button class="compare-toggle" id="compareToggle" type="button" data-i18n="filter.compare">Compare</button>
   </div>
 
   <div class="grid" id="cardGrid"></div>
@@ -288,22 +289,18 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 <!-- Mobile bottom-tab nav — only shown when body.mobile-app (viewport ≤680px). -->
 <nav class="bottom-tab-nav" id="bottomTabNav" aria-hidden="true">
   <button type="button" data-nav="gallery" data-tab="gallery" class="bt-item" aria-label="Feed">
-    <span class="bt-icon">🏠</span>
     <span class="bt-label" data-i18n="mobile.feed">Feed</span>
   </button>
   <button type="button" data-nav="search" data-tab="search" class="bt-item" aria-label="Search">
-    <span class="bt-icon">🔍</span>
     <span class="bt-label" data-i18n="mobile.search">Search</span>
   </button>
   <button type="button" data-nav="upload" class="bt-item bt-fab" aria-label="Share">
     <span class="bt-fab-inner">＋</span>
   </button>
   <button type="button" data-nav="favorites" data-tab="favorites" class="bt-item" aria-label="Favorites">
-    <span class="bt-icon">❤</span>
     <span class="bt-label" data-i18n="mobile.favorites">Faves</span>
   </button>
   <button type="button" data-nav="profile" data-tab="profile" class="bt-item" aria-label="Profile">
-    <span class="bt-icon">👤</span>
     <span class="bt-label" data-i18n="mobile.profile">You</span>
   </button>
 </nav>
@@ -586,33 +583,59 @@ function getNewspaperPicks(list) {
 // Upload form + bulk-upload logic live in js/upload.js.
 
 // ─── Filter / search / sort wiring ───
-function renderTagChips() {
-  const counts = {};
-  prompts.forEach(p => {
-    const tagSet = new Set();
-    if (p.tag) tagSet.add(normalizeTag(p.tag));
-    if (Array.isArray(p.tags)) p.tags.forEach(t => tagSet.add(normalizeTag(t)));
-    tagSet.forEach(t => { if (t) counts[t] = (counts[t] || 0) + 1; });
-  });
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  const host = document.getElementById('tagChips');
+// Tag-chip system removed — too noisy and shifted layout as the user typed.
+// Search is now: input + suggestion dropdown only. `renderTagChips` is kept
+// as a no-op stub so existing call sites in render.js don't need to change.
+function renderTagChips() { /* removed — see renderSearchSuggest */ }
+
+// Show up to 8 matching prompts as a dropdown below the search input.
+// Match against title, author handle/name, tags. Click → jump to detail.
+function renderSearchSuggest() {
+  const host = document.getElementById('searchSuggest');
   if (!host) return;
-  host.innerHTML = sorted.map(([t, n]) => {
-    const active = currentFilter === t ? ' active' : '';
-    return '<button class="chip' + active + '" data-filter="' + escapeAttr(t) + '">' + escapeHtml(t) + ' <span class="chip-count">' + n + '</span></button>';
+  const q = currentSearch.trim().toLowerCase();
+  if (!q) { host.innerHTML = ''; host.classList.remove('open'); return; }
+  const matches = prompts.filter(p => {
+    const haystack = [p.title, p.authorName, p.author, ...(p.tags || []), p.tag]
+      .filter(Boolean).join(' ').toLowerCase();
+    return haystack.indexOf(q) >= 0;
+  }).slice(0, 8);
+  if (!matches.length) {
+    host.innerHTML = '<div class="search-suggest-empty">No matches.</div>';
+    host.classList.add('open');
+    return;
+  }
+  host.innerHTML = matches.map(p => {
+    const thumb = p.thumb
+      ? '<span class="ss-thumb" style="background-image:url(' + escapeAttr(thumbUrl(p)) + ')"></span>'
+      : '<span class="ss-thumb ss-thumb-empty">' + escapeHtml((p.title || '?').charAt(0)) + '</span>';
+    return '<button type="button" class="search-suggest-item" data-go-id="' + escapeAttr(p.id) + '" role="option">'
+      + thumb
+      + '<span class="ss-text"><span class="ss-title">' + escapeHtml(p.title) + '</span>'
+      + '<span class="ss-by">@' + escapeHtml(p.author) + '</span></span>'
+      + '</button>';
   }).join('');
+  host.classList.add('open');
+  host.querySelectorAll('[data-go-id]').forEach(b =>
+    b.addEventListener('click', () => {
+      host.classList.remove('open');
+      document.getElementById('searchInput').value = '';
+      currentSearch = '';
+      renderDetail(b.dataset.goId);
+    }));
 }
-document.querySelector('.filter-bar').addEventListener('click', (e) => {
-  const c = e.target.closest('.chip');
-  if (!c) return;
-  document.querySelectorAll('.filter-bar .chip').forEach(x => x.classList.remove('active'));
-  c.classList.add('active');
-  currentFilter = c.dataset.filter;
-  renderGallery();
-});
 document.getElementById('searchInput').addEventListener('input', (e) => {
   currentSearch = e.target.value;
-  renderGallery();
+  renderSearchSuggest();
+});
+document.getElementById('searchInput').addEventListener('focus', renderSearchSuggest);
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.search-wrap');
+  if (!wrap) return;
+  if (!wrap.contains(e.target)) {
+    const host = document.getElementById('searchSuggest');
+    if (host) host.classList.remove('open');
+  }
 });
 document.getElementById('sortSelect').addEventListener('change', (e) => {
   currentSort = e.target.value;
@@ -719,7 +742,14 @@ function requestFullscreenForCard(btn) {
     window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
   });
 }
-function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
+// Always render full numbers with locale-aware thousand separators. No
+// "k"/"M" abbreviation — counts on this site are real numbers, not vanity
+// metrics, so accuracy beats compactness.
+function formatNum(n) {
+  const num = Number(n) || 0;
+  try { return num.toLocaleString(currentLocale === 'ja' ? 'ja-JP' : 'en-US'); }
+  catch (e) { return String(num); }
+}
 function safeFilename(prompt) {
   // Preserve unicode (Japanese OK). Strip only chars OSes refuse in filenames.
   const rawTitle = (prompt.title || '').replace(/[\\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().slice(0, 80);

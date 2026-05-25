@@ -3968,9 +3968,9 @@
     font-family: 'DM Sans', sans-serif;
     cursor: pointer;
   }
-  .bottom-tab-nav .bt-item.active { color: var(--accent); }
-  .bottom-tab-nav .bt-icon { font-size: 22px; line-height: 1; }
-  .bottom-tab-nav .bt-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bottom-tab-nav .bt-item.active { color: var(--accent); font-weight: 600; }
+  .bottom-tab-nav .bt-item.active .bt-label { border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
+  .bottom-tab-nav .bt-label { font-size: 13px; letter-spacing: 0.02em; }
   .bottom-tab-nav .bt-fab {
     background: var(--accent); color: var(--accent-on);
     width: 48px; height: 48px;
@@ -4114,3 +4114,68 @@
     min-height: 40px;
   }
   body.mobile-app .playlist-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  /* ─── Search suggestion dropdown ─── */
+  .search-wrap {
+    position: relative;
+    flex: 1 1 280px;
+    min-width: 200px;
+  }
+  .search-wrap .search { width: 100%; }
+  .search-suggest {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    max-height: 380px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+  }
+  .search-suggest.open { display: block; }
+  .search-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+  }
+  .search-suggest-item:last-child { border-bottom: none; }
+  .search-suggest-item:hover { background: var(--hover); }
+  .search-suggest-item .ss-thumb {
+    width: 40px; height: 40px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-card);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .search-suggest-item .ss-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .search-suggest-item .ss-title {
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .search-suggest-item .ss-by { font-size: 12px; color: var(--text-muted); }
+  .search-suggest-empty {
+    padding: 14px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-align: center;
+  }

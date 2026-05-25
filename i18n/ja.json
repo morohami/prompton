@@ -24,7 +24,7 @@
     "sortDl": "ダウンロード数",
     "sortFk": "フォーク数",
     "searchPlaceholder": "プロンプト・タグ・作者を検索…",
-    "compare": "⇄ 比較"
+    "compare": "比較"
   },
   "detail": {
     "open": "↗ Claude.aiで開く",
@@ -38,7 +38,7 @@
     "compareOriginal": "⇄ オリジナルと比較",
     "saveVersion": "✎ 新バージョンを保存",
     "edit": "✎ 編集",
-    "delete": "🗑 削除"
+    "delete": "削除"
   },
   "profile": {
     "published": "公開",
