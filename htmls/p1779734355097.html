@@ -161,6 +161,69 @@
     max-width: 45%; text-align: right;
   }
 
+  /* === 比較バー (比較モード時のみ表示) === */
+  .compare-bar {
+    display: none;
+    align-items: stretch; gap: 8px;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .compare-bar.show { display: flex; }
+  .era-info.hide { display: none; }
+  .slot {
+    flex: 1; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    background: rgba(15, 17, 22, 0.4);
+    transition: all 0.2s;
+    position: relative;
+    min-width: 0;
+  }
+  .slot:hover { border-color: var(--cream-dim); background: rgba(15, 17, 22, 0.6); }
+  .slot.active-slot {
+    border-color: var(--vermillion);
+    box-shadow: inset 0 0 0 1px var(--vermillion), 0 0 0 2px var(--vermillion-glow);
+    background: rgba(197, 79, 62, 0.08);
+  }
+  .slot-pill {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 9px;
+    flex-shrink: 0; letter-spacing: 0.04em;
+  }
+  .slot-a .slot-pill { background: var(--cream); color: var(--ink); }
+  .slot-b .slot-pill { background: var(--gold); color: var(--ink); }
+  .slot-name {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 13px; color: var(--cream);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  .slot.empty .slot-name { color: var(--cream-dim); font-style: italic; }
+  .slot .active-tag {
+    margin-left: auto;
+    font-size: 9px; color: var(--vermillion);
+    letter-spacing: 0.1em;
+    border: 1px solid var(--vermillion);
+    padding: 3px 7px;
+    flex-shrink: 0;
+    animation: pulse-soft 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-soft { 50% { opacity: 0.5; } }
+  .swap-btn {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--cream-dim); cursor: pointer;
+    padding: 0 12px; font-size: 16px;
+    transition: all 0.3s;
+    flex-shrink: 0; min-width: 40px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .swap-btn:hover {
+    border-color: var(--gold); color: var(--gold);
+    transform: rotate(180deg);
+  }
+
   /* === Tracks (aerial top + paper bottom) === */
   .tracks-wrap {
     position: relative;
@@ -441,7 +504,7 @@
 </div>
 
 <div class="panel">
-  <div class="era-info">
+  <div class="era-info" id="eraInfo">
     <div class="era-year" id="eraYear">—</div>
     <div>
       <div class="era-label" id="eraLabel">読み込み中…</div>
@@ -449,6 +512,7 @@
     </div>
     <div class="era-attr" id="eraAttr"></div>
   </div>
+  <div class="compare-bar" id="compareBar"></div>
   <div class="tracks-wrap" id="tracksWrap">
     <div class="track aerial-track">
       <div class="track-label">航空写真</div>
@@ -652,6 +716,7 @@ let layerA = null, layerB = null;
 let attrA = null, attrB = null;
 let opacity = 0.85;         // 単一モード: オーバーレイの透過
 let blendAB = 0.5;          // 比較モード: 0=A only, 1=B only
+let activeSlot = 'a';       // 比較モード: 次のティック選択がどちらのスロットに入るか
 
 // ============================================================
 // 軸 (年→%, ピースワイズ)
@@ -746,46 +811,86 @@ function tickClicked(eraId) {
   const era = findEra(eraId);
   if (!era || !era.url) return;
   if (mode === 'single') {
-    eraA = era; eraB = null;
+    eraA = era; eraB = null; activeSlot = 'a';
   } else {
-    // 比較モード: A 空 → A、A 埋まって B 空 → B、両方埋まって同じ ID をクリック → 解除、別 ID → A 上書き
-    if (!eraA) {
-      eraA = era;
-    } else if (eraA.id === era.id) {
-      // 同じ A を再クリック → 解除して B を A に昇格
-      eraA = eraB; eraB = null;
+    // 比較モード — activeSlot ("次に入れ替わるスロット") に新しい era を入れる
+    // ただし既存の A/B と同じ era をクリックした場合は「そのスロットを解除」
+    if (eraA && eraA.id === era.id) {
+      eraA = null;
+      activeSlot = 'a'; // 空いた A が次のターゲット
     } else if (eraB && eraB.id === era.id) {
       eraB = null;
+      activeSlot = 'b';
+    } else if (!eraA && !eraB) {
+      // 両方空 → A に入れて、次は B が空いてるから B が active
+      eraA = era; activeSlot = 'b';
+    } else if (!eraA) {
+      // A だけ空 → A を埋める、次は A が直近選択なので A を再変更可能 (= 続けて A をスクラブ)
+      eraA = era; activeSlot = 'a';
     } else if (!eraB) {
-      eraB = era;
+      // B だけ空 → B を埋める、次は B を変更
+      eraB = era; activeSlot = 'b';
     } else {
-      // 両方埋まってる状態で新しいティック → B を新しいものに置換 (A を残す方が直感的)
-      eraB = era;
+      // 両方埋まってる → activeSlot を上書き (activeSlot は変えない = "同じ側を flip し続ける")
+      if (activeSlot === 'a') eraA = era;
+      else eraB = era;
     }
   }
   applyState();
+}
+
+function swapAB() {
+  if (mode !== 'compare') return;
+  const tmp = eraA; eraA = eraB; eraB = tmp;
+  activeSlot = activeSlot === 'a' ? 'b' : 'a';
+  // blendAB も反転 (見た目の比率を維持しつつ A/B を入れ替え)
+  blendAB = 1 - blendAB;
+  applyState();
+}
+
+function setActiveSlot(slot) {
+  if (mode !== 'compare') return;
+  activeSlot = slot;
+  renderUI();
 }
 
 // ============================================================
 // UI 更新
 // ============================================================
 function renderEraInfo() {
-  const yearEl = document.getElementById('eraYear');
-  const labelEl = document.getElementById('eraLabel');
-  const subEl = document.getElementById('eraSub');
-  const attrEl = document.getElementById('eraAttr');
+  const eraInfo = document.getElementById('eraInfo');
+  const compareBar = document.getElementById('compareBar');
+
   if (mode === 'compare') {
-    const aStr = eraA ? `${eraA.year} ${eraA.label}` : '?';
-    const bStr = eraB ? `${eraB.year} ${eraB.label}` : '? (もう一つクリック)';
-    yearEl.textContent = '⇆';
-    labelEl.textContent = `A: ${aStr} ／ B: ${bStr}`;
-    subEl.textContent = (eraA && eraB) ? `スライダーで A↔B を切替` : 'A・B 2つの時代を選択中';
-    attrEl.innerHTML = [eraA && eraA.attr, eraB && eraB.attr].filter(Boolean).join(' / ');
-  } else if (eraA) {
-    yearEl.textContent = eraA.year;
-    labelEl.textContent = eraA.label;
-    subEl.textContent = eraA.sub || '';
-    attrEl.innerHTML = eraA.attr || '';
+    eraInfo.classList.add('hide');
+    compareBar.classList.add('show');
+    const slotHtml = (slot, era) => {
+      const isActive = activeSlot === slot;
+      const isEmpty = !era;
+      const name = era ? `${era.year} ${era.label}${era.sub ? ' — ' + era.sub : ''}` : 'タイムラインから選択';
+      return `
+        <div class="slot slot-${slot} ${isActive ? 'active-slot' : ''} ${isEmpty ? 'empty' : ''}" data-slot="${slot}">
+          <span class="slot-pill">${slot.toUpperCase()}</span>
+          <span class="slot-name">${escapeHtml(name)}</span>
+          ${isActive ? '<span class="active-tag">次に変更</span>' : ''}
+        </div>`;
+    };
+    compareBar.innerHTML = slotHtml('a', eraA) +
+      '<button class="swap-btn" id="swapBtn" title="A と B を入れ替え">⇄</button>' +
+      slotHtml('b', eraB);
+    compareBar.querySelectorAll('.slot').forEach(el => {
+      el.addEventListener('click', () => setActiveSlot(el.dataset.slot));
+    });
+    document.getElementById('swapBtn').addEventListener('click', swapAB);
+  } else {
+    compareBar.classList.remove('show');
+    eraInfo.classList.remove('hide');
+    if (eraA) {
+      document.getElementById('eraYear').textContent = eraA.year;
+      document.getElementById('eraLabel').textContent = eraA.label;
+      document.getElementById('eraSub').textContent = eraA.sub || '';
+      document.getElementById('eraAttr').innerHTML = eraA.attr || '';
+    }
   }
 }
 
@@ -874,14 +979,16 @@ slider.addEventListener('input', () => {
 document.getElementById('compareBtn').addEventListener('click', () => {
   if (mode === 'single') {
     mode = 'compare';
-    // 現在のA を残し、B は空でスタート
+    // 現在の A を anchor として残し、B は空 → 次のクリックで B が埋まる
     eraB = null;
     blendAB = 0.5;
+    activeSlot = 'b'; // 「次に B を選んでください」
     applyState();
-    showHint('もう一つの時代をタイムラインから選択 → スライダーで A↔B を切替', 4000);
+    showHint('もう一つの時代を選択 → 両方埋まったら、クリックで「次に変更」スロット (朱色) を flip し続けます', 5000);
   } else {
     mode = 'single';
     eraB = null;
+    activeSlot = 'a';
     if (layerB) removeOverlay('b');
     applyState();
   }
