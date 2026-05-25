@@ -85,7 +85,7 @@ function renderGallery() {
           '<div class="spotlight-gradient"></div>' +
           '<div class="spotlight-grid">' +
             '<div class="spotlight-preview" data-news-go="' + lead.id + '">' +
-              '<iframe srcdoc="' + escapeAttr(lead.html) + '" sandbox="allow-scripts allow-same-origin"></iframe>' +
+              '<iframe id="spotlightIframe" data-prompt-id="' + lead.id + '" sandbox="allow-scripts allow-same-origin"></iframe>' +
             '</div>' +
             '<div class="spotlight-editorial">' +
               '<div class="spotlight-kicker">TODAY\'S LEAD</div>' +
@@ -140,6 +140,14 @@ function renderGallery() {
           '<div class="row-scroll">' + featuredAuthorPrompts.map(albumCardHtml).join('') + '</div>' +
         '</div>'
       ) : '');
+
+    // Assign spotlight iframe srcdoc imperatively (same reason as the detail
+    // preview — see comment over there).
+    const spotIframe = magazineEl.querySelector('#spotlightIframe');
+    if (spotIframe) {
+      const p = prompts.find(x => x.id === spotIframe.dataset.promptId);
+      if (p) spotIframe.srcdoc = p.html || '';
+    }
 
     // Wire spotlight + cards
     magazineEl.querySelectorAll('[data-news-go]').forEach(el =>
@@ -420,7 +428,7 @@ function renderDetail(id, viewingVersionNum) {
     <div class="detail-grid">
       <div>
         <div class="preview-wrap">
-          <iframe id="detailPreviewIframe" srcdoc="${escapeAttr(view.html)}" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
+          <iframe id="detailPreviewIframe" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
           <div class="preview-overlay">
             <button type="button" id="fullscreenBtn" title="View fullscreen">⛶ Fullscreen</button>
             <a id="openStandaloneLink" target="_blank" rel="noopener" title="Open this HTML on its own page (good for sharing)">↗ Open standalone</a>
@@ -575,6 +583,13 @@ function renderDetail(id, viewingVersionNum) {
       }, 1800);
     }).catch(() => toast('Copy failed — select and copy manually'));
   };
+
+  // Assign the prompt HTML to the live-preview iframe via JS instead of an
+  // inline srcdoc attribute. With a 70KB+ HTML payload some browsers (mobile
+  // Safari especially) choke on the giant escaped attribute, leaving the
+  // iframe blank. Setting `.srcdoc` directly sidesteps the attribute parser.
+  const previewIframe = document.getElementById('detailPreviewIframe');
+  if (previewIframe) previewIframe.srcdoc = view.html || '';
 
   // Wire actions
   document.getElementById('downloadBtn').addEventListener('click', (e) => {
