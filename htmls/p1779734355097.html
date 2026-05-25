@@ -486,6 +486,34 @@
   }
   .hint.show { opacity: 1; }
 
+  /* === Out-of-bounds hint (when current view has no data on active era) === */
+  .bounds-hint {
+    position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
+    z-index: 1001;
+    background: rgba(197, 79, 62, 0.95);
+    color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.06em;
+    padding: 9px 16px;
+    border-left: 3px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: none;
+    max-width: 90vw;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .bounds-hint.show { display: block; }
+  .bounds-hint .center-btn {
+    display: inline-block; margin-left: 8px;
+    padding: 2px 9px;
+    background: var(--cream); color: var(--ink);
+    border: none; cursor: pointer;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px; font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .bounds-hint .center-btn:hover { opacity: 0.85; }
+
   /* === Mobile === */
   @media (max-width: 720px) {
     .panel {
@@ -504,6 +532,19 @@
     .icon-btn { min-width: 40px; padding: 0 10px; font-size: 14px; }
     .search-results { min-width: 0; width: calc(100vw - 16px); right: 0; max-width: none; }
     .leaflet-control-zoom { margin-top: 56px !important; }
+    /* Leaflet 帰属表示は panel と被るのでモバイルでは隠す。
+       代わりに era-attr (panel 内) で出典を見せる */
+    .leaflet-control-attribution { display: none !important; }
+    .era-attr {
+      display: block !important;
+      max-width: 100%;
+      font-size: 9px;
+      margin-top: 4px;
+      text-align: left;
+      opacity: 0.6;
+      line-height: 1.3;
+    }
+    .bounds-hint { top: 56px; font-size: 11px; padding: 7px 12px; }
 
     /* === Era info === */
     .era-info { gap: 8px; flex-wrap: wrap; margin-bottom: 8px; padding-bottom: 8px; }
@@ -540,13 +581,13 @@
     .tracks-wrap > .track-divider {
       min-width: 760px;
     }
-    .track { height: 44px; }
-    .track-label {
-      position: sticky; left: 0;
-      background: rgba(15, 17, 22, 0.92);
-      padding: 3px 8px; font-size: 9px;
-    }
-    .track-ticks { margin-left: 56px; min-width: 700px; }
+    .track { height: 44px; padding: 0; }
+    /* モバイルでは label を隠してスペースを稼ぐ。ティックの色 (silver/gold/moss)
+       で航空写真/絵図/地形図 を識別できる */
+    .track-label { display: none; }
+    .track-ticks { margin-left: 0; min-width: 700px; }
+    /* divider をモバイルで細く */
+    .track-divider { height: 2px; box-shadow: 0 0 6px rgba(197, 79, 62, 0.4); }
     .tick .dot { width: 13px; height: 13px; }
     .tick.active .dot,
     .tick.select-a .dot,
@@ -622,6 +663,7 @@
 </div>
 
 <div class="hint" id="hint"></div>
+<div class="bounds-hint" id="boundsHint"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -850,6 +892,7 @@ function removeOverlay(slot) {
 
 function applyState() {
   updateHash();
+  setTimeout(() => checkBoundsHint && checkBoundsHint(), 0);
   // 単一モード
   if (mode === 'single') {
     if (layerB) removeOverlay('b');
@@ -1194,6 +1237,44 @@ function restoreFromHash() {
 
 // マップ move/zoom 終了で URL 更新 (連続発火するので moveend のみ)
 map.on('moveend zoomend', updateHash);
+
+// ============================================================
+// データ外ヒント: 現在のビューに、選択中の era のデータが無いとき表示
+// (era に bounds が定義されていて、map center が bounds 外にいる場合)
+// ============================================================
+const boundsHintEl = document.getElementById('boundsHint');
+function checkBoundsHint() {
+  // 比較中で A/B どちらかが外にあれば、どっちの話か明示
+  const checks = [];
+  if (mode === 'compare') {
+    if (eraA && eraA.bounds) checks.push({ era: eraA, slot: 'A' });
+    if (eraB && eraB.bounds) checks.push({ era: eraB, slot: 'B' });
+  } else if (eraA && eraA.bounds) {
+    checks.push({ era: eraA, slot: null });
+  }
+  const c = map.getCenter();
+  const outOfBounds = checks.filter(x => !L.latLngBounds(x.era.bounds).contains(c));
+  if (!outOfBounds.length) {
+    boundsHintEl.classList.remove('show');
+    return;
+  }
+  // 表示メッセージ
+  const list = outOfBounds.map(x => {
+    const prefix = x.slot ? `${x.slot}: ` : '';
+    return `${prefix}${x.era.year} ${x.era.label}`;
+  }).join(' / ');
+  // 1番目の era の bounds 中心へジャンプするボタンを付ける
+  const first = outOfBounds[0].era;
+  const center = L.latLngBounds(first.bounds).getCenter();
+  boundsHintEl.innerHTML =
+    `この場所に「${escapeHtml(list)}」のデータがありません` +
+    ` <button class="center-btn" id="centerBtn">データのある場所へ</button>`;
+  boundsHintEl.classList.add('show');
+  document.getElementById('centerBtn').addEventListener('click', () => {
+    map.setView(center, map.getZoom(), { animate: true });
+  });
+}
+map.on('moveend zoomend', checkBoundsHint);
 
 // ============================================================
 // 現在地
