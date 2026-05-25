@@ -423,6 +423,31 @@
     border: 2px solid var(--cream);
     box-shadow: 0 0 0 6px var(--vermillion-glow), 0 4px 12px rgba(0,0,0,0.4);
   }
+  /* === Search-result marker === */
+  .search-marker {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--gold);
+    border: 3px solid var(--cream);
+    box-shadow: 0 0 0 4px rgba(200, 169, 106, 0.45), 0 4px 12px rgba(0,0,0,0.5);
+    animation: pulse-ring 1.6s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0   rgba(200, 169, 106, 0.7), 0 4px 12px rgba(0,0,0,0.5); }
+    70%  { box-shadow: 0 0 0 14px rgba(200, 169, 106, 0),   0 4px 12px rgba(0,0,0,0.5); }
+    100% { box-shadow: 0 0 0 0   rgba(200, 169, 106, 0),   0 4px 12px rgba(0,0,0,0.5); }
+  }
+  .leaflet-tooltip.search-tooltip {
+    background: rgba(15, 17, 22, 0.95) !important;
+    color: var(--cream) !important;
+    border: none !important;
+    border-left: 2px solid var(--gold) !important;
+    font-family: "Shippori Mincho B1", serif !important;
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+    border-radius: 0 !important;
+  }
+  .leaflet-tooltip.search-tooltip::before { display: none !important; }
 
   /* === Leaflet overrides === */
   .leaflet-control-attribution {
@@ -466,23 +491,85 @@
 
   /* === Mobile === */
   @media (max-width: 720px) {
-    .panel { padding: 10px 12px 12px; bottom: 8px; left: 8px; right: 8px; }
-    .era-info { gap: 8px; flex-wrap: wrap; margin-bottom: 6px; padding-bottom: 6px; }
-    .era-year { font-size: 18px; min-width: 56px; }
+    .panel {
+      padding: 10px 12px 12px;
+      bottom: 8px; left: 8px; right: 8px;
+      max-height: 62vh; overflow-y: auto;
+    }
+
+    /* === Brand + Search === */
+    .brand { padding: 8px 12px 6px; top: 8px; left: 8px; border-left-width: 2px; }
+    .brand h1 { font-size: 14px; letter-spacing: 0.05em; }
+    .brand .en { font-size: 8px; margin-top: 4px; }
+    .search-bar { top: 8px; right: 8px; left: auto; gap: 6px; }
+    .search-input { width: 140px; padding: 10px 10px 10px 30px; font-size: 12px; }
+    .search-input-wrap::before { left: 8px; font-size: 13px; }
+    .icon-btn { min-width: 40px; padding: 0 10px; font-size: 14px; }
+    .search-results { min-width: 0; width: calc(100vw - 16px); right: 0; max-width: none; }
+    .leaflet-control-zoom { margin-top: 56px !important; }
+
+    /* === Era info === */
+    .era-info { gap: 8px; flex-wrap: wrap; margin-bottom: 8px; padding-bottom: 8px; }
+    .era-year { font-size: 18px; min-width: 50px; }
     .era-label { font-size: 14px; }
+    .era-sub { font-size: 10px; }
     .era-attr { display: none; }
-    .controls-row { flex-wrap: wrap; gap: 10px; }
+
+    /* === Compare bar: stack vertically on mobile === */
+    .compare-bar.show { flex-direction: column; gap: 6px; }
+    .slot { padding: 9px 10px; gap: 8px; }
+    .slot-pill { font-size: 10px; padding: 3px 8px; }
+    .slot-name { font-size: 12px; }
+    .swap-btn {
+      align-self: center; padding: 4px 22px;
+      transform: rotate(90deg);
+    }
+    .swap-btn:hover { transform: rotate(270deg); }
+    .slot .active-tag { font-size: 8px; padding: 2px 6px; letter-spacing: 0.06em; }
+
+    /* === Tracks: horizontal scroll on mobile === */
+    .tracks-wrap {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+      padding-bottom: 4px;
+    }
+    .tracks-wrap::-webkit-scrollbar { height: 3px; }
+    .tracks-wrap::-webkit-scrollbar-thumb { background: var(--line); }
+    .tracks-wrap > .track,
+    .tracks-wrap > .track-divider {
+      min-width: 760px;
+    }
+    .track { height: 44px; }
+    .track-label {
+      position: sticky; left: 0;
+      background: rgba(15, 17, 22, 0.92);
+      padding: 3px 8px; font-size: 9px;
+    }
+    .track-ticks { margin-left: 56px; min-width: 700px; }
+    .tick .dot { width: 13px; height: 13px; }
+    .tick.active .dot,
+    .tick.select-a .dot,
+    .tick.select-b .dot { width: 17px; height: 17px; }
+    .tick .year { font-size: 10px; }
+    .tick:hover { transform: translateX(-50%); /* disable hover-lift on mobile */ }
+    .tick:hover .dot { transform: scale(1); }
+    /* Tooltip 不要 (タップで切替するため) */
+    .tick .tooltip { display: none; }
+
+    /* === Controls === */
+    .controls-row { gap: 8px; flex-wrap: wrap; }
     .slider-wrap { flex: 1 1 100%; }
-    .brand { padding: 9px 14px 7px; }
-    .brand h1 { font-size: 15px; }
-    .brand .en { font-size: 8px; margin-top: 5px; }
-    .search-bar { top: 8px; right: 8px; left: auto; }
-    .search-input { width: 140px; padding: 9px 10px 9px 32px; }
-    .search-input-wrap::before { left: 9px; }
-    .icon-btn { min-width: 40px; padding: 0 10px; }
-    .leaflet-control-zoom { margin-top: 60px !important; }
-    .tick { min-width: 38px; }
-    .tick .year { font-size: 9px; }
+    .ctrl-label { min-width: 28px; font-size: 11px; }
+    .compare-btn { padding: 10px 14px; }
+    .slider-end { display: none !important; } /* compare 中も A/B はバーで分かる */
+  }
+  @media (max-width: 380px) {
+    .search-input { width: 110px; }
+    .icon-btn { min-width: 36px; padding: 0 8px; }
+    .brand h1 { font-size: 13px; }
   }
 </style>
 </head>
@@ -864,15 +951,19 @@ function renderEraInfo() {
   if (mode === 'compare') {
     eraInfo.classList.add('hide');
     compareBar.classList.add('show');
+    const bothFilled = !!(eraA && eraB);
     const slotHtml = (slot, era) => {
       const isActive = activeSlot === slot;
       const isEmpty = !era;
+      // 「次に変更」と active-slot 強調は **両方埋まってる時のみ** 表示
+      // (片方が空ならその空スロットが次に埋まるのが自明)
+      const showActive = isActive && bothFilled;
       const name = era ? `${era.year} ${era.label}${era.sub ? ' — ' + era.sub : ''}` : 'タイムラインから選択';
       return `
-        <div class="slot slot-${slot} ${isActive ? 'active-slot' : ''} ${isEmpty ? 'empty' : ''}" data-slot="${slot}">
+        <div class="slot slot-${slot} ${showActive ? 'active-slot' : ''} ${isEmpty ? 'empty' : ''}" data-slot="${slot}">
           <span class="slot-pill">${slot.toUpperCase()}</span>
           <span class="slot-name">${escapeHtml(name)}</span>
-          ${isActive ? '<span class="active-tag">次に変更</span>' : ''}
+          ${showActive ? '<span class="active-tag">次に変更</span>' : ''}
         </div>`;
     };
     compareBar.innerHTML = slotHtml('a', eraA) +
@@ -928,6 +1019,25 @@ function renderTickHighlights() {
     }
   });
   document.getElementById('tracksWrap').classList.toggle('compare', mode === 'compare');
+
+  // モバイル時、アクティブティックを横スクロール領域内に表示
+  scrollActiveTickIntoView();
+}
+
+function scrollActiveTickIntoView() {
+  if (window.innerWidth > 720) return;
+  const wrap = document.querySelector('.tracks-wrap');
+  const focus = document.querySelector('.tick.select-b, .tick.active, .tick.select-a');
+  if (!wrap || !focus) return;
+  // setTimeout で次のイベントループ → レイアウト確定後に実行
+  setTimeout(() => {
+    const wrapRect = wrap.getBoundingClientRect();
+    const tickRect = focus.getBoundingClientRect();
+    if (wrapRect.width === 0 || tickRect.width === 0) return;
+    const tickCenter = tickRect.left + tickRect.width / 2;
+    const wrapCenter = wrapRect.left + wrapRect.width / 2;
+    wrap.scrollLeft = wrap.scrollLeft + (tickCenter - wrapCenter);
+  }, 0);
 }
 
 function renderControls() {
@@ -1056,6 +1166,25 @@ async function doSearch(q) {
   }
 }
 
+let searchMarker = null;
+function gotoSearchResult(ll, label) {
+  if (searchMarker) map.removeLayer(searchMarker);
+  if (!KANTO_BOUNDS.contains(ll)) {
+    showHint('検索結果が関東圏外のため移動できません', 3000);
+    return;
+  }
+  searchMarker = L.marker(ll, {
+    icon: L.divIcon({ className: '', html: '<div class="search-marker"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
+    zIndexOffset: 1000,
+  }).addTo(map);
+  searchMarker.bindTooltip(label, {
+    permanent: true, direction: 'top', offset: [0, -10], className: 'search-tooltip'
+  }).openTooltip();
+  map.setView(ll, 17);
+  // 8 秒後にツールチップを閉じる (マーカー自体は残す)
+  setTimeout(() => { if (searchMarker) searchMarker.closeTooltip(); }, 8000);
+}
+
 function showSearchResults(items) {
   searchResults.innerHTML = '';
   if (!items || !items.length) {
@@ -1070,11 +1199,7 @@ function showSearchResults(items) {
     div.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="sub">${escapeHtml(it.display_name)}</div>`;
     div.addEventListener('click', () => {
       const ll = [parseFloat(it.lat), parseFloat(it.lon)];
-      if (KANTO_BOUNDS.contains(ll)) {
-        map.setView(ll, 16);
-      } else {
-        showHint('結果が関東圏外のため、初期表示に戻ります', 3000);
-      }
+      gotoSearchResult(ll, title);
       searchResults.classList.remove('show');
       searchInput.value = title;
     });
@@ -1095,6 +1220,24 @@ searchInput.addEventListener('input', () => {
     const items = await doSearch(q);
     if (items !== null) showSearchResults(items);
   }, 350);
+});
+// Enter で一番上の結果に飛ぶ
+searchInput.addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const q = searchInput.value.trim();
+  if (!q) return;
+  if (searchDebounce) { clearTimeout(searchDebounce); searchDebounce = null; }
+  const items = await doSearch(q);
+  if (items && items.length) {
+    const it = items[0];
+    const title = it.namedetails && it.namedetails.name ? it.namedetails.name : (it.name || it.display_name.split(',')[0]);
+    gotoSearchResult([parseFloat(it.lat), parseFloat(it.lon)], title);
+    searchInput.value = title;
+    searchResults.classList.remove('show');
+  } else {
+    showSearchResults(items);
+  }
 });
 searchInput.addEventListener('focus', () => {
   if (searchResults.innerHTML.trim()) searchResults.classList.add('show');
