@@ -730,11 +730,14 @@
   }
   .tag-picker-pills .tag-pill .x:hover { opacity: 1; background: rgba(0,0,0,0.12); }
   .tag-picker-pills .tag-picker-input {
-    flex: 1; min-width: 120px;
+    /* basis 200px keeps the cursor target wide; if the row is full the input
+       wraps to its own line via the parent's flex-wrap. */
+    flex: 1 0 200px;
+    min-width: 200px;
     background: transparent; border: 0; outline: 0;
     font: inherit; font-size: 13px;
     color: var(--text);
-    padding: 4px 2px;
+    padding: 6px 4px;
   }
   .tag-picker-pills .tag-picker-input::placeholder { color: var(--text-muted); }
   .tag-picker-suggest {
@@ -3345,6 +3348,152 @@
     letter-spacing: 0.1em;
   }
 
+  /* ─── Rankings view ─── */
+  .rankings-wrap {
+    max-width: 880px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+  .rankings-wrap h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 52px);
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .rankings-wrap h1 em { font-style: italic; color: var(--tomato); }
+  .rankings-wrap .lede {
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+  }
+  .ranking-totals {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: rgba(42,34,26,0.15);
+    padding: 1px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+  .ranking-totals > div {
+    background: var(--paper);
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .ranking-totals .num {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .ranking-totals .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .ranking-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .ranking-toggle button {
+    background: transparent;
+    border: 1px solid rgba(127,127,127,0.28);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ranking-toggle button:hover { background: var(--paper-2); }
+  .ranking-toggle button.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .rank-row {
+    display: grid;
+    grid-template-columns: 36px 64px 1fr auto auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .rank-row:hover { background: var(--paper-2); }
+  .rank-pos {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    color: var(--ink-soft);
+    font-weight: 400;
+    text-align: right;
+  }
+  .rank-row:nth-child(1) .rank-pos { color: #d4a93d; font-size: 30px; }   /* gold */
+  .rank-row:nth-child(2) .rank-pos { color: #b8b8b8; font-size: 28px; }   /* silver */
+  .rank-row:nth-child(3) .rank-pos { color: #c47d4d; font-size: 28px; }   /* bronze */
+  .rank-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 6px;
+    background: var(--paper-2);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .rank-thumb.empty { background: var(--paper-2); }
+  .rank-info { min-width: 0; }
+  .rank-title {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .rank-by {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .rank-by .author-link { color: var(--ink); border-bottom: 1px solid currentColor; cursor: pointer; }
+  .rank-metric { text-align: right; min-width: 64px; }
+  .rank-metric.secondary { opacity: 0.55; }
+  .rank-metric .num {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    line-height: 1;
+  }
+  .rank-metric .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+  @media (max-width: 600px) {
+    .rank-row { grid-template-columns: 28px 48px 1fr auto; gap: 10px; padding: 10px 4px; }
+    .rank-row .rank-metric.secondary { display: none; }
+    .rank-thumb { width: 48px; height: 48px; }
+    .rank-pos { font-size: 22px; }
+    .rank-title { font-size: 14px; }
+  }
+
   /* Profile tab content */
   .profile-tab-content {
     min-height: 120px;
@@ -3594,8 +3743,18 @@
     .profile-header-v2 .profile-info h1 { font-size: 32px; }
     .profile-header-v2 .profile-actions { grid-column: 1 / -1; }
     .profile-header-v2 .profile-actions .btn { width: 100%; }
-    .profile-stats-v2 { grid-template-columns: repeat(3, 1fr); }
-    .profile-stats-v2 .stat-card:nth-child(n+4) { display: none; }
+    /* Two rows of stats on mobile so Downloads + Forks stay visible. */
+    .profile-stats-v2 { grid-template-columns: repeat(6, 1fr); grid-auto-rows: auto; }
+    .profile-stats-v2 .stat-card { padding: 14px 6px; }
+    .profile-stats-v2 .stat-card .num { font-size: 22px; }
+    .profile-stats-v2 .stat-card .lbl { font-size: 9px; letter-spacing: 0.06em; }
+    /* Row 1: 3 tab cards each span 2 columns. */
+    .profile-stats-v2 .stat-card:nth-child(1),
+    .profile-stats-v2 .stat-card:nth-child(2),
+    .profile-stats-v2 .stat-card:nth-child(3) { grid-column: span 2; }
+    /* Row 2: Downloads + Forks each span 3 columns. */
+    .profile-stats-v2 .stat-card:nth-child(4),
+    .profile-stats-v2 .stat-card:nth-child(5) { grid-column: span 3; }
     .profile-modal-content { padding: 22px; }
     .profile-modal-content .field-row { grid-template-columns: 1fr; }
   }
@@ -3632,7 +3791,7 @@
     .anatomy pre { font-size: 12px; padding: 10px 12px; }
     .tag-picker-pills { padding: 6px 8px; min-height: 40px; }
     .tag-picker-pills .tag-pill { font-size: 11px; padding: 3px 5px 3px 9px; }
-    .tag-picker-pills .tag-picker-input { font-size: 12px; }
+    .tag-picker-pills .tag-picker-input { font-size: 12px; flex-basis: 140px; min-width: 140px; }
     .settings-wrap { padding: 0 14px; margin-top: 16px; }
     .settings-wrap h1 { font-size: 26px; }
     .upload-block { padding: 16px; }

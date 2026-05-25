@@ -13,6 +13,74 @@ function titleWithEmphasis(title) {
   return escapeHtml(words.join(' ')) + ' <em>' + escapeHtml(last) + '</em>';
 }
 
+// ─── Rankings view (top prompts by downloads / forks) ───
+function renderRankings(metric) {
+  metric = metric || 'downloads';   // 'downloads' or 'forks'
+  setRoute('rankings');
+  const el = document.getElementById('rankingsContent');
+  if (!el) return;
+  const all = prompts.slice();
+  const sorted = all.sort((a, b) => (b[metric] || 0) - (a[metric] || 0));
+  const top = sorted.slice(0, 30);
+  const totalDl = all.reduce((s, p) => s + (p.downloads || 0), 0);
+  const totalFk = all.reduce((s, p) => s + (p.forks || 0), 0);
+  const labelOther = metric === 'downloads' ? 'forks' : 'downloads';
+
+  el.innerHTML = `
+    <div class="rankings-wrap">
+      <h1>🏆 <em>Rankings</em></h1>
+      <p class="lede">Top prompts by ${metric}. Updated live from the manifest.</p>
+      <div class="ranking-totals">
+        <div><div class="num">${formatNum(totalDl)}</div><div class="lbl">Total downloads</div></div>
+        <div><div class="num">${formatNum(totalFk)}</div><div class="lbl">Total forks</div></div>
+        <div><div class="num">${all.length}</div><div class="lbl">Prompts</div></div>
+      </div>
+      <div class="ranking-toggle">
+        <button type="button" class="${metric === 'downloads' ? 'active' : ''}" data-rank="downloads">↓ Downloads</button>
+        <button type="button" class="${metric === 'forks' ? 'active' : ''}" data-rank="forks">⑂ Forks</button>
+      </div>
+      <ol class="ranking-list">
+        ${top.map((p, i) => {
+          const primary = p[metric] || 0;
+          const other = p[labelOther] || 0;
+          const thumb = p.thumb
+            ? `<img class="rank-thumb" loading="lazy" decoding="async" src="${escapeAttr(p.thumb)}" alt="">`
+            : '<div class="rank-thumb empty"></div>';
+          return `<li class="rank-row" data-go="${p.id}">
+            <span class="rank-pos">${i + 1}</span>
+            ${thumb}
+            <div class="rank-info">
+              <div class="rank-title">${escapeHtml(p.title)}</div>
+              <div class="rank-by">by <span class="author-link" data-author="${p.author}">${escapeHtml(p.authorName)}</span>${p.date ? ' · ' + formatDate(p.date) : ''}</div>
+            </div>
+            <div class="rank-metric">
+              <div class="num">${formatNum(primary)}</div>
+              <div class="lbl">${metric}</div>
+            </div>
+            <div class="rank-metric secondary">
+              <div class="num">${formatNum(other)}</div>
+              <div class="lbl">${labelOther}</div>
+            </div>
+          </li>`;
+        }).join('') || '<li class="empty-state">No prompts yet.</li>'}
+      </ol>
+    </div>
+  `;
+  el.querySelectorAll('.rank-row[data-go]').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.classList.contains('author-link') || e.target.dataset.author) return;
+      renderDetail(row.dataset.go);
+    });
+  });
+  el.querySelectorAll('[data-author]').forEach(a => {
+    a.addEventListener('click', (e) => { e.stopPropagation(); renderProfile(a.dataset.author); });
+  });
+  el.querySelectorAll('[data-rank]').forEach(b => {
+    b.addEventListener('click', () => renderRankings(b.dataset.rank));
+  });
+  showView('rankings');
+}
+
 function renderGallery() {
   setRoute('');
   showView('gallery');
