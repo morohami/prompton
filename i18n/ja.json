@@ -59,8 +59,6 @@
     "testConn": "接続テスト",
     "clearToken": "保存済みトークンを削除",
     "tagTitle": "タグ管理",
-    "thumbTitle": "サムネイル",
-    "thumbRegen": "全サムネイルを再生成",
     "language": "言語",
     "languageHint": "UI表示の言語設定（プロンプト本文には影響しません）"
   }

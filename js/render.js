@@ -4,11 +4,12 @@
 // escapeHtml/escapeAttr/formatNum/formatDate/safeFilename/toast/normalizeTag/normalizeTagList,
 // mountAlbumThumbs, mountTagPicker, getProfile, saveData, saveProfiles, setRoute, showView,
 // renderCompare, renderTagChips, isOwner, pushPromptToGitHub, updatePromptMetadataOnGitHub,
-// deletePromptFromGitHub, ghGetSha, ghPutFile, cleanupHtml, pushThumbnailToGitHub.
+// deletePromptFromGitHub, ghGetSha, ghPutFile, cleanupHtml.
 
 // Cache-bust thumbnail URLs. Without ?v=, browsers + the SW can hold onto an
 // older blob even after the file is regenerated on GitHub. `thumbVer` is a
-// monotonic timestamp set whenever pushThumbnailToGitHub uploads a fresh blob.
+// monotonic timestamp set by the Thumbnails workflow when it screenshots a
+// new build.
 function thumbUrl(p) {
   if (!p || !p.thumb) return '';
   return p.thumbVer ? `${p.thumb}?v=${p.thumbVer}` : p.thumb;
@@ -1328,13 +1329,8 @@ async function syncVersionsToGitHub(prompt) {
   const topPath = 'htmls/' + prompt.id + '.html';
   const topSha = await ghGetSha(topPath);
   await ghPutFile(topPath, latestHtml, 'Prompton: refresh top-level html for ' + prompt.id, topSha);
-  // The visible thumbnail represents the latest version — regenerate it.
-  try {
-    const thumbPath = await pushThumbnailToGitHub(prompt, latestHtml);
-    prompt.thumb = thumbPath;
-  } catch (e) {
-    console.warn('Thumbnail refresh failed for ' + prompt.id + ':', e);
-  }
+  // The Thumbnails workflow regenerates the JPG and patches `thumb`/`thumbVer`
+  // into the manifest on the htmls/* push above — no client-side step needed.
   await updatePromptMetadataOnGitHub(prompt);
 }
 

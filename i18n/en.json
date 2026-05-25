@@ -59,8 +59,6 @@
     "testConn": "Test connection",
     "clearToken": "Clear stored token",
     "tagTitle": "Tag curation",
-    "thumbTitle": "Thumbnails",
-    "thumbRegen": "Regenerate all thumbnails",
     "language": "Language",
     "languageHint": "App language — affects UI labels only (prompt content stays unchanged)"
   }

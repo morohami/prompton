@@ -233,15 +233,6 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       <div class="settings-status" id="tagSaveStatus"></div>
     </div>
 
-    <div class="tag-curation" id="thumbnailPanel">
-      <h2 data-i18n="settings.thumbTitle">Thumbnails</h2>
-      <p class="lede">Static JPG thumbnails replace the live iframes on cards — much faster, especially on mobile. Regenerate them when you change a prompt's first-paint look.</p>
-      <div class="settings-actions">
-        <button type="button" id="thumbRegenBtn" class="btn-secondary" data-i18n="settings.thumbRegen">Regenerate all thumbnails</button>
-      </div>
-      <div class="settings-status" id="thumbStatus"></div>
-    </div>
-
     <div class="tag-curation" id="languagePanel">
       <h2 data-i18n="settings.language">Language</h2>
       <p class="lede" data-i18n="settings.languageHint">App language — affects UI labels only (prompt content stays unchanged)</p>
@@ -977,11 +968,10 @@ function checkUndeclaredVars() {
 
 // GitHub sync layer lives in js/github.js (loaded before this inline script).
 // Search there for: SYNC_KEY, getSyncConfig, saveSyncConfig, updateSyncBadge,
-// isOwner, b64utf8, b64ToUtf8, ghFetch, ghGetSha, ghPutFile, ghPutBinaryFile,
-// ghDeleteFile, generateOGPageHtml, pushOGPageToGitHub, deleteOGPageFromGitHub,
+// isOwner, b64utf8, b64ToUtf8, ghFetch, ghGetSha, ghPutFile, ghDeleteFile,
+// generateOGPageHtml, pushOGPageToGitHub, deleteOGPageFromGitHub,
 // deletePromptFromGitHub, updatePromptMetadataOnGitHub, cleanupHtml,
-// loadHtml2Canvas, generateThumbnail, blobToBase64, pushThumbnailToGitHub,
-// pushPromptToGitHub.
+// blobToBase64, pushPromptToGitHub.
 function renderSettings() {
   setRoute('settings');
   const cfg = getSyncConfig();
@@ -1059,42 +1049,7 @@ document.getElementById('syncClearBtn').addEventListener('click', () => {
 });
 
 // Tag curation/derivation/picker live in js/tags.js.
-document.getElementById('thumbRegenBtn').addEventListener('click', async () => {
-  const status = document.getElementById('thumbStatus');
-  const btn = document.getElementById('thumbRegenBtn');
-  if (!isOwner()) {
-    status.className = 'settings-status err';
-    status.textContent = 'Configure GitHub above first — regen needs to upload to the repo.';
-    return;
-  }
-  const list = prompts.filter(p => p && p.html);
-  if (!list.length) {
-    status.className = 'settings-status info';
-    status.textContent = 'No published prompts to thumbnail.';
-    return;
-  }
-  btn.disabled = true;
-  let done = 0, failed = 0;
-  for (const p of list) {
-    status.className = 'settings-status info';
-    status.textContent = `Generating ${done + 1}/${list.length} — ${p.id} …`;
-    try {
-      const path = await pushThumbnailToGitHub(p, p.html);
-      p.thumb = path;
-      const seed = seedPrompts.find(x => x.id === p.id);
-      if (seed) { seed.thumb = path; seed.thumbVer = p.thumbVer; }
-      await updatePromptMetadataOnGitHub(p);
-      done++;
-    } catch (e) {
-      console.warn('Thumb failed for ' + p.id + ':', e);
-      failed++;
-    }
-  }
-  btn.disabled = false;
-  status.className = failed ? 'settings-status info' : 'settings-status ok';
-  status.textContent = `✓ Regenerated ${done} thumbnail${done === 1 ? '' : 's'}` + (failed ? ` · ${failed} failed (see console).` : '.');
-  renderGallery();
-});
+// Thumbnails are produced by the Thumbnails workflow (.github/workflows/thumbnails.yml).
 document.getElementById('tagSaveBtn').addEventListener('click', async () => {
   const status = document.getElementById('tagSaveStatus');
   status.className = 'settings-status info';

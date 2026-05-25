@@ -3,7 +3,7 @@
 // time these handlers fire. Depends on (defined elsewhere): prompts,
 // seedPrompts, profiles, saveData, escapeHtml/escapeAttr, toast, cleanupHtml,
 // normalizeTag/normalizeTagList, getSyncConfig, ghFetch, ghBulkCommit,
-// b64ToUtf8, generateOGPageHtml, generateThumbnail, isOwner, renderDetail,
+// b64ToUtf8, generateOGPageHtml, isOwner, renderDetail,
 // renderGallery.
 
 // ─── Upload form ───
@@ -417,40 +417,8 @@ async function submitBulkUpload(formEl) {
   bulkQueue.length = 0;
   exitBulkMode();
   if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publish prompt →'; }
-  toast(`Published ${newPrompts.length} prompts · generating thumbnails…`);
+  // The Thumbnails workflow will pick up htmls/* changes from the bulk commit
+  // and patch thumb fields into the manifest within ~30-60s.
+  toast(`✓ Published ${newPrompts.length} prompts · thumbnails generating on GitHub.`);
   renderGallery();
-
-  // Second commit: thumbnails + manifest with thumb fields
-  (async () => {
-    const thumbFiles = [];
-    for (const p of newPrompts) {
-      try {
-        const blob = await generateThumbnail(p.html);
-        const path = 'thumbs/' + p.id + '.jpg';
-        thumbFiles.push({ path: path, content: blob });
-        p.thumb = path;
-        p.thumbVer = Date.now();
-        const s = seedPrompts.find(x => x.id === p.id);
-        if (s) { s.thumb = path; s.thumbVer = p.thumbVer; }
-      } catch (e) { console.warn('Bulk thumb failed for ' + p.id + ':', e); }
-    }
-    if (!thumbFiles.length) return;
-    try {
-      const cfg2 = getSyncConfig();
-      const manRaw2 = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg2.branch));
-      const m2 = JSON.parse(b64ToUtf8(manRaw2.content)) || [];
-      const byId = new Map(m2.map(e => [e.id, e]));
-      for (const p of newPrompts) {
-        const e = byId.get(p.id);
-        if (e) { e.thumb = 'thumbs/' + p.id + '.jpg'; e.thumbVer = p.thumbVer; }
-      }
-      thumbFiles.push({ path: 'manifest.json', content: JSON.stringify(m2, null, 2) });
-      await ghBulkCommit(thumbFiles, 'Prompton: bulk thumbnails for ' + newPrompts.length + ' prompts');
-      toast(`✓ ${newPrompts.length} prompts + thumbnails done.`);
-      renderGallery();
-    } catch (err) {
-      console.warn('Bulk thumb commit failed:', err);
-      toast(`Published ${newPrompts.length} prompts · thumbnails failed (see console).`);
-    }
-  })();
 }

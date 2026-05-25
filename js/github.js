@@ -261,81 +261,6 @@ function cleanupHtml(raw) {
   return s;
 }
 
-// ─── Thumbnail snapshots ───
-// Load html2canvas (vendored locally) once. Returns a promise resolved to
-// window.html2canvas. Vendored same-origin so Brave Shields / strict CSPs that
-// block cdnjs don't silently break thumbnail generation.
-function loadHtml2Canvas() {
-  if (window.html2canvas) return Promise.resolve(window.html2canvas);
-  if (window._h2cLoading) return window._h2cLoading;
-  window._h2cLoading = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'js/html2canvas.min.js';
-    s.async = true;
-    s.onload = () => resolve(window.html2canvas);
-    s.onerror = () => reject(new Error('html2canvas failed to load'));
-    document.head.appendChild(s);
-  });
-  return window._h2cLoading;
-}
-
-// Render the prompt HTML offscreen at 1280×1280 and snapshot to a JPG Blob.
-// Sandbox is `allow-scripts allow-same-origin` because we need to read the
-// iframe's DOM from html2canvas — only safe because this is owner-triggered on
-// their own content (the PAT is already in this browser's localStorage).
-async function generateThumbnail(html, opts) {
-  opts = opts || {};
-  const size = opts.size || 480;        // output JPG dimensions (square)
-  const quality = opts.quality || 0.82;
-  const settleMs = opts.settleMs || 1500;
-  await loadHtml2Canvas();
-  return new Promise((resolve, reject) => {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;left:-99999px;top:0;width:1280px;height:1280px;pointer-events:none;visibility:hidden;';
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'width:1280px;height:1280px;border:0;background:#fff;';
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-    iframe.setAttribute('scrolling', 'no');
-    iframe.srcdoc = html;
-    wrap.appendChild(iframe);
-    document.body.appendChild(wrap);
-    const cleanup = () => { try { wrap.remove(); } catch (e) {} };
-    const timeout = setTimeout(() => { cleanup(); reject(new Error('thumbnail iframe load timeout')); }, 15000);
-    iframe.onload = async () => {
-      // Let scripts inside the prompt settle (e.g. canvas/SVG drawn after DOMContentLoaded).
-      await new Promise(r => setTimeout(r, settleMs));
-      try {
-        const doc = iframe.contentDocument;
-        const target = (doc && doc.body) || iframe;
-        const canvas = await window.html2canvas(target, {
-          width: 1280, height: 1280,
-          windowWidth: 1280, windowHeight: 1280,
-          backgroundColor: '#ffffff',
-          useCORS: true, allowTaint: true,
-          logging: false, scale: 1
-        });
-        // Downscale to `size` square for storage
-        const out = document.createElement('canvas');
-        out.width = size; out.height = size;
-        const ctx = out.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, size, size);
-        ctx.drawImage(canvas, 0, 0, size, size);
-        out.toBlob((blob) => {
-          clearTimeout(timeout);
-          cleanup();
-          if (!blob) return reject(new Error('toBlob returned null'));
-          resolve(blob);
-        }, 'image/jpeg', quality);
-      } catch (e) {
-        clearTimeout(timeout);
-        cleanup();
-        reject(e);
-      }
-    };
-  });
-}
-
 // Convert a Blob to a base64 string (no data: prefix) for the GitHub API.
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
@@ -348,35 +273,6 @@ function blobToBase64(blob) {
     r.onerror = () => reject(r.error || new Error('FileReader failed'));
     r.readAsDataURL(blob);
   });
-}
-
-// PUT a binary file (e.g. a JPG thumbnail) to the GitHub Contents API.
-async function ghPutBinaryFile(path, blob, message, sha) {
-  const cfg = getSyncConfig();
-  const body = {
-    message: message,
-    content: await blobToBase64(blob),
-    branch: cfg.branch
-  };
-  if (sha) body.sha = sha;
-  return ghFetch('/contents/' + encodeURIComponent(path), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-}
-
-// Generate + upload the JPG thumbnail for a prompt; returns the repo-relative path.
-// Failures are non-fatal: the caller treats this as best-effort.
-async function pushThumbnailToGitHub(prompt, html) {
-  const blob = await generateThumbnail(html);
-  const path = 'thumbs/' + prompt.id + '.jpg';
-  const sha = await ghGetSha(path);
-  await ghPutBinaryFile(path, blob, 'Prompton: thumbnail for ' + prompt.id, sha);
-  // Stamp a cache buster so the browser fetches the fresh blob instead of an
-  // old copy from disk cache. Render sites read `p.thumbVer`.
-  prompt.thumbVer = Date.now();
-  return path;
 }
 
 // ─── Bulk commit via Git Data API ───
@@ -513,13 +409,8 @@ async function pushPromptToGitHub(prompt) {
   const cleanedHtml = cleanupHtml(prompt.html);
   prompt.html = cleanedHtml; // also persist the cleaned version in-memory
   await ghPutFile(htmlPath, cleanedHtml, 'Prompton: add ' + prompt.id + ' html', htmlSha);
-  // 1b. Generate + upload the JPG thumbnail (best-effort; manifest references it on success).
-  try {
-    const thumbPath = await pushThumbnailToGitHub(prompt, cleanedHtml);
-    prompt.thumb = thumbPath;
-  } catch (e) {
-    console.warn('Thumbnail generation failed for ' + prompt.id + ':', e);
-  }
+  // 1b. The Thumbnails workflow takes care of `thumbs/<id>.jpg` and stamps
+  //     `thumb` + `thumbVer` into the manifest on the next push to htmls/**.
   // 2. Update manifest.json — read fresh then append/replace this prompt
   const cfg = getSyncConfig();
   const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
