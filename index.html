@@ -2,8 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Prompton — recipes for AI</title>
+<!-- PWA installability: web app manifest + iOS standalone-mode meta. The
+     theme-color also tints the mobile browser chrome and the iOS notch area. -->
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="apple-touch-icon" href="icons/icon.svg" />
+<meta name="theme-color" content="#8C1515" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0e1014" media="(prefers-color-scheme: dark)" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Prompton" />
+<meta name="mobile-web-app-capable" content="yes" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -39,6 +50,7 @@
     <div class="tagline-2" data-i18n="tagline.sub">Every HTML, every prompt. Browse the gallery, fork, make it better, share.</div>
   </div>
 
+  <div id="storiesBar" class="stories-bar" aria-hidden="true"></div>
   <div id="magazineSection"></div>
   <div id="archiveHeader"></div>
 

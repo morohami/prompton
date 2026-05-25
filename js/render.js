@@ -22,6 +22,34 @@ function titleWithEmphasis(title) {
   return escapeHtml(words.join(' ')) + ' <em>' + escapeHtml(last) + '</em>';
 }
 
+// ─── Stories bar (mobile-only) ───
+// Horizontal scroll of circular thumbnails for the most recent uploads,
+// Instagram-style. Rendered into #storiesBar; CSS hides it unless
+// body.mobile-app is set, so desktop pays no rendering cost.
+function renderStoriesBar() {
+  const el = document.getElementById('storiesBar');
+  if (!el) return;
+  const recent = prompts
+    .slice()
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 12);
+  el.innerHTML = recent.map(p => {
+    const thumbStyle = p.thumb
+      ? `background-image:url(${escapeAttr(thumbUrl(p))});background-size:cover;background-position:center;`
+      : `background:linear-gradient(135deg,#8C1515,#b53a3a);`;
+    const initial = (p.title || '?').trim().charAt(0).toUpperCase();
+    const labelRaw = (p.title || '').slice(0, 14);
+    return `<button type="button" class="story" data-story-id="${escapeAttr(p.id)}">
+      <span class="story-ring">
+        <span class="story-thumb" style="${thumbStyle}">${p.thumb ? '' : escapeHtml(initial)}</span>
+      </span>
+      <span class="story-label">${escapeHtml(labelRaw)}</span>
+    </button>`;
+  }).join('');
+  el.querySelectorAll('[data-story-id]').forEach(b =>
+    b.addEventListener('click', () => renderDetail(b.dataset.storyId)));
+}
+
 // ─── Playlists view (user-defined collections) ───
 function renderPlaylists() {
   setRoute('playlists');
@@ -272,6 +300,7 @@ function renderGallery() {
   setRoute('');
   showView('gallery');
   renderTagChips();
+  renderStoriesBar();
   // All prompts are published once they're in the manifest — no local-only drafts.
   const publicPrompts = prompts.slice();
 

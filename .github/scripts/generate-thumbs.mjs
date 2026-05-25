@@ -13,8 +13,11 @@ import { fileURLToPath } from 'node:url';
 const HTMLS_DIR = 'htmls';
 const THUMBS_DIR = 'thumbs';
 const MANIFEST = 'manifest.json';
-const SIZE = 1280;
-const QUALITY = 82;
+// Capture + output at 640 — cards display at ~480px, so 640 gives ~1.3x on
+// retina without bloating the repo. q=72 JPEG → typically 40-80 KB per file
+// vs ~600 KB at 1280/82.
+const SIZE = 640;
+const QUALITY = 72;
 const NETWORK_IDLE_TIMEOUT = 20000;
 const SETTLE_MS = 2000;
 

@@ -1,0 +1,25 @@
+{
+  "name": "Prompton — recipes for AI",
+  "short_name": "Prompton",
+  "description": "Prompts you can actually cook with. Every HTML, every prompt — browse the gallery, fork, make it better, share.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fafaf6",
+  "theme_color": "#8C1515",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

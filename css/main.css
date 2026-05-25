@@ -4021,6 +4021,96 @@
     font-size: 22px;
   }
 
-  body.mobile-app #view-detail .detail-actions { flex-wrap: wrap; gap: 6px; }
-  body.mobile-app #view-detail .btn { font-size: 13px; padding: 8px 12px; }
+  /* ─── Stories bar (mobile-only) ─── */
+  .stories-bar { display: none; }
+  body.mobile-app .stories-bar {
+    display: flex;
+    gap: 14px;
+    padding: 12px 14px 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;          /* Firefox */
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  body.mobile-app .stories-bar::-webkit-scrollbar { display: none; }
+  body.mobile-app .stories-bar .story {
+    flex: 0 0 auto;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    scroll-snap-align: start;
+    width: 72px;
+  }
+  body.mobile-app .stories-bar .story-ring {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    padding: 2px;
+    background: linear-gradient(135deg, #8C1515, #c9a14a);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  body.mobile-app .stories-bar .story-thumb {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    border: 2px solid var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: 24px;
+    overflow: hidden;
+  }
+  body.mobile-app .stories-bar .story-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    max-width: 72px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+  }
+
+  /* ─── Mobile detail polish ─── */
+  body.mobile-app #view-detail { padding-bottom: 130px; /* room for sticky bar + bottom nav */ }
+  body.mobile-app #view-detail .detail-header h1 {
+    font-size: clamp(22px, 6.5vw, 32px);
+    line-height: 1.15;
+  }
+  body.mobile-app #view-detail .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  body.mobile-app #view-detail .preview-wrap { aspect-ratio: 1 / 1; }
+  /* Move the top action row off-screen on mobile — a single sticky bar at
+     the bottom is the primary action surface. The original buttons stay
+     in the DOM (referenced by event listeners) just hidden visually. */
+  body.mobile-app #view-detail .detail-actions {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: calc(72px + env(safe-area-inset-bottom)); /* above bottom nav */
+    z-index: 90;
+    background: var(--bg-top);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 10px 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 8px;
+    margin: 0;
+  }
+  body.mobile-app #view-detail .detail-actions::-webkit-scrollbar { display: none; }
+  body.mobile-app #view-detail .detail-actions .btn {
+    flex: 0 0 auto;
+    font-size: 13px;
+    padding: 10px 14px;
+    min-height: 40px;
+  }
   body.mobile-app .playlist-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
