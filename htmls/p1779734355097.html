@@ -311,8 +311,8 @@
 </div>
 
 <div class="swipe-handle" id="swipeHandle"></div>
-<div class="swipe-label bottom" id="swipeLabelLeft"><span class="swatch"></span><span id="swipeLabelLeftText">下のレイヤー</span></div>
-<div class="swipe-label top" id="swipeLabelRight"><span class="swatch"></span><span id="swipeLabelRightText">上のレイヤー</span></div>
+<div class="swipe-label bottom" id="swipeLabelLeft"><span class="swatch"></span><span id="swipeLabelLeftText">左のレイヤー</span></div>
+<div class="swipe-label top" id="swipeLabelRight"><span class="swatch"></span><span id="swipeLabelRightText">右のレイヤー</span></div>
 
 <div class="brand">
   <h1>東京 今昔マップ</h1>
@@ -322,12 +322,12 @@
 <div class="info-badge">
   <div class="info-row">
     <span class="swatch bottom"></span>
-    <span class="lab">下</span>
+    <span class="lab">左</span>
     <span class="name" id="badgeBottom">…</span>
   </div>
   <div class="info-row">
     <span class="swatch top"></span>
-    <span class="lab">上</span>
+    <span class="lab">右</span>
     <span class="name" id="badgeTop">…</span>
   </div>
 </div>
@@ -335,12 +335,12 @@
 <div class="panel">
   <div class="row">
     <div class="picker-group">
-      <div class="picker-label bottom"><span class="swatch"></span>下</div>
-      <select class="layer-picker" id="bottomPicker" aria-label="下のレイヤー"></select>
+      <div class="picker-label bottom"><span class="swatch"></span>左</div>
+      <select class="layer-picker" id="bottomPicker" aria-label="左のレイヤー"></select>
     </div>
     <div class="picker-group">
-      <div class="picker-label top"><span class="swatch"></span>上</div>
-      <select class="layer-picker" id="topPicker" aria-label="上のレイヤー"></select>
+      <div class="picker-label top"><span class="swatch"></span>右</div>
+      <select class="layer-picker" id="topPicker" aria-label="右のレイヤー"></select>
     </div>
   </div>
   <div class="row">
@@ -519,15 +519,15 @@ function addTopoLayers(pattern) {
 // ============================================================
 const baseOptions = {
   center: [35.677762, 139.772218],
-  zoom: 16, minZoom: 8, maxZoom: 19,
+  zoom: 15, minZoom: 8, maxZoom: 19,
   // 関東圏に絞る (将来全国版を作る場合はここを広げる/取り除く)
   maxBounds: L.latLngBounds(KANTO_BOUNDS),
-  maxBoundsViscosity: 0.8,
+  maxBoundsViscosity: 0.4, // 緩めて pan が引っ掛からないように
   zoomAnimation: false,    // 2マップ間のズーム同期を確実にするため無効化
   fadeAnimation: true,
-  // ホイールズーム感度を緩和 (デフォルト 60 → 150 = 2.5倍鈍く)
-  wheelPxPerZoomLevel: 150,
-  wheelDebounceTime: 60,
+  // ホイールズーム感度を緩和 (デフォルト 60 → 120 = 2倍鈍く。鈍すぎず効きすぎない中庸)
+  wheelPxPerZoomLevel: 120,
+  wheelDebounceTime: 40,
   zoomSnap: 1,
   zoomDelta: 1,
 };
@@ -552,7 +552,7 @@ syncBToA();
 // ============================================================
 let bottomLayerObj = null, topLayerObj = null;
 let bottomLayerId = 'pale';
-let topLayerId = 'ort_old10';
+let topLayerId = 'ort_USA10'; // 1945-50 米軍撮影 (デフォルトで現代 vs 戦後すぐを比較)
 let bottomAttrStr = null, topAttrStr = null;
 let opacity = 0.8;
 let compareActive = false;
@@ -737,17 +737,14 @@ setBottomLayer(bottomLayerId);
 setTopLayer(topLayerId);
 applyOpacity();
 
-// バックグラウンドで地形図 URL 検出 → 完了後に地形図 8 世代を追加
+// バックグラウンドで地形図 URL 検出 → 完了後に地形図 8 世代をドロップダウンに追加
 showHint('地形図タイルを検出中…');
 (async () => {
   const pattern = await detectTopoPattern();
   if (pattern) {
     addTopoLayers(pattern);
-    showHint('✅ 地形図タイル検出成功 — ドロップダウンから選択できます', 2400);
-    // デフォルトの上レイヤーを 1963–66 地形図に切替
-    topLayerId = 'tokyo_03';
     refreshPickers();
-    setTopLayer(topLayerId);
+    showHint('✅ 地形図 8 世代を追加 (右のドロップダウンから選択)', 3000);
   } else {
     showHint('地形図タイル検出失敗 — 航空写真と現代地図のみ利用可', 5000);
   }
