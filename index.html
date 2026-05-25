@@ -409,6 +409,26 @@ function toggleFollow(theirHandle) {
 let prompts = [];
 // Tag system (tagConfig, normalizeTag, mountTagPicker, etc.) is in js/tags.js.
 
+// ─── Favorites (private, per-device) ───
+// Stored as an array of prompt IDs in localStorage. Naturally private since
+// localStorage doesn't sync — no auth needed.
+const FAVORITES_KEY = 'prompton_favorites_v1';
+let favorites = (() => {
+  try { const raw = localStorage.getItem(FAVORITES_KEY); return raw ? JSON.parse(raw) : []; }
+  catch (e) { return []; }
+})();
+function saveFavorites() {
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites)); }
+  catch (e) { console.warn('Could not persist favorites:', e); }
+}
+function isFavorited(id) { return favorites.indexOf(id) >= 0; }
+function toggleFavorite(id) {
+  const idx = favorites.indexOf(id);
+  if (idx >= 0) favorites.splice(idx, 1); else favorites.push(id);
+  saveFavorites();
+  return idx < 0;  // true if just favorited
+}
+
 // ─── Versioning helpers ───
 function syncTopLevelFromLatest(p) {
   if (!p.versions || !p.versions.length) return;

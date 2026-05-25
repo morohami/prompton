@@ -139,6 +139,7 @@ function renderGallery() {
             ? '<img class="thumb-img" loading="lazy" decoding="async" src="' + escapeAttr(thumbUrl(p)) + '" alt="">'
             : '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>') +
           '<button type="button" class="album-fullscreen" data-fullscreen-id="' + p.id + '" title="View this HTML fullscreen" aria-label="View fullscreen">⛶</button>' +
+          '<button type="button" class="fav-btn ' + (isFavorited(p.id) ? 'on' : '') + '" data-fav-id="' + p.id + '" aria-label="Favorite" title="Favorite">' + (isFavorited(p.id) ? '♥' : '♡') + '</button>' +
           '<div class="album-play" title="Open prompt">▶</div>' +
         '</div>' +
         '<h3 class="album-title">' + escapeHtml(p.title) + '</h3>' +
@@ -238,6 +239,14 @@ function renderGallery() {
         const p = prompts.find(x => x.id === el.dataset.newsFork);
         if (p) forkPrompt(p);
       }));
+    magazineEl.querySelectorAll('[data-fav-id]').forEach(el =>
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = el.dataset.favId;
+        const nowFav = toggleFavorite(id);
+        el.classList.toggle('on', nowFav);
+        el.textContent = nowFav ? '♥' : '♡';
+      }));
     magazineEl.querySelectorAll('[data-author]').forEach(a =>
       a.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -303,10 +312,12 @@ function renderGallery() {
     const thumbInner = p.thumb
       ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
       : `<div class="thumb-mount card-thumb-mount" data-thumb-id="${p.id}"></div>`;
+    const favOn = isFavorited(p.id);
     card.innerHTML = `
       <div class="thumb-wrap">
         <span class="ribbon ${ribbonClass}">${ribbonText}</span>
         ${thumbInner}
+        <button type="button" class="fav-btn ${favOn ? 'on' : ''}" data-fav-id="${p.id}" aria-label="Favorite" title="Favorite">${favOn ? '♥' : '♡'}</button>
       </div>
       <div class="meta-top">
         <span>${formatDate(p.date)}</span>
@@ -321,6 +332,13 @@ function renderGallery() {
         ${knobsBadge}
       </div>
     `;
+    const favBtn = card.querySelector('.fav-btn');
+    if (favBtn) favBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const nowFav = toggleFavorite(p.id);
+      favBtn.classList.toggle('on', nowFav);
+      favBtn.textContent = nowFav ? '♥' : '♡';
+    });
     card.addEventListener('click', (e) => {
       if (compareMode) {
         const idx = compareSelection.indexOf(p.id);
@@ -491,6 +509,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">↗ Open in Claude.ai</button>
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">⎘ Copy</button>
         <button class="btn secondary" id="downloadBtn">↓ Download HTML</button>
+        <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${isFavorited(p.id) ? '♥ Favorited' : '♡ Favorite'}</button>
         <button class="btn secondary" id="shareBtn" title="Share this prompt">↗ Share</button>
         <button class="btn secondary" id="forkBtn">⑂ Fork</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">⇄ Compare with original</button>` : ''}
@@ -701,6 +720,17 @@ function renderDetail(id, viewingVersionNum) {
     shareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       openSharePopover(shareBtn, p);
+    });
+  }
+
+  // Favorite toggle — private, per-device. Heart fills + the count on the
+  // owner's profile bumps on next render.
+  const favBtn = document.getElementById('favoriteBtn');
+  if (favBtn) {
+    favBtn.addEventListener('click', () => {
+      const nowFav = toggleFavorite(p.id);
+      favBtn.classList.toggle('on', nowFav);
+      favBtn.textContent = nowFav ? '♥ Favorited' : '♡ Favorite';
     });
   }
 
@@ -1443,6 +1473,15 @@ function renderProfile(handle, tab) {
           <div class="num">${mine.length}</div>
           <div class="lbl">Published</div>
         </button>
+        ${isYou ? `
+        <button type="button" class="stat-card ${activeTab === 'favorites' ? 'active' : ''}" data-tab="favorites">
+          <div class="num">${formatNum(favorites.length)}</div>
+          <div class="lbl">Favorites</div>
+        </button>` : `
+        <div class="stat-card non-tab">
+          <div class="num">${formatNum(totalDl)}</div>
+          <div class="lbl">Downloads</div>
+        </div>`}
         <button type="button" class="stat-card ${activeTab === 'followers' ? 'active' : ''}" data-tab="followers">
           <div class="num">${profile.followers.length}</div>
           <div class="lbl">Followers</div>
@@ -1451,10 +1490,6 @@ function renderProfile(handle, tab) {
           <div class="num">${profile.following.length}</div>
           <div class="lbl">Following</div>
         </button>
-        <div class="stat-card non-tab">
-          <div class="num">${formatNum(totalDl)}</div>
-          <div class="lbl">Downloads</div>
-        </div>
         <div class="stat-card non-tab">
           <div class="num">${formatNum(totalFk)}</div>
           <div class="lbl">Forks</div>
@@ -1523,6 +1558,34 @@ function renderProfileTab(handle, tab) {
   } else if (tab === 'following') {
     el.innerHTML = renderUserList(profile.following, 'Not following anyone yet.');
     wireUserList(el, handle);
+  } else if (tab === 'favorites') {
+    // Owner-only tab. Favorites live in localStorage so they're naturally
+    // private — only show on the viewer's own profile.
+    if (handle !== ownerHandle()) { el.innerHTML = ''; return; }
+    const mineFavs = favorites
+      .map(id => prompts.find(x => x.id === id))
+      .filter(Boolean);
+    if (!mineFavs.length) {
+      el.innerHTML = '<div class="empty-state">No favorites yet. Tap ♡ on any prompt to save it here.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="grid" id="profileGrid"></div>';
+    const grid = el.querySelector('#profileGrid');
+    mineFavs.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const thumbInner = p.thumb
+        ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
+        : `<iframe class="thumb" srcdoc="${escapeAttr(p.html || '')}" sandbox="" scrolling="no" tabindex="-1"></iframe>`;
+      card.innerHTML = `
+        <div class="thumb-wrap">${thumbInner}</div>
+        <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
+        <h3>${escapeHtml(p.title)}</h3>
+        <div class="by">by <span data-author="${p.author}">${escapeHtml(p.authorName)}</span></div>
+      `;
+      card.addEventListener('click', () => renderDetail(p.id));
+      grid.appendChild(card);
+    });
   }
 }
 

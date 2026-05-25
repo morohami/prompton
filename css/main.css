@@ -997,6 +997,34 @@
   }
   .card .ribbon.tomato { background: var(--accent); color: #000; }
 
+  /* Favorite heart — overlay on card thumb. Empty ♡ on rest, filled ♥ when
+     favorited (cardinal red). Click stops propagation so it doesn't open the
+     detail view. */
+  .card .fav-btn,
+  .album-card .fav-btn {
+    position: absolute;
+    top: 22px; right: 22px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 3;
+    backdrop-filter: blur(4px);
+    transition: transform 0.12s ease, background 0.18s ease;
+  }
+  .album-card .fav-btn { top: 12px; right: 12px; }
+  .card .fav-btn:hover,
+  .album-card .fav-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.75); }
+  .card .fav-btn.on,
+  .album-card .fav-btn.on { color: var(--accent); }
+  /* Detail action: filled state for the favorite button */
+  .btn.secondary.on { color: var(--accent); border-color: var(--accent); }
+
   .card .meta-top {
     display: none;
   }
