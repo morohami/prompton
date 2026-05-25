@@ -18,6 +18,8 @@
     --vermillion: #c54f3e;
     --vermillion-glow: rgba(197, 79, 62, 0.25);
     --gold: #c8a96a;
+    --silver: #b8b8b8;
+    --moss: #7a9a4f;
     --line: #3a3d44;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,25 +30,10 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* === Maps === */
-  #mapWrap { position: absolute; inset: 0; }
-  #map, #mapCompare {
-    position: absolute; inset: 0;
-  }
-  #map {
-    z-index: 1;
-    background: #efeae0; /* 下のマップだけ淡い背景。空タイルでも違和感が少ない */
-  }
-  #mapCompare {
-    z-index: 2;
-    pointer-events: none;
-    background: transparent !important; /* ★ 重要: タイル未取得エリアで下のマップを邪魔しない */
-    clip-path: inset(0);
-    -webkit-clip-path: inset(0);
-    transition: opacity 0.12s linear;
-  }
-  /* Leaflet 自身が container に背景色を入れることがあるので上書き */
-  #mapCompare .leaflet-container { background: transparent !important; }
+  #map { position: absolute; inset: 0; background: #efeae0; z-index: 1; }
+
+  /* 古地図オーバーレイのフェード */
+  .era-overlay { transition: opacity 0.3s ease; }
 
   /* === Brand === */
   .brand {
@@ -67,98 +54,201 @@
     margin-top: 7px; text-transform: uppercase; font-weight: 300;
   }
 
-  /* === Info badge === */
-  .info-badge {
+  /* === Search + Locate (top-right) === */
+  .search-bar {
     position: absolute; top: 16px; right: 16px; z-index: 1000;
+    display: flex; gap: 8px; align-items: stretch;
+  }
+  .search-input-wrap {
+    position: relative;
     background: rgba(15, 17, 22, 0.92);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    padding: 10px 16px;
-    border-right: 3px solid var(--gold);
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-    min-width: 180px; max-width: 260px;
+    border-right: 3px solid var(--gold);
+    display: flex; align-items: stretch;
   }
-  .info-row {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px; line-height: 1.4;
+  .search-input {
+    background: transparent; border: none; outline: none;
+    color: var(--cream);
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: 13px; letter-spacing: 0.02em;
+    padding: 11px 12px 11px 38px;
+    width: 240px;
   }
-  .info-row + .info-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
-  .info-row .swatch {
-    width: 10px; height: 10px; flex-shrink: 0;
+  .search-input::placeholder { color: var(--cream-dim); }
+  .search-input-wrap::before {
+    content: '🔍';
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; opacity: 0.7;
   }
-  .info-row .swatch.bottom { background: var(--cream); }
-  .info-row .swatch.top { background: var(--vermillion); }
-  .info-row .lab {
-    font-family: "Shippori Mincho B1", serif;
-    font-size: 10px; color: var(--cream-dim); letter-spacing: 0.06em;
-    min-width: 16px;
+  .icon-btn {
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    border: none; border-right: 3px solid var(--vermillion);
+    color: var(--cream); cursor: pointer;
+    padding: 0 14px;
+    font-size: 16px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    min-width: 44px;
   }
-  .info-row .name {
-    font-family: "Shippori Mincho B1", serif;
+  .icon-btn:hover { color: var(--vermillion); }
+  .icon-btn.locating { color: var(--vermillion); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  .search-results {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: rgba(15, 17, 22, 0.96);
+    backdrop-filter: blur(14px);
+    min-width: 320px; max-width: 420px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    border-right: 3px solid var(--gold);
+    max-height: 60vh; overflow-y: auto;
+    display: none;
+  }
+  .search-results.show { display: block; }
+  .search-item {
+    padding: 10px 14px; cursor: pointer;
     font-size: 12px; color: var(--cream);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.15s;
   }
+  .search-item:last-child { border-bottom: none; }
+  .search-item:hover { background: rgba(197, 79, 62, 0.18); }
+  .search-item .title { font-weight: 500; }
+  .search-item .sub { font-size: 10px; color: var(--cream-dim); margin-top: 2px; }
+  .search-item.empty { color: var(--cream-dim); cursor: default; }
+  .search-item.empty:hover { background: transparent; }
 
   /* === Bottom panel === */
   .panel {
     position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 1000;
     background: rgba(15, 17, 22, 0.94);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    padding: 16px 22px 18px;
+    padding: 14px 24px 16px;
     border-top: 2px solid var(--vermillion);
     box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
-    max-width: 980px; margin: 0 auto;
-  }
-  .row { display: flex; gap: 14px; align-items: center; }
-  .row + .row {
-    margin-top: 12px; padding-top: 12px;
-    border-top: 1px solid var(--line);
+    max-width: 1100px; margin: 0 auto;
   }
 
-  /* === Layer pickers === */
-  .picker-group {
-    flex: 1; display: flex; align-items: center; gap: 8px;
-    min-width: 0;
+  /* === Era info (above timeline) === */
+  .era-info {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
   }
-  .picker-label {
+  .era-year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 22px; color: var(--vermillion);
+    letter-spacing: 0.04em; font-weight: 500;
+    min-width: 70px;
+  }
+  .era-label {
     font-family: "Shippori Mincho B1", serif;
-    font-size: 12px; letter-spacing: 0.1em; color: var(--cream);
-    font-weight: 500; display: flex; align-items: center; gap: 7px;
-    flex-shrink: 0;
+    font-size: 16px; color: var(--cream);
+    letter-spacing: 0.06em;
   }
-  .picker-label .swatch {
-    width: 10px; height: 10px; display: inline-block;
+  .era-sub {
+    font-size: 11px; color: var(--cream-dim);
+    letter-spacing: 0.05em;
   }
-  .picker-label.bottom .swatch { background: var(--cream); }
-  .picker-label.top .swatch { background: var(--vermillion); }
+  .era-attr {
+    margin-left: auto;
+    font-size: 10px; color: var(--cream-dim);
+    letter-spacing: 0.04em;
+    max-width: 45%; text-align: right;
+  }
 
-  .layer-picker {
-    flex: 1; min-width: 0;
-    background: var(--ink-soft); color: var(--cream);
-    border: 1px solid var(--line);
-    padding: 9px 32px 9px 11px;
-    font-family: "Noto Sans JP", sans-serif;
-    font-size: 12px; letter-spacing: 0.03em;
-    appearance: none; -webkit-appearance: none; -moz-appearance: none;
-    cursor: pointer; border-radius: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%23a8a397' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    transition: border-color 0.15s;
+  /* === Timeline === */
+  .timeline-wrap {
+    position: relative;
+    margin-bottom: 12px;
   }
-  .layer-picker:focus { outline: none; border-color: var(--vermillion); }
-  .layer-picker:hover { border-color: var(--cream-dim); }
-  .layer-picker option, .layer-picker optgroup {
-    background: var(--ink-deep); color: var(--cream);
-    font-family: "Noto Sans JP", sans-serif;
+  .timeline {
+    position: relative; height: 56px;
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
   }
-  .layer-picker optgroup { font-style: normal; color: var(--gold); font-weight: 500; }
+  .timeline::-webkit-scrollbar { height: 4px; }
+  .timeline::-webkit-scrollbar-thumb { background: var(--line); }
+  .timeline-inner {
+    position: relative;
+    min-width: 100%;
+    display: flex; align-items: center;
+    padding: 0 12px;
+    height: 100%;
+  }
+  .timeline-track {
+    position: absolute; left: 12px; right: 12px; top: 28px;
+    height: 1px; background: var(--line);
+    z-index: 0;
+  }
+  .tick {
+    position: relative; z-index: 1;
+    flex: 1; min-width: 46px;
+    text-align: center;
+    cursor: pointer;
+    padding: 6px 0;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px;
+    transition: transform 0.15s;
+  }
+  .tick .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--ink-soft);
+    border: 1.5px solid var(--cream-dim);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tick.cat-old .dot      { border-color: var(--gold);  background: rgba(200, 169, 106, 0.2); }
+  .tick.cat-aerial .dot   { border-color: var(--silver); background: rgba(184, 184, 184, 0.2); }
+  .tick.cat-topo .dot     { border-color: var(--moss);  background: rgba(122, 154, 79, 0.2); }
+  .tick.cat-modern .dot   { border-color: var(--cream); background: rgba(232, 227, 214, 0.2); }
+  .tick .year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--cream-dim);
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .tick:hover { transform: translateY(-2px); }
+  .tick:hover .dot { transform: scale(1.25); }
+  .tick:hover .year { color: var(--cream); }
+  .tick.active .dot {
+    width: 14px; height: 14px;
+    background: var(--vermillion); border-color: var(--vermillion);
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+  }
+  .tick.active .year {
+    color: var(--vermillion);
+    font-weight: 500;
+  }
+  .tick .tooltip {
+    position: absolute; bottom: 100%; left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    background: rgba(15, 17, 22, 0.96);
+    backdrop-filter: blur(8px);
+    padding: 5px 10px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px; letter-spacing: 0.05em;
+    color: var(--cream); white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s;
+    border-left: 2px solid var(--gold);
+  }
+  .tick:hover .tooltip { opacity: 1; }
 
-  /* === Opacity slider === */
-  .slider-wrap { flex: 1; display: flex; align-items: center; gap: 14px; min-width: 0; }
+  /* === Bottom controls row === */
+  .controls-row {
+    display: flex; gap: 16px; align-items: center;
+  }
+  .slider-wrap { flex: 1; display: flex; align-items: center; gap: 12px; min-width: 0; }
   .slider {
     flex: 1; -webkit-appearance: none; appearance: none;
     height: 2px; background: var(--line); outline: none;
-    cursor: pointer; min-width: 60px;
+    cursor: pointer; min-width: 80px;
   }
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
@@ -178,73 +268,34 @@
     font-size: 12px; color: var(--cream); min-width: 42px;
     text-align: right;
   }
-  .slider-label {
+  .ctrl-label {
     font-family: "Shippori Mincho B1", serif;
     font-size: 12px; letter-spacing: 0.12em; color: var(--cream-dim);
-    flex-shrink: 0; min-width: 48px;
+    flex-shrink: 0; min-width: 32px;
   }
-
-  /* === Compare button === */
-  .compare-btn {
-    padding: 9px 18px;
+  .play-btn {
+    padding: 8px 14px;
     background: transparent; border: 1px solid var(--line);
     color: var(--cream-dim);
     font-family: "Shippori Mincho B1", serif;
-    font-size: 12px; letter-spacing: 0.1em;
+    font-size: 12px; letter-spacing: 0.08em;
     cursor: pointer; transition: all 0.2s;
-    font-weight: 500; flex-shrink: 0;
+    flex-shrink: 0;
   }
-  .compare-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
-  .compare-btn.active {
+  .play-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
+  .play-btn.playing {
     background: var(--vermillion); border-color: var(--vermillion);
     color: var(--cream);
     box-shadow: 0 0 0 4px var(--vermillion-glow);
   }
 
-  /* === Swipe handle === */
-  .swipe-handle {
-    position: absolute; top: 0; bottom: 0; width: 3px;
+  /* === Locate marker === */
+  .locate-marker {
+    width: 18px; height: 18px; border-radius: 50%;
     background: var(--vermillion);
-    cursor: ew-resize; z-index: 998;
-    box-shadow: 0 0 20px rgba(197, 79, 62, 0.7), 0 0 40px rgba(197, 79, 62, 0.3);
-    display: none;
-    transform: translateX(-50%);
-    touch-action: none;
+    border: 2px solid var(--cream);
+    box-shadow: 0 0 0 6px var(--vermillion-glow), 0 4px 12px rgba(0,0,0,0.4);
   }
-  .swipe-handle.active { display: block; }
-  .swipe-handle::before {
-    content: ''; position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px; height: 48px; border-radius: 50%;
-    background: var(--vermillion);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(197, 79, 62, 0.3);
-  }
-  .swipe-handle::after {
-    content: '⇆'; position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--cream); font-size: 18px; font-weight: bold;
-    pointer-events: none;
-  }
-  .swipe-label {
-    position: absolute; top: 90px; z-index: 997;
-    font-family: "Shippori Mincho B1", serif;
-    font-size: 11px; letter-spacing: 0.1em;
-    color: var(--cream); background: rgba(15, 17, 22, 0.85);
-    padding: 6px 12px; pointer-events: none;
-    backdrop-filter: blur(8px);
-    display: none;
-    max-width: 40vw;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .swipe-label.active { display: block; }
-  .swipe-label.bottom { left: 16px; }
-  .swipe-label.top { right: 16px; }
-  .swipe-label .swatch {
-    display: inline-block; width: 8px; height: 8px;
-    margin-right: 6px; vertical-align: middle;
-  }
-  .swipe-label.bottom .swatch { background: var(--cream); }
-  .swipe-label.top .swatch { background: var(--vermillion); }
 
   /* === Leaflet overrides === */
   .leaflet-control-attribution {
@@ -252,7 +303,7 @@
     color: var(--cream-dim) !important;
     font-size: 10px !important; padding: 4px 10px !important;
     border: none !important;
-    max-width: 70vw;
+    max-width: 60vw;
   }
   .leaflet-control-attribution a { color: var(--gold) !important; }
   .leaflet-control-zoom {
@@ -273,11 +324,11 @@
 
   /* === Hint === */
   .hint {
-    position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
-    z-index: 1001; color: var(--cream-dim);
+    position: absolute; bottom: 220px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; color: var(--cream);
     font-family: "Shippori Mincho B1", serif;
-    font-size: 13px; letter-spacing: 0.1em;
-    background: rgba(15, 17, 22, 0.88);
+    font-size: 13px; letter-spacing: 0.08em;
+    background: rgba(15, 17, 22, 0.92);
     padding: 10px 20px; backdrop-filter: blur(8px);
     pointer-events: none; opacity: 0;
     transition: opacity 0.4s;
@@ -288,68 +339,66 @@
 
   /* === Mobile === */
   @media (max-width: 720px) {
-    .panel { padding: 12px 14px 14px; bottom: 8px; left: 8px; right: 8px; }
-    .row { flex-wrap: wrap; gap: 10px; }
-    .row + .row { padding-top: 10px; margin-top: 10px; }
-    .picker-group { flex: 1 1 100%; min-width: 0; }
+    .panel { padding: 10px 12px 12px; bottom: 8px; left: 8px; right: 8px; }
+    .era-info { gap: 8px; flex-wrap: wrap; margin-bottom: 6px; padding-bottom: 6px; }
+    .era-year { font-size: 18px; min-width: 56px; }
+    .era-label { font-size: 14px; }
+    .era-attr { display: none; }
+    .controls-row { flex-wrap: wrap; gap: 10px; }
     .slider-wrap { flex: 1 1 100%; }
-    .slider-label { min-width: 0; }
-    .info-badge { display: none; }
     .brand { padding: 9px 14px 7px; }
     .brand h1 { font-size: 15px; }
     .brand .en { font-size: 8px; margin-top: 5px; }
-    .compare-btn { padding: 11px 14px; flex: 1; }
-    .leaflet-control-zoom { margin-top: 70px !important; }
+    .search-bar { top: 8px; right: 8px; left: auto; }
+    .search-input { width: 140px; padding: 9px 10px 9px 32px; }
+    .search-input-wrap::before { left: 9px; }
+    .icon-btn { min-width: 40px; padding: 0 10px; }
+    .leaflet-control-zoom { margin-top: 60px !important; }
+    .tick { min-width: 38px; }
+    .tick .year { font-size: 9px; }
   }
 </style>
 </head>
 <body>
 
-<div id="mapWrap">
-  <div id="map"></div>
-  <div id="mapCompare"></div>
-</div>
-
-<div class="swipe-handle" id="swipeHandle"></div>
-<div class="swipe-label bottom" id="swipeLabelLeft"><span class="swatch"></span><span id="swipeLabelLeftText">左のレイヤー</span></div>
-<div class="swipe-label top" id="swipeLabelRight"><span class="swatch"></span><span id="swipeLabelRightText">右のレイヤー</span></div>
+<div id="map"></div>
 
 <div class="brand">
   <h1>東京 今昔マップ</h1>
   <div class="en">Tokyo · Through Time</div>
 </div>
 
-<div class="info-badge">
-  <div class="info-row">
-    <span class="swatch bottom"></span>
-    <span class="lab">左</span>
-    <span class="name" id="badgeBottom">…</span>
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <input type="text" class="search-input" id="searchInput" placeholder="住所・駅・地名を検索" />
   </div>
-  <div class="info-row">
-    <span class="swatch top"></span>
-    <span class="lab">右</span>
-    <span class="name" id="badgeTop">…</span>
-  </div>
+  <button class="icon-btn" id="locateBtn" title="現在地を表示">📍</button>
+  <div class="search-results" id="searchResults"></div>
 </div>
 
 <div class="panel">
-  <div class="row">
-    <div class="picker-group">
-      <div class="picker-label bottom"><span class="swatch"></span>左</div>
-      <select class="layer-picker" id="bottomPicker" aria-label="左のレイヤー"></select>
+  <div class="era-info">
+    <div class="era-year" id="eraYear">—</div>
+    <div>
+      <div class="era-label" id="eraLabel">読み込み中…</div>
+      <div class="era-sub" id="eraSub"></div>
     </div>
-    <div class="picker-group">
-      <div class="picker-label top"><span class="swatch"></span>右</div>
-      <select class="layer-picker" id="topPicker" aria-label="右のレイヤー"></select>
+    <div class="era-attr" id="eraAttr"></div>
+  </div>
+  <div class="timeline-wrap">
+    <div class="timeline" id="timeline">
+      <div class="timeline-inner" id="timelineInner">
+        <div class="timeline-track"></div>
+      </div>
     </div>
   </div>
-  <div class="row">
-    <span class="slider-label">透過</span>
+  <div class="controls-row">
+    <span class="ctrl-label">透過</span>
     <div class="slider-wrap">
-      <input type="range" min="0" max="100" value="80" class="slider" id="opacitySlider" />
-      <div class="slider-val" id="opacityVal">80%</div>
+      <input type="range" min="0" max="100" value="85" class="slider" id="opacitySlider" />
+      <div class="slider-val" id="opacityVal">85%</div>
     </div>
-    <button class="compare-btn" id="compareBtn">⇆ 比較</button>
+    <button class="play-btn" id="playBtn" title="時代を順に再生">▶ 再生</button>
   </div>
 </div>
 
@@ -360,103 +409,114 @@
 "use strict";
 
 // ============================================================
-// レイヤーカタログ
-// 各レイヤーは { id, cat, label, year, url, attr, min, max } の形
-// cat: 'modern' | 'aerial' | 'topo'
-// 既存の URL は GSI 地理院タイル + OpenStreetMap で安定動作確認済み
-// 地形図 (qchizu) は実行時に URL パターンを検出して追加する
+// 時代カタログ — 年代昇順に並べる
+// cat: 'old' (絵図・旧版地図) | 'aerial' (空中写真) | 'topo' (地形図) | 'modern' (現代地図)
+// bounds: [[南緯, 西経], [北緯, 東経]] (該当エリアのみタイル取得 → エリア外は淡色が透ける)
 // ============================================================
-const GSI_ATTR = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>';
-// 関東 (Tokyo を中心に首都圏) のみ表示。将来全国対応する場合はここを広げる
-const KANTO_BOUNDS = [[34.5, 138.0], [37.0, 141.5]];
-// 戦前 (1936-42) 航空写真の実質的なカバレッジ (東京23区エリア)
-const TOKYO_23_BOUNDS = [[35.48, 139.52], [35.85, 139.95]];
+const GSI = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>';
+const TSUNAGARU_ATTR = '<a href="https://www.tsunagaru-map.com/pf-tokyo/map.html" target="_blank">ツナガルマップ (東京古地図展)</a>';
 
-const ALL_LAYERS = [
-  // === 現代地図 (今) ===
-  { id: 'pale', cat: 'modern', label: '淡色地図 (現代)',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 2, max: 18 },
-  { id: 'std', cat: 'modern', label: '標準地図 (現代)',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 2, max: 18 },
-  { id: 'seamlessphoto', cat: 'modern', label: '衛星写真 (現代・シームレス)',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
-    attr: GSI_ATTR + '（シームレス空中写真）', min: 2, max: 18 },
-  { id: 'osm', cat: 'modern', label: 'OpenStreetMap',
-    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attr: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
-    min: 0, max: 19 },
-  { id: 'blank', cat: 'modern', label: '白地図 (注記なし)',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/blank/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 5, max: 14 },
-  { id: 'relief', cat: 'modern', label: '色別標高図',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 5, max: 15 },
-  { id: 'hillshademap', cat: 'modern', label: '陰影起伏図',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 2, max: 16 },
+const ERAS = [
+  // 古地図 (ツナガルマップ経由)
+  { id: 'edo_pre',   year: 1600, label: '江戸以前', sub: '想像図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map1/{z}/{x}/{y}.png',
+    bounds: [[35.556, 139.656], [35.794, 139.885]], min: 11, max: 17,
+    attr: 'ユニバーサルデザイン総合研究所 / ' + TSUNAGARU_ATTR },
+  { id: 'edo_early', year: 1644, label: '江戸初期', sub: '正保年中江戸絵図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/tokyo-edo1644/{z}/{x}/{y}.png',
+    bounds: [[35.634, 139.677], [35.750, 139.804]], min: 11, max: 17,
+    attr: '国立公文書館デジタルアーカイブ / ' + TSUNAGARU_ATTR },
+  { id: 'edo_late',  year: 1860, label: '江戸末期', sub: '江戸図 萬延', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/tokyo-edo1860/{z}/{x}/{y}.png',
+    bounds: [[35.608, 139.681], [35.753, 139.845]], min: 11, max: 17,
+    attr: '国際日本文化研究センター / ' + TSUNAGARU_ATTR },
+  { id: 'meiji',     year: 1880, label: '明治初期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map4/{z}/{x}/{y}.png',
+    bounds: [[35.570, 139.616], [35.769, 139.816]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+  { id: 'taisho',    year: 1920, label: '大正後期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map5/{z}/{x}/{y}.png',
+    bounds: [[35.603, 139.700], [35.770, 139.799]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+  { id: 'showa_pre', year: 1930, label: '昭和初期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map6/{z}/{x}/{y}.png',
+    bounds: [[35.604, 139.700], [35.770, 139.799]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
 
-  // === 航空写真 (古い順) ===
-  // 戦前: 陸軍撮影。東京23区と大阪市の一部のみ。
-  { id: 'ort_riku10', cat: 'aerial', label: '航空写真 1936–1942 (戦前・東京23区)',
+  // 戦前・戦後 空中写真 (GSI)
+  { id: 'aerial_1936', year: 1936, label: '戦前', sub: '空中写真 (1936-42, 東京23区+大阪)', cat: 'aerial',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_riku10/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 10, max: 18, bounds: TOKYO_23_BOUNDS },
-  { id: 'ort_USA10', cat: 'aerial', label: '航空写真 1945–1950 (米軍撮影)',
+    bounds: [[35.48, 139.52], [35.85, 139.95]], min: 10, max: 18, attr: GSI },
+  { id: 'aerial_1945', year: 1945, label: '戦後直後', sub: '米軍撮影 空中写真 (1945-50)', cat: 'aerial',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_USA10/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 8, max: 17 },
-  { id: 'ort_old10', cat: 'aerial', label: '航空写真 1961–1969',
+    min: 8, max: 17, attr: GSI },
+
+  // 昭和中期 旧版地図 (ツナガルマップ)
+  { id: 'showa_mid', year: 1955, label: '昭和中期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map7/{z}/{x}/{y}.png',
+    bounds: [[35.603, 139.699], [35.770, 139.800]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+
+  // 地形図 (qchizu 東京1:3,000) — 検出後に追加されるダミーをここに並べる
+  // 実 URL は detectTopoPattern 完了時に差し替え
+  { id: 'topo_1', year: 1955, label: '1952-58', sub: '1:3,000地形図', cat: 'topo', topoNN: '01',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+  { id: 'topo_2', year: 1960, label: '1959-62', sub: '1:3,000地形図', cat: 'topo', topoNN: '02',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  // 1961-69 空中写真
+  { id: 'aerial_1961', year: 1965, label: '1961-69', sub: '空中写真', cat: 'aerial',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_old10/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 8, max: 17 },
-  { id: 'gazo1', cat: 'aerial', label: '航空写真 1974–1978',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo1/{z}/{x}/{y}.jpg',
-    attr: GSI_ATTR, min: 10, max: 17 },
-  { id: 'gazo2', cat: 'aerial', label: '航空写真 1979–1983',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo2/{z}/{x}/{y}.jpg',
-    attr: GSI_ATTR, min: 10, max: 17 },
-  { id: 'gazo3', cat: 'aerial', label: '航空写真 1984–1986',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo3/{z}/{x}/{y}.jpg',
-    attr: GSI_ATTR, min: 10, max: 17 },
-  { id: 'gazo4', cat: 'aerial', label: '航空写真 1987–1990',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo4/{z}/{x}/{y}.jpg',
-    attr: GSI_ATTR, min: 10, max: 17 },
-  // 1991-2006 は GSI 高解像度カバレッジが薄いため省略
-  { id: 'nendophoto2010', cat: 'aerial', label: '航空写真 2010年度',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2010/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 14, max: 18 },
-  { id: 'nendophoto2015', cat: 'aerial', label: '航空写真 2015年度',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2015/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 14, max: 18 },
-  { id: 'nendophoto2020', cat: 'aerial', label: '航空写真 2020年度',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2020/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 14, max: 18 },
-  { id: 'nendophoto2023', cat: 'aerial', label: '航空写真 2023年度 (最新)',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2023/{z}/{x}/{y}.png',
-    attr: GSI_ATTR, min: 14, max: 18 },
-  // 地形図 (qchizu) は実行時に追加される ↓
+    min: 8, max: 17, attr: GSI },
+
+  // qchizu 地形図 (続き)
+  { id: 'topo_3', year: 1964, label: '1963-66', sub: '1:3,000地形図', cat: 'topo', topoNN: '03',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+  { id: 'topo_4', year: 1968, label: '1967-70', sub: '1:3,000地形図', cat: 'topo', topoNN: '04',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+  { id: 'topo_5', year: 1973, label: '1971-75', sub: '1:3,000地形図', cat: 'topo', topoNN: '05',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  // 1974-90 空中写真
+  { id: 'aerial_1974', year: 1976, label: '1974-78', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo1/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+
+  { id: 'topo_6', year: 1978, label: '1976-80', sub: '1:3,000地形図', cat: 'topo', topoNN: '06',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  { id: 'aerial_1979', year: 1981, label: '1979-83', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo2/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+
+  { id: 'topo_7', year: 1984, label: '1981-88', sub: '1:3,000地形図', cat: 'topo', topoNN: '07',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  { id: 'aerial_1984', year: 1985, label: '1984-86', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo3/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+  { id: 'aerial_1987', year: 1988, label: '1987-90', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo4/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+
+  { id: 'topo_8', year: 1991, label: '1989-94', sub: '1:3,000地形図', cat: 'topo', topoNN: '08',
+    url: null, bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 19, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  // 現代 (2007以降)
+  { id: 'aerial_2010', year: 2010, label: '2010年度', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2010/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+  { id: 'aerial_2015', year: 2015, label: '2015年度', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2015/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+  { id: 'aerial_2020', year: 2020, label: '2020年度', sub: '空中写真', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2020/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+  { id: 'aerial_2023', year: 2023, label: '2023年度', sub: '空中写真 (最新)', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2023/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+
+  // 現代地図 (淡色) — 重ね合わせ非表示モード
+  { id: 'modern', year: 2026, label: '現代', sub: '淡色地図 (オーバーレイなし)', cat: 'modern',
+    url: null, attr: GSI },
 ];
 
-const TOPO_META = [
-  { nn: '01', year: '1952–1958' },
-  { nn: '02', year: '1959–1962' },
-  { nn: '03', year: '1963–1966' },
-  { nn: '04', year: '1967–1970' },
-  { nn: '05', year: '1971–1975' },
-  { nn: '06', year: '1976–1980' },
-  { nn: '07', year: '1981–1988' },
-  { nn: '08', year: '1989–1994' },
-];
-
-const CAT_LABEL = {
-  modern: '現代地図 (今)',
-  aerial: '航空写真 (年代別・空からの写真)',
-  topo:   '地形図 1:3,000 (東京都・年代別・古い地図)',
-};
-
-function findLayer(id) { return ALL_LAYERS.find(l => l.id === id); }
+function findEra(id) { return ERAS.find(e => e.id === id); }
 
 // ============================================================
-// qchizu 東京1:3,000 地形図の URL パターン自動検出
+// qchizu 地形図 URL 検出
 // ============================================================
 const TEST_Z = 16, TEST_X = 58222, TEST_Y = 25813;
 const URL_CANDIDATES = [
@@ -467,11 +527,6 @@ const URL_CANDIDATES = [
   'https://mapdata.qchizu.xyz/13p/tokyo_{NN}/{z}/{x}/{y}.webp',
   'https://mapdata.qchizu2.xyz/01_topo/13p/tokyo_{NN}/{z}/{x}/{y}.png',
   'https://mapdata.qchizu.xyz/01_topo/13p/tokyo_{NN}/{z}/{x}/{y}.png',
-  'https://mapdata.qchizu2.xyz/13p/tokyo/{NN}/{z}/{x}/{y}.png',
-  'https://mapdata.qchizu.xyz/13p/tokyo/{NN}/{z}/{x}/{y}.png',
-  'https://mapdata.qchizu2.xyz/13p_tokyo_{NN}/{z}/{x}/{y}.png',
-  'https://mapdata.qchizu.xyz/13p_tokyo_{NN}/{z}/{x}/{y}.png',
-  'https://mapdata.qchizu2.xyz/01_topo/13p_tokyo/{NN}/{z}/{x}/{y}.png',
 ];
 
 function testTile(url) {
@@ -488,242 +543,271 @@ function testTile(url) {
 async function detectTopoPattern() {
   for (const pattern of URL_CANDIDATES) {
     const url = pattern.replace('{NN}', '03').replace('{z}', TEST_Z).replace('{x}', TEST_X).replace('{y}', TEST_Y);
-    console.log('[検出] 試行:', url);
     if (await testTile(url)) {
-      console.log('[検出] ✅ 成功:', pattern);
+      console.log('[検出] ✅ topo:', pattern);
       return pattern;
     }
   }
   return null;
 }
 
-// qchizu 東京1:3,000 のカバレッジ (東京都本土)
-const TOKYO_PREF_BOUNDS = [[35.45, 138.85], [35.92, 139.95]];
+// ============================================================
+// マップ初期化
+// ============================================================
+const KANTO_BOUNDS = L.latLngBounds([34.5, 138.0], [37.0, 141.5]);
 
-function addTopoLayers(pattern) {
-  TOPO_META.forEach(m => {
-    ALL_LAYERS.push({
-      id: 'tokyo_' + m.nn,
-      cat: 'topo',
-      label: `地形図 ${m.year}`,
-      url: pattern.replace('{NN}', m.nn),
-      attr: '<a href="https://qchizu.jp/" target="_blank">全国Q地図（東京都1:3,000地形図）</a>',
-      min: 13, max: 19,
-      bounds: TOKYO_PREF_BOUNDS,
-    });
+const map = L.map('map', {
+  center: [35.6814, 139.7660], // 東京駅
+  zoom: 15, minZoom: 8, maxZoom: 19,
+  maxBounds: KANTO_BOUNDS,
+  maxBoundsViscosity: 0.4,
+  zoomAnimation: true,
+  fadeAnimation: true,
+  wheelPxPerZoomLevel: 120,
+  wheelDebounceTime: 40,
+});
+
+// 常時下に敷く現代の淡色地図 (オーバーレイのコンテキスト)
+const baseLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+  attribution: GSI,
+  maxZoom: 19,
+}).addTo(map);
+
+// ============================================================
+// オーバーレイ管理 (1 つだけ表示、フェードで切替)
+// ============================================================
+let overlayLayer = null;
+let overlayAttrStr = null;
+let currentEraId = null;
+let currentOpacity = 0.85;
+
+function setEra(id) {
+  const era = findEra(id);
+  if (!era) return;
+
+  // 古いオーバーレイをフェードアウトして除去
+  if (overlayLayer) {
+    const old = overlayLayer;
+    const oldAttr = overlayAttrStr;
+    old.setOpacity(0);
+    setTimeout(() => {
+      map.removeLayer(old);
+      if (oldAttr) map.attributionControl.removeAttribution(oldAttr);
+    }, 320);
+  }
+  overlayLayer = null;
+  overlayAttrStr = null;
+
+  // 現代モード (オーバーレイなし) は何も追加しない
+  if (era.url) {
+    overlayLayer = L.tileLayer(era.url, {
+      minZoom: era.min, maxZoom: 19, maxNativeZoom: era.max,
+      bounds: era.bounds ? L.latLngBounds(era.bounds) : null,
+      attribution: era.attr,
+      opacity: 0,
+      className: 'era-overlay',
+    }).addTo(map);
+    overlayAttrStr = era.attr;
+    // requestAnimationFrame で次フレーム以降に opacity を上げると CSS transition が走る
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (overlayLayer) overlayLayer.setOpacity(currentOpacity);
+    }));
+  }
+
+  currentEraId = id;
+  renderEraInfo(era);
+  renderTimelineActive();
+}
+
+function renderEraInfo(era) {
+  document.getElementById('eraYear').textContent = era.year;
+  document.getElementById('eraLabel').textContent = era.label;
+  document.getElementById('eraSub').textContent = era.sub || '';
+  document.getElementById('eraAttr').innerHTML = era.attr || '';
+}
+
+// ============================================================
+// タイムライン UI
+// ============================================================
+function renderTimeline() {
+  const inner = document.getElementById('timelineInner');
+  // 既存 ticks を削除 (track だけ残す)
+  Array.from(inner.querySelectorAll('.tick')).forEach(el => el.remove());
+
+  ERAS.forEach(era => {
+    if (era.cat === 'topo' && !era.url) return; // 未検出の地形図はスキップ
+    const tick = document.createElement('div');
+    tick.className = `tick cat-${era.cat}` + (era.id === currentEraId ? ' active' : '');
+    tick.dataset.id = era.id;
+    tick.title = `${era.year} ${era.label}`;
+    tick.innerHTML = `
+      <div class="dot"></div>
+      <div class="year">${era.year}</div>
+      <div class="tooltip">${era.label} — ${era.sub || ''}</div>
+    `;
+    tick.addEventListener('click', () => setEra(era.id));
+    inner.appendChild(tick);
   });
 }
 
-// ============================================================
-// 2画面同期 Leaflet マップ
-// ============================================================
-const baseOptions = {
-  center: [35.677762, 139.772218],
-  zoom: 15, minZoom: 8, maxZoom: 19,
-  // 関東圏に絞る (将来全国版を作る場合はここを広げる/取り除く)
-  maxBounds: L.latLngBounds(KANTO_BOUNDS),
-  maxBoundsViscosity: 0.4, // 緩めて pan が引っ掛からないように
-  zoomAnimation: false,    // 2マップ間のズーム同期を確実にするため無効化
-  fadeAnimation: true,
-  // ホイールズーム感度を緩和 (デフォルト 60 → 120 = 2倍鈍く。鈍すぎず効きすぎない中庸)
-  wheelPxPerZoomLevel: 120,
-  wheelDebounceTime: 40,
-  zoomSnap: 1,
-  zoomDelta: 1,
-};
-
-const mapA = L.map('map', Object.assign({}, baseOptions, { zoomControl: true, attributionControl: true }));
-const mapB = L.map('mapCompare', Object.assign({}, baseOptions, { zoomControl: false, attributionControl: false }));
-
-// === 一方向同期 (mapA を主、mapB が追従) ===
-// mapB は pointer-events: none なので入力は受けない → 同期は片方向で十分
-let syncLock = false;
-function syncBToA() {
-  if (syncLock) return;
-  syncLock = true;
-  mapB.setView(mapA.getCenter(), mapA.getZoom(), { animate: false });
-  syncLock = false;
-}
-mapA.on('move zoom zoomend resize', syncBToA);
-syncBToA();
-
-// ============================================================
-// レイヤー状態
-// ============================================================
-let bottomLayerObj = null, topLayerObj = null;
-let bottomLayerId = 'pale';
-let topLayerId = 'ort_USA10'; // 1945-50 米軍撮影 (デフォルトで現代 vs 戦後すぐを比較)
-let bottomAttrStr = null, topAttrStr = null;
-let opacity = 0.8;
-let compareActive = false;
-let swipeX = window.innerWidth / 2;
-
-const mapCompareDiv = document.getElementById('mapCompare');
-const swipeHandle = document.getElementById('swipeHandle');
-const swipeLabelL = document.getElementById('swipeLabelLeft');
-const swipeLabelR = document.getElementById('swipeLabelRight');
-const swipeLabelLText = document.getElementById('swipeLabelLeftText');
-const swipeLabelRText = document.getElementById('swipeLabelRightText');
-const badgeBottom = document.getElementById('badgeBottom');
-const badgeTop = document.getElementById('badgeTop');
-
-function buildTileOptions(def) {
-  const opts = {
-    minZoom: def.min, maxZoom: 19, maxNativeZoom: def.max,
-    attribution: def.attr,
-    // 各レイヤーに固有の bounds があれば、その外側はタイル取得しない
-    // → カバレッジ外で空タイルを取りに行かない (404 ノイズも減る)
-    ...(def.bounds ? { bounds: L.latLngBounds(def.bounds) } : {}),
-    // タイル取得失敗時に再試行しすぎないように
-    errorTileUrl: '',
-    keepBuffer: 2,
-  };
-  return opts;
-}
-
-function setBottomLayer(id) {
-  const def = findLayer(id);
-  if (!def) return;
-  if (bottomLayerObj) {
-    mapA.removeLayer(bottomLayerObj);
-    if (bottomAttrStr) mapA.attributionControl.removeAttribution(bottomAttrStr);
+function renderTimelineActive() {
+  document.querySelectorAll('.tick').forEach(t => {
+    t.classList.toggle('active', t.dataset.id === currentEraId);
+  });
+  // active を中央付近にスクロール
+  const active = document.querySelector('.tick.active');
+  if (active) {
+    active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
-  bottomLayerObj = L.tileLayer(def.url, buildTileOptions(def)).addTo(mapA);
-  bottomAttrStr = def.attr;
-  bottomLayerId = id;
-  badgeBottom.textContent = def.label;
-  swipeLabelLText.textContent = def.label;
-}
-
-function setTopLayer(id) {
-  const def = findLayer(id);
-  if (!def) return;
-  if (topLayerObj) {
-    mapB.removeLayer(topLayerObj);
-    if (topAttrStr) mapA.attributionControl.removeAttribution(topAttrStr);
-  }
-  topLayerObj = L.tileLayer(def.url, buildTileOptions(def)).addTo(mapB);
-  // mapB は attribution control を持たないので、mapA 側に上レイヤーの帰属を統合表示
-  if (def.attr) mapA.attributionControl.addAttribution(def.attr);
-  topAttrStr = def.attr;
-  topLayerId = id;
-  badgeTop.textContent = def.label;
-  swipeLabelRText.textContent = def.label;
 }
 
 // ============================================================
-// 透過・比較・スワイプ
-// ============================================================
-function applyOpacity() {
-  // 比較中は上レイヤーをくっきり見せたいので opacity 1。それ以外はスライダー値。
-  mapCompareDiv.style.opacity = compareActive ? '1' : opacity;
-}
-
-function setSwipeX(x) {
-  swipeX = Math.max(0, Math.min(window.innerWidth, x));
-  swipeHandle.style.left = swipeX + 'px';
-  if (!compareActive) return;
-  // mapCompare は inset:0 で全画面と一致するため、viewport 座標がそのまま使える
-  const rect = mapCompareDiv.getBoundingClientRect();
-  const localX = swipeX - rect.left;
-  const clip = `inset(0 0 0 ${localX}px)`;
-  mapCompareDiv.style.clipPath = clip;
-  mapCompareDiv.style.webkitClipPath = clip;
-}
-
-function applyCompare() {
-  document.getElementById('compareBtn').classList.toggle('active', compareActive);
-  swipeHandle.classList.toggle('active', compareActive);
-  swipeLabelL.classList.toggle('active', compareActive);
-  swipeLabelR.classList.toggle('active', compareActive);
-  if (compareActive) {
-    // 初回中央付近に寄せる
-    swipeX = Math.min(Math.max(swipeX, 80), Math.max(window.innerWidth - 80, 160));
-    setSwipeX(swipeX);
-  } else {
-    mapCompareDiv.style.clipPath = 'inset(0)';
-    mapCompareDiv.style.webkitClipPath = 'inset(0)';
-  }
-  applyOpacity();
-}
-
-// ============================================================
-// UI 配線
+// 透過スライダー
 // ============================================================
 const slider = document.getElementById('opacitySlider');
 const sliderVal = document.getElementById('opacityVal');
 slider.addEventListener('input', () => {
-  opacity = slider.value / 100;
+  currentOpacity = slider.value / 100;
   sliderVal.textContent = slider.value + '%';
-  applyOpacity();
+  if (overlayLayer) overlayLayer.setOpacity(currentOpacity);
 });
 
-document.getElementById('compareBtn').addEventListener('click', () => {
-  compareActive = !compareActive;
-  applyCompare();
-  if (compareActive) showHint('ハンドルをドラッグして境界を移動できます', 2800);
-});
-
-// === ハンドルドラッグ ===
-let dragging = false;
-function startDrag(e) { dragging = true; e.preventDefault(); e.stopPropagation(); }
-function moveDrag(e) {
-  if (!dragging) return;
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  setSwipeX(x);
+// ============================================================
+// 再生 (時代を順送り)
+// ============================================================
+let playTimer = null;
+const playBtn = document.getElementById('playBtn');
+function getAvailableEras() {
+  return ERAS.filter(e => e.url || e.cat === 'modern');
 }
-function endDrag() { dragging = false; }
-swipeHandle.addEventListener('mousedown', startDrag);
-swipeHandle.addEventListener('touchstart', startDrag, { passive: false });
-swipeHandle.addEventListener('pointerdown', e => e.stopPropagation());
-window.addEventListener('mousemove', moveDrag);
-window.addEventListener('touchmove', moveDrag, { passive: false });
-window.addEventListener('mouseup', endDrag);
-window.addEventListener('touchend', endDrag);
-window.addEventListener('resize', () => {
-  mapB.invalidateSize({ animate: false });
-  if (compareActive) setSwipeX(Math.min(swipeX, window.innerWidth));
+playBtn.addEventListener('click', () => {
+  if (playTimer) {
+    clearInterval(playTimer);
+    playTimer = null;
+    playBtn.classList.remove('playing');
+    playBtn.textContent = '▶ 再生';
+    return;
+  }
+  playBtn.classList.add('playing');
+  playBtn.textContent = '⏸ 停止';
+  const list = getAvailableEras();
+  playTimer = setInterval(() => {
+    const idx = list.findIndex(e => e.id === currentEraId);
+    const next = list[(idx + 1) % list.length];
+    setEra(next.id);
+  }, 1800);
 });
 
-// パン中も境界が画面上で固定されるよう、move のたびに再適用 (mapCompareDiv は動かないが念のため)
-mapA.on('move', () => { if (compareActive) setSwipeX(swipeX); });
+// ============================================================
+// 現在地
+// ============================================================
+const locateBtn = document.getElementById('locateBtn');
+let locateMarker = null;
+locateBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) { showHint('お使いのブラウザは位置情報未対応'); return; }
+  locateBtn.classList.add('locating');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      locateBtn.classList.remove('locating');
+      const ll = [pos.coords.latitude, pos.coords.longitude];
+      if (locateMarker) map.removeLayer(locateMarker);
+      locateMarker = L.marker(ll, {
+        icon: L.divIcon({ className: '', html: '<div class="locate-marker"></div>', iconSize: [18, 18] })
+      }).addTo(map);
+      // 関東外なら maxBounds に制限される
+      if (KANTO_BOUNDS.contains(ll)) {
+        map.setView(ll, 17);
+      } else {
+        showHint('現在地は関東圏外のため、表示範囲を制限しています', 3000);
+        map.setView([35.6814, 139.7660], 14);
+      }
+    },
+    err => {
+      locateBtn.classList.remove('locating');
+      const msg = err.code === 1 ? '位置情報の使用が拒否されました' :
+                  err.code === 2 ? '位置を取得できません' :
+                  err.code === 3 ? 'タイムアウトしました' : err.message;
+      showHint(msg, 3000);
+    },
+    { timeout: 8000, enableHighAccuracy: true }
+  );
+});
 
-// === ドロップダウン構築 ===
-function buildPickerOptions(selectEl, selectedId) {
-  selectEl.innerHTML = '';
-  const groups = {};
-  ALL_LAYERS.forEach(l => {
-    if (!groups[l.cat]) groups[l.cat] = [];
-    groups[l.cat].push(l);
-  });
-  ['modern', 'aerial', 'topo'].forEach(cat => {
-    if (!groups[cat] || !groups[cat].length) return;
-    const og = document.createElement('optgroup');
-    og.label = CAT_LABEL[cat];
-    groups[cat].forEach(l => {
-      const opt = document.createElement('option');
-      opt.value = l.id;
-      opt.textContent = l.label;
-      if (l.id === selectedId) opt.selected = true;
-      og.appendChild(opt);
+// ============================================================
+// 住所・地名検索 (Nominatim)
+// ============================================================
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+let searchAbort = null;
+let searchDebounce = null;
+
+async function doSearch(q) {
+  if (searchAbort) searchAbort.abort();
+  searchAbort = new AbortController();
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=jp&limit=8&format=json&addressdetails=1&accept-language=ja`;
+    const res = await fetch(url, { signal: searchAbort.signal, headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (e) {
+    if (e.name === 'AbortError') return null;
+    console.error(e);
+    return [];
+  }
+}
+
+function showSearchResults(items) {
+  searchResults.innerHTML = '';
+  if (!items || !items.length) {
+    searchResults.innerHTML = '<div class="search-item empty">該当する場所が見つかりませんでした</div>';
+    searchResults.classList.add('show');
+    return;
+  }
+  items.forEach(it => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    const title = it.namedetails && it.namedetails.name ? it.namedetails.name : (it.name || it.display_name.split(',')[0]);
+    div.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="sub">${escapeHtml(it.display_name)}</div>`;
+    div.addEventListener('click', () => {
+      const ll = [parseFloat(it.lat), parseFloat(it.lon)];
+      if (KANTO_BOUNDS.contains(ll)) {
+        map.setView(ll, 16);
+      } else {
+        showHint('結果が関東圏外のため、初期表示に戻ります', 3000);
+      }
+      searchResults.classList.remove('show');
+      searchInput.value = title;
     });
-    selectEl.appendChild(og);
+    searchResults.appendChild(div);
   });
+  searchResults.classList.add('show');
 }
 
-const bottomPicker = document.getElementById('bottomPicker');
-const topPicker = document.getElementById('topPicker');
-bottomPicker.addEventListener('change', () => setBottomLayer(bottomPicker.value));
-topPicker.addEventListener('change', () => setTopLayer(topPicker.value));
-
-function refreshPickers() {
-  buildPickerOptions(bottomPicker, bottomLayerId);
-  buildPickerOptions(topPicker, topLayerId);
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
-// === ヒント ===
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim();
+  if (searchDebounce) clearTimeout(searchDebounce);
+  if (!q) { searchResults.classList.remove('show'); return; }
+  searchDebounce = setTimeout(async () => {
+    const items = await doSearch(q);
+    if (items !== null) showSearchResults(items);
+  }, 350);
+});
+searchInput.addEventListener('focus', () => {
+  if (searchResults.innerHTML.trim()) searchResults.classList.add('show');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-bar')) searchResults.classList.remove('show');
+});
+
+// ============================================================
+// ヒント
+// ============================================================
 const hint = document.getElementById('hint');
-function showHint(msg, dur) {
+function showHint(msg, dur = 0) {
   hint.textContent = msg;
   hint.classList.add('show');
   if (dur) setTimeout(() => hint.classList.remove('show'), dur);
@@ -732,21 +816,24 @@ function showHint(msg, dur) {
 // ============================================================
 // 起動
 // ============================================================
-refreshPickers();
-setBottomLayer(bottomLayerId);
-setTopLayer(topLayerId);
-applyOpacity();
+renderTimeline();
+setEra('edo_late'); // 江戸末期 (1860) で始める — 古地図と現代の差が一番ドラマチック
 
-// バックグラウンドで地形図 URL 検出 → 完了後に地形図 8 世代をドロップダウンに追加
+// バックグラウンドで qchizu 地形図 URL 検出 → ERAS の topo_X.url を埋める → タイムライン再描画
 showHint('地形図タイルを検出中…');
 (async () => {
   const pattern = await detectTopoPattern();
   if (pattern) {
-    addTopoLayers(pattern);
-    refreshPickers();
-    showHint('✅ 地形図 8 世代を追加 (右のドロップダウンから選択)', 3000);
+    ERAS.forEach(e => {
+      if (e.cat === 'topo' && e.topoNN && !e.url) {
+        e.url = pattern.replace('{NN}', e.topoNN);
+      }
+    });
+    renderTimeline();
+    renderTimelineActive();
+    showHint('✅ 1:3,000地形図 8世代を追加 (タイムラインに緑色のマーカー)', 3200);
   } else {
-    showHint('地形図タイル検出失敗 — 航空写真と現代地図のみ利用可', 5000);
+    showHint('地形図タイル検出失敗 — 古地図と航空写真のみ利用可', 5000);
   }
 })();
 </script>
