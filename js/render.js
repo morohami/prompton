@@ -53,8 +53,11 @@ function renderStoriesBar() {
     b.addEventListener('click', () => openDraftEditorModal(b.dataset.draftId)));
 }
 
-// Edit a draft (or create one if id is null). Title + body + Claude-paste
-// shortcut + Save / Promote-to-upload / Delete actions.
+// Draft modal — Instagram-style single-step publish. Title + body, then
+// "Post" goes straight to GitHub. Supports three quick-fill paths:
+//   - Claude conversation paste → largest code-fence is the body
+//   - GitHub URL paste (raw / blob / gist) → fetched directly
+//   - Manual: just type or paste HTML
 function openDraftEditorModal(draftId) {
   const existing = document.getElementById('draftModal');
   if (existing) existing.remove();
@@ -71,20 +74,18 @@ function openDraftEditorModal(draftId) {
     <div class="profile-modal-content">
       <h2>${escapeHtml(isNew ? t('drafts.newTitle') : t('drafts.editTitle'))}</h2>
       <div class="field">
-        <label>${escapeHtml(t('drafts.titleLabel'))}</label>
-        <input type="text" id="draftTitle" value="${escapeAttr(draft.title || '')}" placeholder="${escapeAttr(t('drafts.titlePlaceholder'))}" maxlength="120">
+        <input type="text" id="draftTitle" value="${escapeAttr(draft.title || '')}" placeholder="${escapeAttr(t('drafts.titlePlaceholder'))}" maxlength="120" autocomplete="off">
       </div>
       <div class="field">
-        <label>${escapeHtml(t('drafts.bodyLabel'))}</label>
         <textarea id="draftBody" rows="10" placeholder="${escapeAttr(t('drafts.bodyPlaceholder'))}">${escapeHtml(draft.body || '')}</textarea>
-        <div class="hint" style="margin-top:6px">
-          <button type="button" class="btn-text" id="draftPasteBtn">${escapeHtml(t('drafts.pasteBtn'))}</button>
-          ${escapeHtml(t('drafts.pasteHint'))}
-        </div>
+      </div>
+      <div class="draft-toolbar">
+        <button type="button" class="btn-text" id="draftPasteBtn">${escapeHtml(t('drafts.pasteBtn'))}</button>
+        <button type="button" class="btn-text" id="draftGitHubBtn">${escapeHtml(t('drafts.githubBtn'))}</button>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn primary" id="draftSaveBtn">${escapeHtml(t('drafts.save'))}</button>
-        <button type="button" class="btn secondary" id="draftPromoteBtn">${escapeHtml(t('drafts.promote'))}</button>
+        <button type="button" class="btn primary" id="draftPostBtn">${escapeHtml(t('drafts.post'))}</button>
+        <button type="button" class="btn-cancel" id="draftSaveBtn">${escapeHtml(t('drafts.saveOnly'))}</button>
         ${isNew ? '' : `<button type="button" class="btn-cancel" id="draftDeleteBtn">${escapeHtml(t('drafts.delete'))}</button>`}
         <button type="button" class="btn-cancel" id="draftCancelBtn">${escapeHtml(t('drafts.cancel'))}</button>
       </div>
@@ -95,14 +96,11 @@ function openDraftEditorModal(draftId) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   document.getElementById('draftCancelBtn').addEventListener('click', () => overlay.remove());
 
-  // Paste from Claude — read clipboard, extract the largest code fence.
+  // Claude paste — read clipboard, extract the largest code fence.
   document.getElementById('draftPasteBtn').addEventListener('click', async () => {
     let text = '';
     try { text = await navigator.clipboard.readText(); }
-    catch (e) {
-      toast(t('drafts.clipboardDenied'));
-      return;
-    }
+    catch (e) { toast(t('drafts.clipboardDenied')); return; }
     if (!text || !text.trim()) { toast(t('drafts.clipboardEmpty')); return; }
     const { body, title } = extractFromClaudePaste(text);
     const titleInput = document.getElementById('draftTitle');
@@ -112,6 +110,28 @@ function openDraftEditorModal(draftId) {
     toast(t('drafts.pasted'));
   });
 
+  // GitHub URL — prompt for URL, fetch HTML content into body.
+  document.getElementById('draftGitHubBtn').addEventListener('click', async () => {
+    const url = prompt(t('drafts.githubPrompt'));
+    if (!url) return;
+    try {
+      toast(t('drafts.fetching'));
+      const html = await fetchFromGitHubUrl(url);
+      document.getElementById('draftBody').value = html;
+      // Guess a title from <title> if no title yet.
+      const titleInput = document.getElementById('draftTitle');
+      if (!titleInput.value) {
+        const tm = html.match(/<title>([^<]+)<\/title>/i);
+        if (tm) titleInput.value = tm[1].trim();
+      }
+      toast(t('drafts.fetched'));
+    } catch (err) {
+      console.warn('GitHub fetch failed:', err);
+      toast(t('drafts.fetchFailed') + ' ' + err.message);
+    }
+  });
+
+  // Save-only — keep as draft, don't publish.
   document.getElementById('draftSaveBtn').addEventListener('click', () => {
     draft.title = document.getElementById('draftTitle').value.trim();
     draft.body = document.getElementById('draftBody').value;
@@ -125,19 +145,32 @@ function openDraftEditorModal(draftId) {
     toast(t('drafts.saved'));
   });
 
-  // Promote: drop the current draft body into the upload form and switch to
-  // that view so the user can fill in metadata + publish.
-  document.getElementById('draftPromoteBtn').addEventListener('click', () => {
-    const body = document.getElementById('draftBody').value;
+  // Post — one-shot publish to GitHub. Removes the draft on success since
+  // it's now a real prompt.
+  document.getElementById('draftPostBtn').addEventListener('click', async () => {
     const title = document.getElementById('draftTitle').value.trim();
-    overlay.remove();
-    showView('upload');
-    // Best-effort prefill — IDs are stable across the upload form.
-    const titleField = document.querySelector('#uploadForm [name="title"]');
-    const htmlField = document.querySelector('#uploadForm [name="html"]') || document.getElementById('uploadHtmlBody');
-    if (titleField) titleField.value = title;
-    if (htmlField) htmlField.value = body;
-    toast(t('drafts.promoted'));
+    const body = document.getElementById('draftBody').value;
+    const btn = document.getElementById('draftPostBtn');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = t('drafts.posting');
+    try {
+      await publishDraftDirect(title, body);
+      // Drop this draft — it's published now.
+      drafts = drafts.filter(x => x.id !== draft.id);
+      saveDrafts();
+      overlay.remove();
+      renderStoriesBar();
+      renderGallery();
+      toast(t('drafts.published'));
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      console.warn('Publish failed:', err);
+      if (err.message === 'not-owner') toast(t('drafts.needOwner'));
+      else if (err.message === 'empty-body') toast(t('drafts.bodyRequired'));
+      else toast(t('drafts.publishFailed') + ' ' + err.message);
+    }
   });
 
   const delBtn = document.getElementById('draftDeleteBtn');

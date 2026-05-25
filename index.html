@@ -23,42 +23,30 @@
 <body>
 
 <header class="masthead">
-  <div class="brand" data-nav="gallery">Prompton <em>— recipes for AI</em></div>
+  <a class="brand" data-nav="gallery">Prompton</a>
+  <div class="masthead-search search-wrap">
+    <input type="text" class="search" id="searchInput" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search…" autocomplete="off" />
+    <div class="search-suggest" id="searchSuggest" role="listbox" aria-label="Suggestions"></div>
+  </div>
   <nav class="nav-actions">
-    <a data-nav="gallery" data-i18n="nav.browse">Browse</a>
     <a data-nav="rankings" data-i18n="nav.rankings">Rankings</a>
     <a data-nav="playlists" data-i18n="nav.playlists">Playlists</a>
     <a data-nav="profile" data-i18n="nav.profile">Profile</a>
-    <a id="themeToggle" class="nav-theme" data-i18n-title="nav.theme" title="Toggle light/dark theme" aria-label="Toggle theme">☀</a>
-    <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="GitHub sync settings">⚙</a>
+    <a id="themeToggle" class="nav-theme" data-i18n-title="nav.theme" title="Toggle theme" aria-label="Toggle theme">☀</a>
+    <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="Settings">⚙</a>
     <button class="btn-upload" data-nav="upload" data-i18n="nav.share">＋ Share a prompton</button>
   </nav>
 </header>
-
-<div class="issue-line">
-  <span id="issueDate">Vol. I · Issue 03 · Tuesday</span>
-  <span data-i18n="issue.lede">The recipe-book for everyday AI</span>
-  <span id="issueCount">— prompts in circulation</span>
-</div>
 
 <main>
 
 <!-- ════════ GALLERY ════════ -->
 <section class="view active" id="view-gallery">
-  <div class="intro-tagline">
-    <div class="tagline-1" data-i18n-html="tagline.main">Prompts you can <em>actually</em> cook with.</div>
-    <div class="tagline-2" data-i18n="tagline.sub">Every HTML, every prompt. Browse the gallery, fork, make it better, share.</div>
-  </div>
-
-  <div id="storiesBar" class="stories-bar" aria-hidden="true"></div>
+  <div id="storiesBar" class="stories-bar"></div>
   <div id="magazineSection"></div>
   <div id="archiveHeader"></div>
 
   <div class="filter-bar">
-    <div class="search-wrap">
-      <input type="text" class="search" id="searchInput" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search prompts, tags, authors…" autocomplete="off" />
-      <div class="search-suggest" id="searchSuggest" role="listbox" aria-label="Suggestions"></div>
-    </div>
     <span class="sort-label" data-i18n="filter.sort">Sort:</span>
     <select id="sortSelect">
       <option value="new" data-i18n="filter.sortNew">Newest</option>
@@ -476,6 +464,66 @@ function saveDrafts() {
   catch (e) { console.warn('Could not persist drafts:', e); }
 }
 function newDraftId() { return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// Fetch raw HTML content from a GitHub URL. Supports:
+//   - raw.githubusercontent.com/... → fetched directly
+//   - github.com/<u>/<r>/blob/<branch>/<path>.html → rewritten to raw
+//   - gist.github.com/<u>/<id> → first HTML file (or first file) via gist API
+async function fetchFromGitHubUrl(url) {
+  url = (url || '').trim();
+  if (/^https:\/\/raw\.githubusercontent\.com\//.test(url)) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('raw fetch ' + r.status);
+    return r.text();
+  }
+  const blob = url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)/);
+  if (blob) {
+    const raw = 'https://raw.githubusercontent.com/' + blob[1] + '/' + blob[2] + '/' + blob[3] + '/' + blob[4];
+    const r = await fetch(raw);
+    if (!r.ok) throw new Error('raw fetch ' + r.status);
+    return r.text();
+  }
+  const gist = url.match(/^https:\/\/gist\.github\.com\/[^/]+\/([a-f0-9]+)/);
+  if (gist) {
+    const r = await fetch('https://api.github.com/gists/' + gist[1]);
+    if (!r.ok) throw new Error('gist API ' + r.status);
+    const data = await r.json();
+    const files = Object.values(data.files || {});
+    if (!files.length) throw new Error('gist has no files');
+    const html = files.find(f => /\.html?$/i.test(f.filename || '')) || files[0];
+    return html.content || '';
+  }
+  throw new Error('Not a recognized GitHub URL (raw / blob / gist).');
+}
+
+// One-shot publish: take a title + body, build a minimal prompt object,
+// push to GitHub, prepend to the local list. No upload-form detour. The
+// caller decides what to do on success/failure.
+async function publishDraftDirect(title, body) {
+  if (!isOwner()) throw new Error('not-owner');
+  const cleanedHtml = (typeof cleanupHtml === 'function' ? cleanupHtml(body || '') : body || '').trim();
+  if (!cleanedHtml) throw new Error('empty-body');
+  const me_h = ownerHandle();
+  const prompt = {
+    id: 'p' + Date.now(),
+    title: (title || 'Untitled').trim().slice(0, 120) || 'Untitled',
+    description: '',
+    systemPrompt: '', userPrompt: '', context: '',
+    model: 'Claude Opus 4.7',
+    license: 'CC0 — Public domain',
+    tags: [], tag: 'other',
+    author: me_h,
+    authorName: (profiles[me_h] && profiles[me_h].name) || 'You',
+    date: new Date().toISOString().slice(0, 10),
+    downloads: 0, forks: 0, parentId: null,
+    usage: [], variables: [],
+    html: cleanedHtml
+  };
+  await pushPromptToGitHub(prompt);
+  prompts.unshift(prompt);
+  saveData(prompts);
+  return prompt;
+}
 
 // Extract the most useful chunk from a pasted Claude conversation. We look
 // for fenced code blocks; the longest one is almost always the HTML/prompt
@@ -1298,8 +1346,13 @@ function getByPath(obj, path) {
   return typeof cur === 'string' ? cur : undefined;
 }
 function t(key, vars) {
-  let v = getByPath(i18nDict, key);
-  if (v === undefined) v = getByPath(i18nFallback, key);
+  // TDZ-safe: if either dict isn't initialized yet (e.g. an early caller
+  // before the bootstrap finishes), fall back to the key.
+  let dict, fb;
+  try { dict = i18nDict; } catch (e) { dict = {}; }
+  try { fb = i18nFallback; } catch (e) { fb = {}; }
+  let v = getByPath(dict, key);
+  if (v === undefined) v = getByPath(fb, key);
   if (v === undefined) v = key;
   if (vars) for (const k of Object.keys(vars)) v = v.split('{{' + k + '}}').join(vars[k]);
   return v;
