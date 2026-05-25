@@ -1471,14 +1471,15 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
 }
 
 // ─── Bootstrap ───
+// Every step is wrapped in try/catch so a single failure can't strand the
+// user on a blank screen. The last-ditch renderGallery() runs no matter
+// what, even if prompts is an empty array.
 (async () => {
-  // Kick off the i18n load alongside fetchSeed so initial paint is localized.
-  // setLocale is forgiving — if the locale file fails, we fall through with
-  // English defaults baked into the static markup.
   const i18nReady = setLocale(currentLocale).catch(err => console.warn('i18n init failed:', err));
-  try {
-    await fetchSeed();
-  } catch (e) {
+
+  let fetchOk = false;
+  try { await fetchSeed(); fetchOk = true; }
+  catch (e) {
     console.warn('Remote data fetch failed - using localStorage cache.', e);
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -1487,19 +1488,28 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
       if (rawP) seedProfiles = JSON.parse(rawP);
     } catch (e2) {}
   }
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts)); } catch(e){}
-  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(seedProfiles)); } catch(e){}
-  prompts = JSON.parse(JSON.stringify(seedPrompts));
-  profiles = JSON.parse(JSON.stringify(seedProfiles));
-  prompts.forEach(p => { if (p.versions && p.versions.length) syncTopLevelFromLatest(p); });
-  // Auto-derive the curated tag list from actual prompt usage so the picker
-  // suggestions stay in sync without any manual curation.
-  if (typeof deriveCuratedTags === 'function') tagConfig.curated = deriveCuratedTags();
-  updateSyncBadge();
-  window._uploadTagPicker = mountTagPicker('uploadTagPicker', []);
-  await i18nReady;  // ensure first render sees localized strings
-  if (!handleCompareHash()) renderGallery();
-  updateBottomTabActive();
+  if (fetchOk) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts)); } catch(e){}
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(seedProfiles)); } catch(e){}
+  }
+  try {
+    prompts = Array.isArray(seedPrompts) ? JSON.parse(JSON.stringify(seedPrompts)) : [];
+    profiles = (seedProfiles && typeof seedProfiles === 'object') ? JSON.parse(JSON.stringify(seedProfiles)) : {};
+    prompts.forEach(p => { if (p && p.versions && p.versions.length) syncTopLevelFromLatest(p); });
+    if (typeof deriveCuratedTags === 'function') tagConfig.curated = deriveCuratedTags();
+  } catch (e) {
+    console.warn('Data hydration failed:', e);
+    prompts = []; profiles = {};
+  }
+  try { updateSyncBadge(); } catch (e) { console.warn('updateSyncBadge failed:', e); }
+  try { window._uploadTagPicker = mountTagPicker('uploadTagPicker', []); } catch (e) { console.warn('tag picker mount failed:', e); }
+  try { await i18nReady; } catch (e) { /* localized strings will fall back to keys */ }
+  try { if (!handleCompareHash()) renderGallery(); }
+  catch (e) {
+    console.warn('Initial render failed, retrying gallery only:', e);
+    try { renderGallery(); } catch (e2) { console.error('renderGallery also failed:', e2); }
+  }
+  try { updateBottomTabActive(); } catch (e) {}
 })();
 </script>
 </body>

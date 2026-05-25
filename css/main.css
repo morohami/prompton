@@ -101,6 +101,16 @@
     top: 0;
     z-index: 50;
     box-shadow: var(--shadow);
+    flex-wrap: nowrap;
+  }
+  .masthead .brand { flex-shrink: 0; }
+  .masthead .masthead-search { min-width: 0; flex: 1 1 auto; }
+  .masthead .nav-actions { flex-shrink: 0; }
+  /* On narrow widths, hide the inline search so the brand + actions
+     (settings, theme, share) never get pushed off-screen. Users still
+     get the search via the bottom-tab on mobile. */
+  @media (max-width: 900px) {
+    .masthead .masthead-search { display: none; }
   }
   :root[data-theme="dark"] header.masthead {
     background: rgba(18,18,18,0.85);
