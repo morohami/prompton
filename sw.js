@@ -5,7 +5,7 @@
 //   - Cache-first for htmls/* and other static assets
 //   - Bypass GitHub API requests entirely (writes must always hit the network)
 
-const VERSION = 'prompton-v4';
+const VERSION = 'prompton-v5';
 const SHELL = [
   './', './index.html', './404.html',
   './manifest.json', './profiles.json', './tags.json',
