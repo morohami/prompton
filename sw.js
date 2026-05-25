@@ -5,8 +5,15 @@
 //   - Cache-first for htmls/* and other static assets
 //   - Bypass GitHub API requests entirely (writes must always hit the network)
 
-const VERSION = 'prompton-v3';
-const SHELL = ['./', './index.html', './404.html', './manifest.json', './profiles.json', './tags.json'];
+const VERSION = 'prompton-v4';
+const SHELL = [
+  './', './index.html', './404.html',
+  './manifest.json', './profiles.json', './tags.json',
+  // Split CSS / JS modules — precache so the shell renders styled even on
+  // first paint and so offline visits don't lose layout.
+  './css/main.css',
+  './js/github.js', './js/render.js', './js/tags.js', './js/router.js', './js/upload.js'
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
@@ -39,7 +46,11 @@ self.addEventListener('fetch', (e) => {
   // Cache-first for /htmls/* and /thumbs/* (write-once-ish prompt outputs).
   const isPromptHtml = path.includes('/htmls/');
   const isThumb = path.includes('/thumbs/');
-  if (isJson || (isHtml && !isPromptHtml)) {
+  // Split shell assets (extracted CSS + JS modules). Treat them like the HTML
+  // shell — network-first with a cache fallback so a deploy refreshes them
+  // immediately but offline still works.
+  const isShellAsset = /\.(css|js)$/.test(path);
+  if (isJson || (isHtml && !isPromptHtml) || isShellAsset) {
     e.respondWith((async () => {
       try {
         const fresh = await fetch(req);
