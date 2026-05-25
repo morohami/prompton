@@ -459,6 +459,48 @@ function toggleFollow(theirHandle) {
 let prompts = [];
 // Tag system (tagConfig, normalizeTag, mountTagPicker, etc.) is in js/tags.js.
 
+// ─── Drafts ("I'm making this") ───
+// Local-only scratchpad for prompts the user is iterating on, often during
+// a Claude conversation. Shown in the stories bar so the work-in-progress
+// is transparent — no need to publish to share what you're cooking. The
+// user can paste a Claude conversation; we'll extract the largest code
+// block as the prompt body. Publish-ready drafts can be promoted into the
+// real upload flow with one tap.
+const DRAFTS_KEY = 'prompton_drafts_v1';
+let drafts = (() => {
+  try { const raw = localStorage.getItem(DRAFTS_KEY); return raw ? JSON.parse(raw) : []; }
+  catch (e) { return []; }
+})();
+function saveDrafts() {
+  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts)); }
+  catch (e) { console.warn('Could not persist drafts:', e); }
+}
+function newDraftId() { return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// Extract the most useful chunk from a pasted Claude conversation. We look
+// for fenced code blocks; the longest one is almost always the HTML/prompt
+// the user is iterating on. Falls back to the whole paste if no fence.
+function extractFromClaudePaste(text) {
+  const fences = [];
+  const re = /```(?:[a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+  let m;
+  while ((m = re.exec(text)) !== null) fences.push(m[1]);
+  const body = fences.length
+    ? fences.sort((a, b) => b.length - a.length)[0]
+    : text;
+  // Title guess: first <title>...</title> if HTML, else the first non-empty
+  // line of the user's first question outside any fence.
+  let title = '';
+  const titleMatch = body.match(/<title>([^<]+)<\/title>/i);
+  if (titleMatch) title = titleMatch[1].trim();
+  if (!title) {
+    const nonFenceText = text.replace(re, '').trim();
+    const firstLine = nonFenceText.split('\n').find(l => l.trim().length > 0) || '';
+    title = firstLine.slice(0, 60).trim();
+  }
+  return { body: body.trim(), title };
+}
+
 // ─── Playlists ───
 // User-defined collections of prompts. Local-only when no PAT is set;
 // otherwise synced to playlists.json on the repo via pushPlaylistsToGitHub().
@@ -759,7 +801,16 @@ function safeFilename(prompt) {
 }
 function formatDate(s) {
   const d = new Date(s);
-  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  if (Number.isNaN(d.getTime())) return s;
+  return d.toLocaleDateString(currentLocale === 'ja' ? 'ja-JP' : 'en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+// Short form for crowded surfaces (card byline, search suggestions, detail
+// header on mobile). "5/26" / "5月26日" — year dropped, just the month/day.
+function formatDateShort(s) {
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return s;
+  if (currentLocale === 'ja') return (d.getMonth() + 1) + '/' + d.getDate();
+  return (d.getMonth() + 1) + '/' + d.getDate();
 }
 function toast(msg) {
   const t = document.getElementById('toast');

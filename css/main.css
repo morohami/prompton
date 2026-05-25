@@ -1017,7 +1017,9 @@
     backdrop-filter: blur(4px);
     transition: transform 0.12s ease, background 0.18s ease;
   }
-  .album-card .fav-btn { top: 12px; right: 12px; }
+  /* On album cards (magazine rows) the right-top corner is the fullscreen
+     ⛶ button; move the heart to the left-top so they don't overlap. */
+  .album-card .fav-btn { top: 12px; right: auto; left: 12px; }
   .card .fav-btn:hover,
   .album-card .fav-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.75); }
   .card .fav-btn.on,
@@ -1215,6 +1217,20 @@
     color: var(--ink);
     cursor: pointer;
     border-bottom: 1px solid var(--ink);
+  }
+  /* Counts strip — true numbers, sits on its own row below the byline so the
+     header doesn't grow into a 5-segment wrap. */
+  .detail-counts {
+    display: flex; gap: 18px;
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .detail-counts .dc-item b {
+    color: var(--ink);
+    font-weight: 700;
+    margin-right: 4px;
   }
   .detail-actions {
     display: flex; gap: 8px;
@@ -4056,15 +4072,30 @@
   body.mobile-app .stories-bar .story-thumb {
     width: 100%; height: 100%;
     border-radius: 50%;
-    background-color: var(--bg-card);
+    background: var(--bg-card);
     border: 2px solid var(--bg);
     display: flex; align-items: center; justify-content: center;
-    color: #fff;
+    color: var(--text);
     font-family: 'Fraunces', serif;
     font-weight: 700;
     font-style: italic;
     font-size: 24px;
     overflow: hidden;
+  }
+  /* New-draft button at the start of the bar — dashed ring + plus icon. */
+  body.mobile-app .stories-bar .new-story .story-ring-new {
+    background: var(--bg-2);
+    border: 2px dashed var(--border-strong);
+    padding: 0;
+  }
+  body.mobile-app .stories-bar .new-story .story-thumb {
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-style: normal;
+    font-size: 32px;
+    font-weight: 400;
   }
   body.mobile-app .stories-bar .story-label {
     font-size: 10px;
@@ -4086,7 +4117,27 @@
     grid-template-columns: 1fr;
     gap: 16px;
   }
+  /* Mobile: live preview iframe is shaped for desktop layouts and reads as
+     a compacted, unusable strip on a phone. Hide the iframe and show the
+     pre-rendered thumbnail in its place; the Fullscreen / Open-standalone
+     buttons in the overlay still work for users who want to interact. */
   body.mobile-app #view-detail .preview-wrap { aspect-ratio: 1 / 1; }
+  body.mobile-app #view-detail .preview-wrap iframe { display: none; }
+  body.mobile-app #view-detail .preview-thumb-mobile {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--bg-card);
+  }
+  body.mobile-app #view-detail .preview-wrap .preview-overlay {
+    opacity: 1;  /* always visible on touch — no hover */
+  }
+  body.mobile-app #view-detail .preview-caption span:first-child { display: none; }
+  /* Hide the mobile thumb on desktop — iframe drives the live preview there. */
+  .preview-thumb-mobile { display: none; }
   /* Move the top action row off-screen on mobile — a single sticky bar at
      the bottom is the primary action surface. The original buttons stay
      in the DOM (referenced by event listeners) just hidden visually. */

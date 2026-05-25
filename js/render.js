@@ -22,32 +22,134 @@ function titleWithEmphasis(title) {
   return escapeHtml(words.join(' ')) + ' <em>' + escapeHtml(last) + '</em>';
 }
 
-// ─── Stories bar (mobile-only) ───
-// Horizontal scroll of circular thumbnails for the most recent uploads,
-// Instagram-style. Rendered into #storiesBar; CSS hides it unless
-// body.mobile-app is set, so desktop pays no rendering cost.
+// ─── Stories bar (mobile-only) — backed by local drafts ───
+// "Show what I'm making" rather than "show what I've uploaded". Drafts are
+// local-only WIP entries; tap → edit, promote → real upload. Renders into
+// #storiesBar; CSS hides it unless body.mobile-app is set.
 function renderStoriesBar() {
   const el = document.getElementById('storiesBar');
   if (!el) return;
-  const recent = prompts
-    .slice()
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-    .slice(0, 12);
-  el.innerHTML = recent.map(p => {
-    const thumbStyle = p.thumb
-      ? `background-image:url(${escapeAttr(thumbUrl(p))});background-size:cover;background-position:center;`
-      : `background:linear-gradient(135deg,#8C1515,#b53a3a);`;
-    const initial = (p.title || '?').trim().charAt(0).toUpperCase();
-    const labelRaw = (p.title || '').slice(0, 14);
-    return `<button type="button" class="story" data-story-id="${escapeAttr(p.id)}">
+  const sorted = drafts.slice().sort((a, b) =>
+    (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || ''));
+  const newBtn = `<button type="button" class="story new-story" data-draft-new="1" title="${escapeAttr(t('drafts.newLabel'))}">
+    <span class="story-ring story-ring-new">
+      <span class="story-thumb">+</span>
+    </span>
+    <span class="story-label">${escapeHtml(t('drafts.newLabel'))}</span>
+  </button>`;
+  const items = sorted.map(d => {
+    const initial = (d.title || d.body || '?').trim().charAt(0).toUpperCase() || '?';
+    const labelRaw = (d.title || d.body || '').replace(/\s+/g, ' ').slice(0, 14);
+    return `<button type="button" class="story" data-draft-id="${escapeAttr(d.id)}">
       <span class="story-ring">
-        <span class="story-thumb" style="${thumbStyle}">${p.thumb ? '' : escapeHtml(initial)}</span>
+        <span class="story-thumb">${escapeHtml(initial)}</span>
       </span>
       <span class="story-label">${escapeHtml(labelRaw)}</span>
     </button>`;
   }).join('');
-  el.querySelectorAll('[data-story-id]').forEach(b =>
-    b.addEventListener('click', () => renderDetail(b.dataset.storyId)));
+  el.innerHTML = newBtn + items;
+  el.querySelectorAll('[data-draft-new]').forEach(b => b.addEventListener('click', () => openDraftEditorModal(null)));
+  el.querySelectorAll('[data-draft-id]').forEach(b =>
+    b.addEventListener('click', () => openDraftEditorModal(b.dataset.draftId)));
+}
+
+// Edit a draft (or create one if id is null). Title + body + Claude-paste
+// shortcut + Save / Promote-to-upload / Delete actions.
+function openDraftEditorModal(draftId) {
+  const existing = document.getElementById('draftModal');
+  if (existing) existing.remove();
+  const draft = draftId
+    ? drafts.find(x => x.id === draftId)
+    : { id: newDraftId(), title: '', body: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  if (!draft) return;
+  const isNew = !draftId;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'profile-modal-overlay';
+  overlay.id = 'draftModal';
+  overlay.innerHTML = `
+    <div class="profile-modal-content">
+      <h2>${escapeHtml(isNew ? t('drafts.newTitle') : t('drafts.editTitle'))}</h2>
+      <div class="field">
+        <label>${escapeHtml(t('drafts.titleLabel'))}</label>
+        <input type="text" id="draftTitle" value="${escapeAttr(draft.title || '')}" placeholder="${escapeAttr(t('drafts.titlePlaceholder'))}" maxlength="120">
+      </div>
+      <div class="field">
+        <label>${escapeHtml(t('drafts.bodyLabel'))}</label>
+        <textarea id="draftBody" rows="10" placeholder="${escapeAttr(t('drafts.bodyPlaceholder'))}">${escapeHtml(draft.body || '')}</textarea>
+        <div class="hint" style="margin-top:6px">
+          <button type="button" class="btn-text" id="draftPasteBtn">${escapeHtml(t('drafts.pasteBtn'))}</button>
+          ${escapeHtml(t('drafts.pasteHint'))}
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn primary" id="draftSaveBtn">${escapeHtml(t('drafts.save'))}</button>
+        <button type="button" class="btn secondary" id="draftPromoteBtn">${escapeHtml(t('drafts.promote'))}</button>
+        ${isNew ? '' : `<button type="button" class="btn-cancel" id="draftDeleteBtn">${escapeHtml(t('drafts.delete'))}</button>`}
+        <button type="button" class="btn-cancel" id="draftCancelBtn">${escapeHtml(t('drafts.cancel'))}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('draftCancelBtn').addEventListener('click', () => overlay.remove());
+
+  // Paste from Claude — read clipboard, extract the largest code fence.
+  document.getElementById('draftPasteBtn').addEventListener('click', async () => {
+    let text = '';
+    try { text = await navigator.clipboard.readText(); }
+    catch (e) {
+      toast(t('drafts.clipboardDenied'));
+      return;
+    }
+    if (!text || !text.trim()) { toast(t('drafts.clipboardEmpty')); return; }
+    const { body, title } = extractFromClaudePaste(text);
+    const titleInput = document.getElementById('draftTitle');
+    const bodyInput = document.getElementById('draftBody');
+    if (!titleInput.value && title) titleInput.value = title;
+    bodyInput.value = body;
+    toast(t('drafts.pasted'));
+  });
+
+  document.getElementById('draftSaveBtn').addEventListener('click', () => {
+    draft.title = document.getElementById('draftTitle').value.trim();
+    draft.body = document.getElementById('draftBody').value;
+    draft.updatedAt = new Date().toISOString();
+    const idx = drafts.findIndex(x => x.id === draft.id);
+    if (idx >= 0) drafts[idx] = draft;
+    else drafts.unshift(draft);
+    saveDrafts();
+    overlay.remove();
+    renderStoriesBar();
+    toast(t('drafts.saved'));
+  });
+
+  // Promote: drop the current draft body into the upload form and switch to
+  // that view so the user can fill in metadata + publish.
+  document.getElementById('draftPromoteBtn').addEventListener('click', () => {
+    const body = document.getElementById('draftBody').value;
+    const title = document.getElementById('draftTitle').value.trim();
+    overlay.remove();
+    showView('upload');
+    // Best-effort prefill — IDs are stable across the upload form.
+    const titleField = document.querySelector('#uploadForm [name="title"]');
+    const htmlField = document.querySelector('#uploadForm [name="html"]') || document.getElementById('uploadHtmlBody');
+    if (titleField) titleField.value = title;
+    if (htmlField) htmlField.value = body;
+    toast(t('drafts.promoted'));
+  });
+
+  const delBtn = document.getElementById('draftDeleteBtn');
+  if (delBtn) delBtn.addEventListener('click', () => {
+    if (!confirm(t('drafts.confirmDelete'))) return;
+    drafts = drafts.filter(x => x.id !== draft.id);
+    saveDrafts();
+    overlay.remove();
+    renderStoriesBar();
+  });
+
+  setTimeout(() => { const i = document.getElementById('draftTitle'); if (i) i.focus(); }, 50);
 }
 
 // ─── Playlists view (user-defined collections) ───
@@ -705,12 +807,14 @@ function renderDetail(id, viewingVersionNum) {
       <div>
         <h1>${escapeHtml(p.title)}</h1>
         <div class="detail-byline">
-          by <span class="author-link" data-author="${p.author}">${escapeHtml(p.authorName)}</span>
-          &nbsp;·&nbsp; ${formatDate(p.date)}
+          <span class="author-link" data-author="${p.author}">@${escapeHtml(p.author)}</span>
+          &nbsp;·&nbsp; ${formatDateShort(p.date)}
           &nbsp;·&nbsp; ${escapeHtml(p.model)}
-          &nbsp;·&nbsp; ${formatNum(p.downloads)} downloads
-          &nbsp;·&nbsp; ${p.forks} forks
           ${parent ? `&nbsp;·&nbsp; <span class="author-link" data-prompt="${parent.id}">forked from ${escapeHtml(parent.title)}</span>` : ''}
+        </div>
+        <div class="detail-counts">
+          <span class="dc-item"><b>${formatNum(p.downloads)}</b> ${escapeHtml(t('profile.downloads'))}</span>
+          <span class="dc-item"><b>${formatNum(p.forks)}</b> ${escapeHtml(t('profile.forks'))}</span>
         </div>
       </div>
       <div class="detail-actions">
@@ -734,9 +838,10 @@ function renderDetail(id, viewingVersionNum) {
       <div>
         <div class="preview-wrap">
           <iframe id="detailPreviewIframe" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
+          ${p.thumb ? `<img class="preview-thumb-mobile" src="${escapeAttr(thumbUrl(p))}" alt="">` : ''}
           <div class="preview-overlay">
-            <button type="button" id="fullscreenBtn" title="View fullscreen">⛶ Fullscreen</button>
-            <a id="openStandaloneLink" target="_blank" rel="noopener" title="Open this HTML on its own page (good for sharing)">↗ Open standalone</a>
+            <button type="button" id="fullscreenBtn" title="View fullscreen">${escapeHtml(t('detail.fullscreen'))}</button>
+            <a id="openStandaloneLink" target="_blank" rel="noopener" title="Open this HTML on its own page (good for sharing)">${escapeHtml(t('detail.standalone'))}</a>
           </div>
         </div>
         <div class="preview-caption">
@@ -916,7 +1021,9 @@ function renderDetail(id, viewingVersionNum) {
     btn.innerHTML = '✓ Downloaded';
     clearTimeout(btn._copyTimer);
     btn._copyTimer = setTimeout(() => { btn.classList.remove('success'); btn.innerHTML = originalHTML; }, 1800);
-    document.querySelector('.detail-byline').innerHTML = document.querySelector('.detail-byline').innerHTML.replace(/[\d,]+ downloads/, formatNum(p.downloads) + ' downloads');
+    // Refresh just the downloads count in the new .detail-counts strip.
+    const dlEl = document.querySelector('.detail-counts .dc-item:first-child b');
+    if (dlEl) dlEl.textContent = formatNum(p.downloads);
     // Owner-only: persist the increment so the count survives reload + shows
     // up on other devices. Fire-and-forget — local increment already happened.
     if (isOwner()) {
