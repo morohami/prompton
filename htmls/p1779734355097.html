@@ -181,11 +181,8 @@
     min-width: 0;
   }
   .slot:hover { border-color: var(--cream-dim); background: rgba(15, 17, 22, 0.6); }
-  .slot.active-slot {
-    border-color: var(--vermillion);
-    box-shadow: inset 0 0 0 1px var(--vermillion), 0 0 0 2px var(--vermillion-glow);
-    background: rgba(197, 79, 62, 0.08);
-  }
+  .slot.slot-a { border-left: 3px solid var(--cream); }
+  .slot.slot-b { border-left: 3px solid var(--gold); }
   .slot-pill {
     font-family: "JetBrains Mono", monospace;
     font-size: 11px; font-weight: 700;
@@ -515,17 +512,18 @@
     .era-sub { font-size: 10px; }
     .era-attr { display: none; }
 
-    /* === Compare bar: stack vertically on mobile === */
-    .compare-bar.show { flex-direction: column; gap: 6px; }
-    .slot { padding: 9px 10px; gap: 8px; }
-    .slot-pill { font-size: 10px; padding: 3px 8px; }
-    .slot-name { font-size: 12px; }
+    /* === Compare bar: stack vertically + ultra-compact on mobile === */
+    .compare-bar.show { flex-direction: column; gap: 4px; }
+    .slot { padding: 6px 10px; gap: 8px; }
+    .slot-pill { font-size: 9px; padding: 2px 7px; }
+    .slot-name { font-size: 11px; }
     .swap-btn {
-      align-self: center; padding: 4px 22px;
-      transform: rotate(90deg);
+      align-self: stretch; padding: 2px 8px;
+      transform: none; /* モバイルは横方向のままで縦並びの間に挟む */
+      height: 22px; min-width: 0;
+      border-color: var(--line);
     }
-    .swap-btn:hover { transform: rotate(270deg); }
-    .slot .active-tag { font-size: 8px; padding: 2px 6px; letter-spacing: 0.06em; }
+    .swap-btn:hover { transform: none; }
 
     /* === Tracks: horizontal scroll on mobile === */
     .tracks-wrap {
@@ -851,6 +849,7 @@ function removeOverlay(slot) {
 }
 
 function applyState() {
+  updateHash();
   // 単一モード
   if (mode === 'single') {
     if (layerB) removeOverlay('b');
@@ -951,27 +950,23 @@ function renderEraInfo() {
   if (mode === 'compare') {
     eraInfo.classList.add('hide');
     compareBar.classList.add('show');
-    const bothFilled = !!(eraA && eraB);
+    // 「次に変更」表示と active-slot 強調は削除。
+    // A/B はピル色 (cream/gold) と枠で区別済み、タイムラインのティック色 (select-a/select-b)
+    // でハイライトされているのでスロット側で更にマーキングは不要、というユーザ判断。
     const slotHtml = (slot, era) => {
-      const isActive = activeSlot === slot;
       const isEmpty = !era;
-      // 「次に変更」と active-slot 強調は **両方埋まってる時のみ** 表示
-      // (片方が空ならその空スロットが次に埋まるのが自明)
-      const showActive = isActive && bothFilled;
       const name = era ? `${era.year} ${era.label}${era.sub ? ' — ' + era.sub : ''}` : 'タイムラインから選択';
       return `
-        <div class="slot slot-${slot} ${showActive ? 'active-slot' : ''} ${isEmpty ? 'empty' : ''}" data-slot="${slot}">
+        <div class="slot slot-${slot} ${isEmpty ? 'empty' : ''}" data-slot="${slot}">
           <span class="slot-pill">${slot.toUpperCase()}</span>
           <span class="slot-name">${escapeHtml(name)}</span>
-          ${showActive ? '<span class="active-tag">次に変更</span>' : ''}
         </div>`;
     };
     compareBar.innerHTML = slotHtml('a', eraA) +
       '<button class="swap-btn" id="swapBtn" title="A と B を入れ替え">⇄</button>' +
       slotHtml('b', eraB);
-    compareBar.querySelectorAll('.slot').forEach(el => {
-      el.addEventListener('click', () => setActiveSlot(el.dataset.slot));
-    });
+    // クリック→そのスロットを active 化 する隠し機能も削除 (混乱の元)
+    // 入れ替えは ⇄ ボタンで明示的に
     document.getElementById('swapBtn').addEventListener('click', swapAB);
   } else {
     compareBar.classList.remove('show');
@@ -1082,6 +1077,7 @@ slider.addEventListener('input', () => {
     if (layerA) layerA.setOpacity(opacity);
   }
 });
+slider.addEventListener('change', updateHash); // ドラッグ終了で URL 更新
 
 // ============================================================
 // 比較モード切替
@@ -1107,6 +1103,97 @@ document.getElementById('compareBtn').addEventListener('click', () => {
 function getAvailableEras() {
   return ERAS.filter(e => e.url);
 }
+
+// ============================================================
+// キーボード ← → で時代をスクラブ
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  // 入力欄にフォーカスがある時はスキップ
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const dir = e.key === 'ArrowRight' ? 1 : -1;
+  const list = getAvailableEras().slice().sort((a, b) => a.year - b.year);
+  // 比較中は B (activeSlot) を動かす。単一なら A
+  const curEra = mode === 'compare' ? (eraB || eraA) : eraA;
+  const curId = curEra && curEra.id;
+  let idx = list.findIndex(x => x.id === curId);
+  if (idx === -1) idx = 0;
+  const nextIdx = Math.max(0, Math.min(list.length - 1, idx + dir));
+  if (nextIdx === idx) return;
+  e.preventDefault();
+  tickClicked(list[nextIdx].id);
+});
+
+// ============================================================
+// URL ハッシュで状態を保存・復元 (共有可能リンク)
+// 形式: #era=<id>&ll=<lat>,<lng>&z=<zoom>&op=<0-100>
+//       (比較中) #a=<id>&b=<id>&blend=<0-100>&ll=...&z=...
+// ============================================================
+let suppressHash = false;
+function updateHash() {
+  if (suppressHash) return;
+  const parts = [];
+  if (mode === 'compare' && eraA) {
+    parts.push('a=' + eraA.id);
+    if (eraB) parts.push('b=' + eraB.id);
+    parts.push('blend=' + Math.round(blendAB * 100));
+  } else if (eraA) {
+    parts.push('era=' + eraA.id);
+    parts.push('op=' + Math.round(opacity * 100));
+  }
+  const c = map.getCenter();
+  parts.push('ll=' + c.lat.toFixed(5) + ',' + c.lng.toFixed(5));
+  parts.push('z=' + map.getZoom());
+  try { history.replaceState(null, '', '#' + parts.join('&')); } catch (_) {}
+}
+
+function parseHash() {
+  const hash = location.hash.replace(/^#/, '');
+  if (!hash) return null;
+  const params = {};
+  hash.split('&').forEach(pair => {
+    const eq = pair.indexOf('=');
+    if (eq < 0) return;
+    params[pair.slice(0, eq)] = decodeURIComponent(pair.slice(eq + 1));
+  });
+  return params;
+}
+
+function restoreFromHash() {
+  const p = parseHash();
+  if (!p) return false;
+  suppressHash = true;
+  try {
+    if (p.a) {
+      mode = 'compare';
+      eraA = findEra(p.a) || null;
+      eraB = p.b ? findEra(p.b) || null : null;
+      if (p.blend != null) blendAB = (+p.blend) / 100;
+      activeSlot = 'b';
+    } else if (p.era) {
+      mode = 'single';
+      eraA = findEra(p.era) || null;
+      eraB = null;
+    }
+    if (p.op != null) {
+      opacity = (+p.op) / 100;
+      const slider = document.getElementById('opacitySlider');
+      if (slider) slider.value = +p.op;
+    }
+    if (p.ll) {
+      const [lat, lng] = p.ll.split(',').map(parseFloat);
+      const zoom = p.z ? parseInt(p.z, 10) : map.getZoom();
+      if (!isNaN(lat) && !isNaN(lng) && KANTO_BOUNDS.contains([lat, lng])) {
+        map.setView([lat, lng], zoom, { animate: false });
+      }
+    }
+  } finally { suppressHash = false; }
+  return true;
+}
+
+// マップ move/zoom 終了で URL 更新 (連続発火するので moveend のみ)
+map.on('moveend zoomend', updateHash);
 
 // ============================================================
 // 現在地
@@ -1260,7 +1347,11 @@ function showHint(msg, dur = 0) {
 // 起動
 // ============================================================
 renderTicks();
-eraA = findEra('edo_late'); // 江戸末期 1860 でスタート
+// URL ハッシュに状態があればそこから復元、なければ江戸末期スタート
+const restored = restoreFromHash();
+if (!restored || !eraA) {
+  eraA = findEra('edo_late'); // 江戸末期 1860 でスタート
+}
 applyState();
 
 // バックグラウンドで qchizu 地形図 URL 検出 → ERAS の topo_X.url を埋める → トラック再描画
