@@ -3768,12 +3768,21 @@
     .brand { font-size: 16px; gap: 6px; }
     .brand::before { width: 20px; height: 20px; }
     .brand em { display: none; }
-    .nav-actions { gap: 6px; }
+    .nav-actions { gap: 6px; flex-wrap: nowrap; }
     .nav-actions a[data-nav="gallery"],
     .nav-actions a[data-nav="profile"] { display: none; }
-    .nav-actions .btn-upload { padding: 8px 14px; font-size: 13px; }
+    .nav-actions a[data-nav="rankings"] { font-size: 13px; padding: 4px 4px; white-space: nowrap; }
+    .nav-actions .btn-upload { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
     .nav-actions .nav-settings,
     .nav-actions .nav-theme { padding: 6px 6px; font-size: 16px; }
+    /* Below ~380px collapse the Share button text to just '＋' so the row
+       stays on a single line. */
+    @media (max-width: 380px) {
+      .nav-actions a[data-nav="rankings"] { font-size: 0; padding: 6px 4px; }
+      .nav-actions a[data-nav="rankings"]::before { content: "🏆"; font-size: 16px; }
+      .nav-actions .btn-upload { font-size: 0; padding: 8px 10px; }
+      .nav-actions .btn-upload::before { content: "＋"; font-size: 16px; }
+    }
     .issue-line { padding: 4px 14px; font-size: 9px; }
     .issue-line span:last-child { display: none; }
     .view { padding: 16px !important; }
