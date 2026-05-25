@@ -32,16 +32,21 @@
   #mapWrap { position: absolute; inset: 0; }
   #map, #mapCompare {
     position: absolute; inset: 0;
-    background: #efeae0;
   }
-  #map { z-index: 1; }
+  #map {
+    z-index: 1;
+    background: #efeae0; /* 下のマップだけ淡い背景。空タイルでも違和感が少ない */
+  }
   #mapCompare {
     z-index: 2;
     pointer-events: none;
+    background: transparent !important; /* ★ 重要: タイル未取得エリアで下のマップを邪魔しない */
     clip-path: inset(0);
     -webkit-clip-path: inset(0);
     transition: opacity 0.12s linear;
   }
+  /* Leaflet 自身が container に背景色を入れることがあるので上書き */
+  #mapCompare .leaflet-container { background: transparent !important; }
 
   /* === Brand === */
   .brand {
@@ -362,15 +367,20 @@
 // 地形図 (qchizu) は実行時に URL パターンを検出して追加する
 // ============================================================
 const GSI_ATTR = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>';
+// 関東 (Tokyo を中心に首都圏) のみ表示。将来全国対応する場合はここを広げる
+const KANTO_BOUNDS = [[34.5, 138.0], [37.0, 141.5]];
+// 戦前 (1936-42) 航空写真の実質的なカバレッジ (東京23区エリア)
+const TOKYO_23_BOUNDS = [[35.48, 139.52], [35.85, 139.95]];
+
 const ALL_LAYERS = [
-  // 現代地図
+  // === 現代地図 (今) ===
   { id: 'pale', cat: 'modern', label: '淡色地図 (現代)',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
     attr: GSI_ATTR, min: 2, max: 18 },
   { id: 'std', cat: 'modern', label: '標準地図 (現代)',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
     attr: GSI_ATTR, min: 2, max: 18 },
-  { id: 'seamlessphoto', cat: 'modern', label: '衛星写真 (現代)',
+  { id: 'seamlessphoto', cat: 'modern', label: '衛星写真 (現代・シームレス)',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
     attr: GSI_ATTR + '（シームレス空中写真）', min: 2, max: 18 },
   { id: 'osm', cat: 'modern', label: 'OpenStreetMap',
@@ -387,11 +397,15 @@ const ALL_LAYERS = [
     url: 'https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png',
     attr: GSI_ATTR, min: 2, max: 16 },
 
-  // 航空写真 (年代別)
+  // === 航空写真 (古い順) ===
+  // 戦前: 陸軍撮影。東京23区と大阪市の一部のみ。
+  { id: 'ort_riku10', cat: 'aerial', label: '航空写真 1936–1942 (戦前・東京23区)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_riku10/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 10, max: 18, bounds: TOKYO_23_BOUNDS },
   { id: 'ort_USA10', cat: 'aerial', label: '航空写真 1945–1950 (米軍撮影)',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_USA10/{z}/{x}/{y}.png',
     attr: GSI_ATTR, min: 8, max: 17 },
-  { id: 'ort_old10', cat: 'aerial', label: '航空写真 1961–1964',
+  { id: 'ort_old10', cat: 'aerial', label: '航空写真 1961–1969',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_old10/{z}/{x}/{y}.png',
     attr: GSI_ATTR, min: 8, max: 17 },
   { id: 'gazo1', cat: 'aerial', label: '航空写真 1974–1978',
@@ -406,9 +420,19 @@ const ALL_LAYERS = [
   { id: 'gazo4', cat: 'aerial', label: '航空写真 1987–1990',
     url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo4/{z}/{x}/{y}.jpg',
     attr: GSI_ATTR, min: 10, max: 17 },
-  { id: 'ort', cat: 'aerial', label: '航空写真 2007以降 (最新正射)',
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg',
-    attr: GSI_ATTR, min: 2, max: 18 },
+  // 1991-2006 は GSI 高解像度カバレッジが薄いため省略
+  { id: 'nendophoto2010', cat: 'aerial', label: '航空写真 2010年度',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2010/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 14, max: 18 },
+  { id: 'nendophoto2015', cat: 'aerial', label: '航空写真 2015年度',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2015/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 14, max: 18 },
+  { id: 'nendophoto2020', cat: 'aerial', label: '航空写真 2020年度',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2020/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 14, max: 18 },
+  { id: 'nendophoto2023', cat: 'aerial', label: '航空写真 2023年度 (最新)',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2023/{z}/{x}/{y}.png',
+    attr: GSI_ATTR, min: 14, max: 18 },
   // 地形図 (qchizu) は実行時に追加される ↓
 ];
 
@@ -473,6 +497,9 @@ async function detectTopoPattern() {
   return null;
 }
 
+// qchizu 東京1:3,000 のカバレッジ (東京都本土)
+const TOKYO_PREF_BOUNDS = [[35.45, 138.85], [35.92, 139.95]];
+
 function addTopoLayers(pattern) {
   TOPO_META.forEach(m => {
     ALL_LAYERS.push({
@@ -482,6 +509,7 @@ function addTopoLayers(pattern) {
       url: pattern.replace('{NN}', m.nn),
       attr: '<a href="https://qchizu.jp/" target="_blank">全国Q地図（東京都1:3,000地形図）</a>',
       min: 13, max: 19,
+      bounds: TOKYO_PREF_BOUNDS,
     });
   });
 }
@@ -491,10 +519,17 @@ function addTopoLayers(pattern) {
 // ============================================================
 const baseOptions = {
   center: [35.677762, 139.772218],
-  zoom: 16, minZoom: 5, maxZoom: 19,
-  zoomAnimation: false, // 2マップ間のズーム同期を確実にするため無効化
+  zoom: 16, minZoom: 8, maxZoom: 19,
+  // 関東圏に絞る (将来全国版を作る場合はここを広げる/取り除く)
+  maxBounds: L.latLngBounds(KANTO_BOUNDS),
+  maxBoundsViscosity: 0.8,
+  zoomAnimation: false,    // 2マップ間のズーム同期を確実にするため無効化
   fadeAnimation: true,
-  wheelDebounceTime: 20,
+  // ホイールズーム感度を緩和 (デフォルト 60 → 150 = 2.5倍鈍く)
+  wheelPxPerZoomLevel: 150,
+  wheelDebounceTime: 60,
+  zoomSnap: 1,
+  zoomDelta: 1,
 };
 
 const mapA = L.map('map', Object.assign({}, baseOptions, { zoomControl: true, attributionControl: true }));
@@ -532,6 +567,20 @@ const swipeLabelRText = document.getElementById('swipeLabelRightText');
 const badgeBottom = document.getElementById('badgeBottom');
 const badgeTop = document.getElementById('badgeTop');
 
+function buildTileOptions(def) {
+  const opts = {
+    minZoom: def.min, maxZoom: 19, maxNativeZoom: def.max,
+    attribution: def.attr,
+    // 各レイヤーに固有の bounds があれば、その外側はタイル取得しない
+    // → カバレッジ外で空タイルを取りに行かない (404 ノイズも減る)
+    ...(def.bounds ? { bounds: L.latLngBounds(def.bounds) } : {}),
+    // タイル取得失敗時に再試行しすぎないように
+    errorTileUrl: '',
+    keepBuffer: 2,
+  };
+  return opts;
+}
+
 function setBottomLayer(id) {
   const def = findLayer(id);
   if (!def) return;
@@ -539,10 +588,7 @@ function setBottomLayer(id) {
     mapA.removeLayer(bottomLayerObj);
     if (bottomAttrStr) mapA.attributionControl.removeAttribution(bottomAttrStr);
   }
-  bottomLayerObj = L.tileLayer(def.url, {
-    minZoom: def.min, maxZoom: 19, maxNativeZoom: def.max,
-    attribution: def.attr,
-  }).addTo(mapA);
+  bottomLayerObj = L.tileLayer(def.url, buildTileOptions(def)).addTo(mapA);
   bottomAttrStr = def.attr;
   bottomLayerId = id;
   badgeBottom.textContent = def.label;
@@ -556,10 +602,7 @@ function setTopLayer(id) {
     mapB.removeLayer(topLayerObj);
     if (topAttrStr) mapA.attributionControl.removeAttribution(topAttrStr);
   }
-  topLayerObj = L.tileLayer(def.url, {
-    minZoom: def.min, maxZoom: 19, maxNativeZoom: def.max,
-    attribution: def.attr,
-  }).addTo(mapB);
+  topLayerObj = L.tileLayer(def.url, buildTileOptions(def)).addTo(mapB);
   // mapB は attribution control を持たないので、mapA 側に上レイヤーの帰属を統合表示
   if (def.attr) mapA.attributionControl.addAttribution(def.attr);
   topAttrStr = def.attr;
