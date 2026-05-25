@@ -49,6 +49,12 @@
     "downloads": "Downloads",
     "favoritesEmpty": "No favorites yet. Tap ♡ on any prompt to save it here."
   },
+  "mobile": {
+    "feed": "Feed",
+    "search": "Search",
+    "favorites": "Faves",
+    "profile": "You"
+  },
   "rankings": {
     "title": "Rankings",
     "downloadsBtn": "↓ Downloads",

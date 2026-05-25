@@ -49,6 +49,12 @@
     "downloads": "ダウンロード",
     "favoritesEmpty": "まだお気に入りがありません。プロンプトの♡をタップして保存しましょう。"
   },
+  "mobile": {
+    "feed": "ホーム",
+    "search": "検索",
+    "favorites": "お気に入り",
+    "profile": "あなた"
+  },
   "rankings": {
     "title": "ランキング",
     "downloadsBtn": "↓ ダウンロード",

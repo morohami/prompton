@@ -262,6 +262,29 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
 <div class="toast" id="toast">Saved.</div>
 
+<!-- Mobile bottom-tab nav — only shown when body.mobile-app (viewport ≤680px). -->
+<nav class="bottom-tab-nav" id="bottomTabNav" aria-hidden="true">
+  <button type="button" data-nav="gallery" data-tab="gallery" class="bt-item" aria-label="Feed">
+    <span class="bt-icon">🏠</span>
+    <span class="bt-label" data-i18n="mobile.feed">Feed</span>
+  </button>
+  <button type="button" data-nav="search" data-tab="search" class="bt-item" aria-label="Search">
+    <span class="bt-icon">🔍</span>
+    <span class="bt-label" data-i18n="mobile.search">Search</span>
+  </button>
+  <button type="button" data-nav="upload" class="bt-item bt-fab" aria-label="Share">
+    <span class="bt-fab-inner">＋</span>
+  </button>
+  <button type="button" data-nav="favorites" data-tab="favorites" class="bt-item" aria-label="Favorites">
+    <span class="bt-icon">❤</span>
+    <span class="bt-label" data-i18n="mobile.favorites">Faves</span>
+  </button>
+  <button type="button" data-nav="profile" data-tab="profile" class="bt-item" aria-label="Profile">
+    <span class="bt-icon">👤</span>
+    <span class="bt-label" data-i18n="mobile.profile">You</span>
+  </button>
+</nav>
+
 <!-- Extracted modules — must load before the inline script below. -->
 <script src="js/github.js"></script>
 <script src="js/render.js"></script>
@@ -1215,6 +1238,37 @@ async function fetchSeed() {
   if (seedProfiles.you && !seedProfiles.you.joined) seedProfiles.you.joined = new Date().toISOString().slice(0, 10);
 }
 
+// ─── Mobile app mode ───
+// Toggle a body.mobile-app class based on viewport so the bottom-tab nav
+// + feed-style layout activate without affecting desktop CSS.
+const MOBILE_MQ = window.matchMedia('(max-width: 680px)');
+function applyMobileMode() {
+  document.body.classList.toggle('mobile-app', MOBILE_MQ.matches);
+}
+applyMobileMode();
+if (MOBILE_MQ.addEventListener) MOBILE_MQ.addEventListener('change', applyMobileMode);
+else if (MOBILE_MQ.addListener) MOBILE_MQ.addListener(applyMobileMode);
+// Highlight the active bottom-tab item based on current hash.
+function updateBottomTabActive() {
+  const h = location.hash || '';
+  let key = 'gallery';
+  if (h.startsWith('#/profile/')) key = 'profile';
+  else if (h.startsWith('#/p/')) key = ''; // detail — no tab highlighted
+  document.querySelectorAll('.bottom-tab-nav .bt-item[data-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === key);
+  });
+}
+window.addEventListener('hashchange', updateBottomTabActive);
+// setRoute uses replaceState which is silent, so internal nav doesn't fire
+// hashchange. The bottom-tab buttons mark themselves active on click for
+// instant feedback; updateBottomTabActive() resyncs on real hash navigations.
+document.querySelectorAll('.bottom-tab-nav .bt-item[data-tab]').forEach(b =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.bottom-tab-nav .bt-item[data-tab]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  })
+);
+
 // ─── Service Worker registration ───
 // Only register on http(s) (skip file:// / local dev with no SW support).
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
@@ -1252,6 +1306,7 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   window._uploadTagPicker = mountTagPicker('uploadTagPicker', []);
   await i18nReady;  // ensure first render sees localized strings
   if (!handleCompareHash()) renderGallery();
+  updateBottomTabActive();
 })();
 </script>
 </body>

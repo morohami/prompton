@@ -18,6 +18,12 @@ document.querySelectorAll('[data-nav]').forEach(el => {
     if (target === 'settings') renderSettings();
     if (target === 'rankings') renderRankings();
     if (target === 'playlists') renderPlaylists();
+    if (target === 'search') {
+      renderGallery();
+      const s = document.getElementById('searchInput');
+      if (s) { setTimeout(() => { s.focus(); s.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }
+    }
+    if (target === 'favorites') renderProfile(ownerHandle(), 'favorites');
   });
 });
 
