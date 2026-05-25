@@ -307,7 +307,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     license: fd.get('license') || 'CC0 — Public domain',
     tags: tags,
     tag: tags[0] || 'other',
-    author: 'you', authorName: (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You'),
+    author: ownerHandle(), authorName: (function(){ const h = ownerHandle(); return (typeof profiles !== 'undefined' && profiles[h]) ? profiles[h].name : 'You'; })(),
     date: new Date().toISOString().slice(0,10),
     downloads: 0, forks: 0, parentId: parentId,
     usage: [],
@@ -362,7 +362,8 @@ async function submitBulkUpload(formEl) {
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Pushing bulk commit…'; }
 
   const today = new Date().toISOString().slice(0, 10);
-  const youName = (typeof profiles !== 'undefined' && profiles.you ? profiles.you.name : 'You');
+  const me_h = ownerHandle();
+  const youName = (typeof profiles !== 'undefined' && profiles[me_h] ? profiles[me_h].name : 'You');
   const newPrompts = bulkQueue.map((q, i) => ({
     id: 'p' + (Date.now() + i),
     title: q.title,
@@ -371,7 +372,7 @@ async function submitBulkUpload(formEl) {
     model: 'Claude Opus 4.7',
     license: 'CC0 — Public domain',
     tags: [], tag: 'other',
-    author: 'you', authorName: youName,
+    author: ownerHandle(), authorName: youName,
     date: today,
     downloads: 0, forks: 0, parentId: null,
     usage: [], variables: [],

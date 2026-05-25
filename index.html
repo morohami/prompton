@@ -337,7 +337,20 @@ function saveData(prompts) {
 
 // ─── Profile data store (separate localStorage key) ───
 const PROFILE_KEY = 'promptshare_profiles_v1';
+const OWNER_HANDLE_KEY = 'prompton_owner_handle_v1';
 let seedProfiles = {};
+
+// The local user's handle — the identifier used as `prompt.author`, the key
+// in profiles.json, and the routing slug for #/profile/<handle>. Defaults to
+// 'you' for first-time users; editable via the profile editor.
+function ownerHandle() {
+  try { return localStorage.getItem(OWNER_HANDLE_KEY) || 'you'; }
+  catch (e) { return 'you'; }
+}
+function setOwnerHandleLocal(handle) {
+  try { localStorage.setItem(OWNER_HANDLE_KEY, handle); }
+  catch (e) {}
+}
 
 function loadProfiles() {
   try {
@@ -375,18 +388,19 @@ function isFollowing(myHandle, theirHandle) {
   return !!(me && me.following && me.following.indexOf(theirHandle) >= 0);
 }
 function toggleFollow(theirHandle) {
-  if (theirHandle === 'you') return false;
-  const me = getProfile('you');
+  const me_h = ownerHandle();
+  if (theirHandle === me_h) return false;
+  const me = getProfile(me_h);
   const them = getProfile(theirHandle);
   if (!me || !them) return false;
   const idx = me.following.indexOf(theirHandle);
   const nowFollowing = idx < 0;
   if (nowFollowing) {
     me.following.push(theirHandle);
-    if (them.followers.indexOf('you') < 0) them.followers.push('you');
+    if (them.followers.indexOf(me_h) < 0) them.followers.push(me_h);
   } else {
     me.following.splice(idx, 1);
-    them.followers = them.followers.filter(h => h !== 'you');
+    them.followers = them.followers.filter(h => h !== me_h);
   }
   saveProfiles();
   return nowFollowing;

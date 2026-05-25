@@ -108,7 +108,8 @@ function renderGallery() {
     const leadExcerpt = lead.editorsNote || lead.description || '';
 
     // "Made for you" = prompts you authored (yours, including remixes)
-    const yourForks = prompts.filter(p => p.author === 'you');
+    const me_h = ownerHandle();
+    const yourForks = prompts.filter(p => p.author === me_h);
     // "By <top author>" = prompts from author with most published
     const authorCounts = {};
     publicPrompts.forEach(p => { authorCounts[p.author] = (authorCounts[p.author] || 0) + 1; });
@@ -124,7 +125,7 @@ function renderGallery() {
       if (h < 18) return 'Good afternoon';
       return 'Good evening';
     })();
-    const youName = getProfile('you').name;
+    const youName = getProfile(me_h).name;
 
     // Cache HTML strings keyed by prompt id so the IntersectionObserver below
     // can build iframes without hauling them through the DOM as data-attrs.
@@ -201,7 +202,7 @@ function renderGallery() {
         '<div class="row-section">' +
           '<div class="row-header">' +
             '<h2><em>Made for you</em></h2>' +
-            '<a class="show-all" data-go-profile="you">Show all</a>' +
+            '<a class="show-all" data-go-profile="' + me_h + '">Show all</a>' +
           '</div>' +
           '<div class="row-scroll">' + yourForks.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -442,7 +443,7 @@ function renderDetail(id, viewingVersionNum) {
     }
   }
 
-  const isYours = p.author === 'you';
+  const isYours = p.author === ownerHandle();
   const canSaveNewVersion = (isYours || isOwner()) && !isViewingPast;
 
   // Auto-detect undeclared {{TOKEN}} variables in the prompt text. Any token
@@ -1402,8 +1403,9 @@ function renderProfile(handle, tab) {
   setRoute('profile/' + handle);
   window._currentProfileHandle = handle;
   const mine = prompts.filter(p => p.author === handle);
-  const isYou = handle === 'you';
-  const youFollow = !isYou && isFollowing('you', handle);
+  const me_h = ownerHandle();
+  const isYou = handle === me_h;
+  const youFollow = !isYou && isFollowing(me_h, handle);
   const totalDl = mine.reduce((s, p) => s + (p.downloads || 0), 0);
   const totalFk = mine.reduce((s, p) => s + (p.forks || 0), 0);
   const activeTab = tab || 'published';
@@ -1528,8 +1530,9 @@ function renderUserList(handles, emptyMsg) {
   if (!handles.length) return '<div class="empty-state">' + escapeHtml(emptyMsg) + '</div>';
   return '<div class="user-list">' + handles.map(h => {
     const p = getProfile(h);
-    const youFollow = isFollowing('you', h);
-    const isMe = h === 'you';
+    const me_h = ownerHandle();
+    const youFollow = isFollowing(me_h, h);
+    const isMe = h === me_h;
     const bioPreview = p.bio ? (p.bio.length > 80 ? p.bio.substring(0, 80) + '…' : p.bio) : '';
     return '<div class="user-item">' +
       '<div class="avatar-mini" data-go="' + escapeAttr(h) + '"' + (p.avatar ? ' style="background-image:url(' + escapeAttr(p.avatar) + ')"' : '') + '>' +
@@ -1564,7 +1567,8 @@ function wireUserList(container, currentHandle) {
 
 // ─── Edit Profile modal ───
 function openEditProfileModal() {
-  const profile = getProfile('you');
+  const me_h = ownerHandle();
+  const profile = getProfile(me_h);
   if (!profile) return;
 
   // Remove any existing modal
@@ -1590,6 +1594,10 @@ function openEditProfileModal() {
       '<div class="field">' +
         '<label>Display name <span style="color:var(--tomato)">*</span></label>' +
         '<input type="text" id="editName" value="' + escapeAttr(profile.name) + '" placeholder="Your name" maxlength="80">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>Username <span style="text-transform:none;letter-spacing:0;font-style:italic;color:var(--ink-soft)">(lowercase, 3–20 chars · changes @handle everywhere)</span></label>' +
+        '<input type="text" id="editHandle" value="' + escapeAttr(me_h) + '" placeholder="yourname" maxlength="20" pattern="^[a-z0-9_.-]{3,20}$" autocapitalize="off" autocomplete="off">' +
       '</div>' +
       '<div class="field">' +
         '<label>Bio <span style="text-transform:none;letter-spacing:0;font-style:italic;color:var(--ink-soft)">(max 160 chars)</span></label>' +
@@ -1663,7 +1671,7 @@ function openEditProfileModal() {
 
   document.getElementById('cancelEditBtn').addEventListener('click', closeProfileModal);
 
-  document.getElementById('saveProfileBtn').addEventListener('click', () => {
+  document.getElementById('saveProfileBtn').addEventListener('click', async () => {
     const newName = document.getElementById('editName').value.trim();
     if (!newName) { toast('Display name is required.'); document.getElementById('editName').focus(); return; }
 
@@ -1678,13 +1686,33 @@ function openEditProfileModal() {
 
     // Propagate name change to all of user's prompts
     prompts.forEach(p => {
-      if (p.author === 'you') p.authorName = newName;
+      if (p.author === me_h) p.authorName = newName;
     });
     saveData(prompts);
 
+    // Username (handle) change is a multi-file rewrite — gated on validation
+    // and committed via renameOwnerHandle. Local-only when no PAT configured.
+    const newHandleRaw = document.getElementById('editHandle').value.trim().toLowerCase();
+    const newHandle = newHandleRaw || me_h;
+    if (newHandle !== me_h) {
+      const handleErr = validateNewHandle(newHandle);
+      if (handleErr) { toast(handleErr); document.getElementById('editHandle').focus(); return; }
+      closeProfileModal();
+      toast('Renaming ' + me_h + ' → ' + newHandle + '…');
+      try {
+        await renameOwnerHandle(me_h, newHandle);
+        toast('✓ Renamed to @' + newHandle);
+      } catch (err) {
+        console.warn('Rename failed:', err);
+        toast('Rename failed — see console.');
+      }
+      renderProfile(ownerHandle());
+      return;
+    }
+
     closeProfileModal();
     toast('Profile saved.');
-    renderProfile('you');
+    renderProfile(me_h);
   });
 
   // Auto-focus the name field

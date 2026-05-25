@@ -413,6 +413,78 @@ async function ghBulkCommit(files, message) {
   return newCommit;
 }
 
+// ─── Owner handle rename ───
+// Validate a proposed new handle. Returns null if OK or an error string.
+// Rules: lowercase alphanumeric + . _ -, 3–20 chars, no collision with another
+// existing handle in profiles.json (the current owner's own handle is fine).
+function validateNewHandle(newHandle) {
+  if (!/^[a-z0-9_.-]{3,20}$/.test(newHandle)) {
+    return 'Username must be 3–20 lowercase chars (a-z, 0-9, . _ -).';
+  }
+  const oldHandle = ownerHandle();
+  if (newHandle === oldHandle) return null;
+  if (typeof profiles !== 'undefined' && profiles && profiles[newHandle]) {
+    return 'That username is already taken.';
+  }
+  return null;
+}
+
+// Atomic rewrite: move the owner profile under a new key, rewrite every
+// prompt.author === oldHandle, push profiles.json + manifest.json in ONE
+// commit (when PAT is configured), then update localStorage so future sessions
+// keep the new handle. When no PAT is set, the rename is local-only.
+async function renameOwnerHandle(oldHandle, newHandle) {
+  if (oldHandle === newHandle) return;
+  if (typeof profiles === 'undefined' || typeof prompts === 'undefined') {
+    throw new Error('renameOwnerHandle: profiles/prompts not initialized');
+  }
+
+  // 1. Local rewrite (always runs — covers both PAT and PAT-less paths).
+  if (profiles[oldHandle]) {
+    profiles[newHandle] = Object.assign({}, profiles[oldHandle], { handle: newHandle });
+    delete profiles[oldHandle];
+  }
+  for (const otherKey of Object.keys(profiles)) {
+    const pr = profiles[otherKey];
+    if (Array.isArray(pr.followers)) pr.followers = pr.followers.map(h => h === oldHandle ? newHandle : h);
+    if (Array.isArray(pr.following)) pr.following = pr.following.map(h => h === oldHandle ? newHandle : h);
+  }
+  prompts.forEach(p => {
+    if (p.author === oldHandle) p.author = newHandle;
+  });
+  setOwnerHandleLocal(newHandle);
+  saveProfiles();
+  saveData(prompts);
+
+  // 2. If owner (PAT configured), persist to the repo. Bundle profiles.json +
+  //    manifest.json into one commit so the rename is atomic in history.
+  if (!isOwner()) return;
+  const cfg = getSyncConfig();
+  const branch = cfg.branch || 'main';
+  // Pull the live versions to avoid clobbering any drift since last load.
+  const profilesRaw = await ghFetch('/contents/profiles.json?ref=' + encodeURIComponent(branch));
+  const manifestRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(branch));
+  let liveProfiles, liveManifest;
+  try { liveProfiles = JSON.parse(b64ToUtf8(profilesRaw.content)) || {}; }
+  catch (e) { liveProfiles = {}; }
+  try { liveManifest = JSON.parse(b64ToUtf8(manifestRaw.content)) || []; }
+  catch (e) { liveManifest = []; }
+  if (liveProfiles[oldHandle]) {
+    liveProfiles[newHandle] = Object.assign({}, liveProfiles[oldHandle], { handle: newHandle });
+    delete liveProfiles[oldHandle];
+  }
+  for (const otherKey of Object.keys(liveProfiles)) {
+    const pr = liveProfiles[otherKey];
+    if (Array.isArray(pr.followers)) pr.followers = pr.followers.map(h => h === oldHandle ? newHandle : h);
+    if (Array.isArray(pr.following)) pr.following = pr.following.map(h => h === oldHandle ? newHandle : h);
+  }
+  liveManifest.forEach(p => { if (p && p.author === oldHandle) p.author = newHandle; });
+  await ghBulkCommit([
+    { path: 'profiles.json', content: JSON.stringify(liveProfiles, null, 2) },
+    { path: 'manifest.json', content: JSON.stringify(liveManifest, null, 2) }
+  ], 'Prompton: rename @' + oldHandle + ' → @' + newHandle);
+}
+
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';

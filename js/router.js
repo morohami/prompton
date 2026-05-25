@@ -14,7 +14,7 @@ document.querySelectorAll('[data-nav]').forEach(el => {
     const target = el.getAttribute('data-nav');
     if (target === 'gallery') renderGallery();
     if (target === 'upload') showView('upload');
-    if (target === 'profile') renderProfile('you'); // Always YOUR profile from nav
+    if (target === 'profile') renderProfile(ownerHandle()); // Always YOUR profile from nav
     if (target === 'settings') renderSettings();
     if (target === 'rankings') renderRankings();
   });
