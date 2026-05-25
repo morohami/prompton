@@ -161,73 +161,123 @@
     max-width: 45%; text-align: right;
   }
 
-  /* === Timeline === */
-  .timeline-wrap {
+  /* === Tracks (aerial top + paper bottom) === */
+  .tracks-wrap {
     position: relative;
     margin-bottom: 12px;
+    user-select: none; -webkit-user-select: none;
   }
-  .timeline {
-    position: relative; height: 56px;
-    overflow-x: auto; overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--line) transparent;
-  }
-  .timeline::-webkit-scrollbar { height: 4px; }
-  .timeline::-webkit-scrollbar-thumb { background: var(--line); }
-  .timeline-inner {
+  .track {
     position: relative;
-    min-width: 100%;
-    display: flex; align-items: center;
-    padding: 0 12px;
+    height: 36px;
+  }
+  .track-label {
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 10px; letter-spacing: 0.12em;
+    color: var(--cream-dim);
+    pointer-events: none;
+    background: rgba(15, 17, 22, 0.7);
+    padding: 2px 8px;
+    z-index: 3;
+  }
+  .track-ticks {
+    position: relative;
+    margin-left: 64px; /* room for label */
     height: 100%;
   }
-  .timeline-track {
-    position: absolute; left: 12px; right: 12px; top: 28px;
-    height: 1px; background: var(--line);
-    z-index: 0;
+  /* 真ん中の太い線 */
+  .track-divider {
+    position: relative;
+    height: 3px;
+    margin: 2px 0;
+    background: var(--vermillion);
+    box-shadow: 0 0 12px rgba(197, 79, 62, 0.5);
+  }
+  .track-divider::before {
+    content: ''; position: absolute; inset: -4px 0;
+    background: linear-gradient(to bottom, transparent, rgba(197, 79, 62, 0.18), transparent);
   }
   .tick {
-    position: relative; z-index: 1;
-    flex: 1; min-width: 46px;
-    text-align: center;
-    cursor: pointer;
-    padding: 6px 0;
+    position: absolute; top: 0; height: 100%;
+    transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center;
-    gap: 6px;
+    gap: 3px;
+    cursor: pointer;
     transition: transform 0.15s;
+    z-index: 2;
   }
+  /* 航空写真トラック: 年が上、ドットが下 (中央線寄り) */
+  .aerial-track .tick { justify-content: flex-end; padding-bottom: 0; }
+  .aerial-track .tick .year { order: 1; }
+  .aerial-track .tick .dot  { order: 2; }
+  /* 紙地図トラック: ドットが上 (中央線寄り)、年が下 */
+  .paper-track .tick  { justify-content: flex-start; padding-top: 0; }
+  .paper-track .tick .dot  { order: 1; }
+  .paper-track .tick .year { order: 2; }
   .tick .dot {
-    width: 10px; height: 10px; border-radius: 50%;
+    width: 11px; height: 11px; border-radius: 50%;
     background: var(--ink-soft);
     border: 1.5px solid var(--cream-dim);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .tick.cat-old .dot      { border-color: var(--gold);  background: rgba(200, 169, 106, 0.2); }
-  .tick.cat-aerial .dot   { border-color: var(--silver); background: rgba(184, 184, 184, 0.2); }
-  .tick.cat-topo .dot     { border-color: var(--moss);  background: rgba(122, 154, 79, 0.2); }
-  .tick.cat-modern .dot   { border-color: var(--cream); background: rgba(232, 227, 214, 0.2); }
+  .tick.cat-old .dot      { border-color: var(--gold);   background: rgba(200, 169, 106, 0.3); }
+  .tick.cat-aerial .dot   { border-color: var(--silver); background: rgba(184, 184, 184, 0.3); }
+  .tick.cat-topo .dot     { border-color: var(--moss);   background: rgba(122, 154, 79, 0.3); }
   .tick .year {
     font-family: "JetBrains Mono", monospace;
-    font-size: 10px; color: var(--cream-dim);
+    font-size: 9px; color: var(--cream-dim);
     letter-spacing: 0.02em;
     line-height: 1;
+    white-space: nowrap;
   }
-  .tick:hover { transform: translateY(-2px); }
-  .tick:hover .dot { transform: scale(1.25); }
+  .tick:hover { transform: translateX(-50%) translateY(-1px); }
+  .tick:hover .dot { transform: scale(1.3); }
   .tick:hover .year { color: var(--cream); }
+  /* 単一モード = アクティブ (朱) */
   .tick.active .dot {
-    width: 14px; height: 14px;
+    width: 15px; height: 15px;
     background: var(--vermillion); border-color: var(--vermillion);
     box-shadow: 0 0 0 4px var(--vermillion-glow);
   }
-  .tick.active .year {
-    color: var(--vermillion);
-    font-weight: 500;
+  .tick.active .year { color: var(--vermillion); font-weight: 500; }
+  /* 比較モード = A (cream) / B (gold) */
+  .tick.select-a .dot {
+    width: 15px; height: 15px;
+    background: var(--cream); border-color: var(--cream);
+    box-shadow: 0 0 0 4px rgba(232, 227, 214, 0.25);
+  }
+  .tick.select-a .year { color: var(--cream); font-weight: 500; }
+  .tick.select-a::after {
+    content: 'A'; position: absolute; top: -2px; left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; color: var(--cream); letter-spacing: 0.04em;
+  }
+  .tick.select-b .dot {
+    width: 15px; height: 15px;
+    background: var(--gold); border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(200, 169, 106, 0.3);
+  }
+  .tick.select-b .year { color: var(--gold); font-weight: 500; }
+  .tick.select-b::after {
+    content: 'B'; position: absolute; top: -2px; left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; color: var(--gold); letter-spacing: 0.04em;
+  }
+  /* paper-track の A/B ラベルは下に出す */
+  .paper-track .tick.select-a::after,
+  .paper-track .tick.select-b::after {
+    top: auto; bottom: -2px; transform: translateX(-50%) translateY(100%);
+  }
+  /* 比較モード時、未選択ティックがやや浮き上がる */
+  .tracks-wrap.compare .tick:not(.select-a):not(.select-b) .dot {
+    box-shadow: 0 0 0 3px rgba(197, 79, 62, 0.12);
   }
   .tick .tooltip {
-    position: absolute; bottom: 100%; left: 50%;
-    transform: translateX(-50%) translateY(-4px);
+    position: absolute; left: 50%;
+    transform: translateX(-50%);
     background: rgba(15, 17, 22, 0.96);
     backdrop-filter: blur(8px);
     padding: 5px 10px;
@@ -237,7 +287,10 @@
     opacity: 0; pointer-events: none;
     transition: opacity 0.15s;
     border-left: 2px solid var(--gold);
+    z-index: 10;
   }
+  .aerial-track .tick .tooltip { bottom: 100%; margin-bottom: 4px; }
+  .paper-track .tick .tooltip  { top: 100%; margin-top: 4px; }
   .tick:hover .tooltip { opacity: 1; }
 
   /* === Bottom controls row === */
@@ -273,21 +326,32 @@
     font-size: 12px; letter-spacing: 0.12em; color: var(--cream-dim);
     flex-shrink: 0; min-width: 32px;
   }
-  .play-btn {
-    padding: 8px 14px;
+  .compare-btn {
+    padding: 8px 16px;
     background: transparent; border: 1px solid var(--line);
     color: var(--cream-dim);
     font-family: "Shippori Mincho B1", serif;
-    font-size: 12px; letter-spacing: 0.08em;
+    font-size: 12px; letter-spacing: 0.1em;
     cursor: pointer; transition: all 0.2s;
     flex-shrink: 0;
   }
-  .play-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
-  .play-btn.playing {
+  .compare-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
+  .compare-btn.active {
     background: var(--vermillion); border-color: var(--vermillion);
     color: var(--cream);
     box-shadow: 0 0 0 4px var(--vermillion-glow);
   }
+  /* スライダー両端の A/B ラベル (比較モード) */
+  .slider-end {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px; letter-spacing: 0.06em;
+    color: var(--cream-dim); flex-shrink: 0;
+    min-width: 18px; text-align: center;
+    display: none;
+  }
+  .controls-row.compare .slider-end { display: inline-block; }
+  .controls-row.compare .slider-end.a { color: var(--cream); }
+  .controls-row.compare .slider-end.b { color: var(--gold); }
 
   /* === Locate marker === */
   .locate-marker {
@@ -385,20 +449,26 @@
     </div>
     <div class="era-attr" id="eraAttr"></div>
   </div>
-  <div class="timeline-wrap">
-    <div class="timeline" id="timeline">
-      <div class="timeline-inner" id="timelineInner">
-        <div class="timeline-track"></div>
-      </div>
+  <div class="tracks-wrap" id="tracksWrap">
+    <div class="track aerial-track">
+      <div class="track-label">航空写真</div>
+      <div class="track-ticks" id="aerialTicks"></div>
+    </div>
+    <div class="track-divider"></div>
+    <div class="track paper-track">
+      <div class="track-label">紙地図</div>
+      <div class="track-ticks" id="paperTicks"></div>
     </div>
   </div>
-  <div class="controls-row">
-    <span class="ctrl-label">透過</span>
+  <div class="controls-row" id="controlsRow">
+    <span class="ctrl-label" id="opacityLabel">透過</span>
     <div class="slider-wrap">
+      <span class="slider-end a">A</span>
       <input type="range" min="0" max="100" value="85" class="slider" id="opacitySlider" />
+      <span class="slider-end b">B</span>
       <div class="slider-val" id="opacityVal">85%</div>
     </div>
-    <button class="play-btn" id="playBtn" title="時代を順に再生">▶ 再生</button>
+    <button class="compare-btn" id="compareBtn" title="2つの時代を選んで重ねる">⇆ 比較</button>
   </div>
 </div>
 
@@ -574,129 +644,252 @@ const baseLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}
 }).addTo(map);
 
 // ============================================================
-// オーバーレイ管理 (1 つだけ表示、フェードで切替)
+// 状態
 // ============================================================
-let overlayLayer = null;
-let overlayAttrStr = null;
-let currentEraId = null;
-let currentOpacity = 0.85;
+let mode = 'single';        // 'single' | 'compare'
+let eraA = null, eraB = null;
+let layerA = null, layerB = null;
+let attrA = null, attrB = null;
+let opacity = 0.85;         // 単一モード: オーバーレイの透過
+let blendAB = 0.5;          // 比較モード: 0=A only, 1=B only
 
-function setEra(id) {
-  const era = findEra(id);
-  if (!era) return;
+// ============================================================
+// 軸 (年→%, ピースワイズ)
+// 1600-1860: 0-30% (260年で30%)
+// 1860-1950: 30-55% (90年で25%)
+// 1950-2030: 55-100% (80年で45%)
+// ============================================================
+function yearToX(year) {
+  if (year < 1860) return ((year - 1600) / 260) * 30;
+  if (year < 1950) return 30 + ((year - 1860) / 90) * 25;
+  return 55 + ((year - 1950) / 80) * 45;
+}
 
-  // 古いオーバーレイをフェードアウトして除去
-  if (overlayLayer) {
-    const old = overlayLayer;
-    const oldAttr = overlayAttrStr;
+// ============================================================
+// レイヤー生成
+// ============================================================
+function makeLayer(era) {
+  return L.tileLayer(era.url, {
+    minZoom: era.min, maxZoom: 19, maxNativeZoom: era.max,
+    bounds: era.bounds ? L.latLngBounds(era.bounds) : null,
+    attribution: era.attr,
+    opacity: 0,
+    className: 'era-overlay',
+  });
+}
+
+function removeOverlay(slot) {
+  if (slot === 'a' && layerA) {
+    const old = layerA, oldAttr = attrA;
     old.setOpacity(0);
     setTimeout(() => {
       map.removeLayer(old);
       if (oldAttr) map.attributionControl.removeAttribution(oldAttr);
     }, 320);
+    layerA = null; attrA = null;
+  } else if (slot === 'b' && layerB) {
+    const old = layerB, oldAttr = attrB;
+    old.setOpacity(0);
+    setTimeout(() => {
+      map.removeLayer(old);
+      if (oldAttr) map.attributionControl.removeAttribution(oldAttr);
+    }, 320);
+    layerB = null; attrB = null;
   }
-  overlayLayer = null;
-  overlayAttrStr = null;
-
-  // 現代モード (オーバーレイなし) は何も追加しない
-  if (era.url) {
-    overlayLayer = L.tileLayer(era.url, {
-      minZoom: era.min, maxZoom: 19, maxNativeZoom: era.max,
-      bounds: era.bounds ? L.latLngBounds(era.bounds) : null,
-      attribution: era.attr,
-      opacity: 0,
-      className: 'era-overlay',
-    }).addTo(map);
-    overlayAttrStr = era.attr;
-    // requestAnimationFrame で次フレーム以降に opacity を上げると CSS transition が走る
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      if (overlayLayer) overlayLayer.setOpacity(currentOpacity);
-    }));
-  }
-
-  currentEraId = id;
-  renderEraInfo(era);
-  renderTimelineActive();
 }
 
-function renderEraInfo(era) {
-  document.getElementById('eraYear').textContent = era.year;
-  document.getElementById('eraLabel').textContent = era.label;
-  document.getElementById('eraSub').textContent = era.sub || '';
-  document.getElementById('eraAttr').innerHTML = era.attr || '';
+function applyState() {
+  // 単一モード
+  if (mode === 'single') {
+    if (layerB) removeOverlay('b');
+    if (eraA && eraA.url) {
+      if (layerA) removeOverlay('a');
+      layerA = makeLayer(eraA);
+      attrA = eraA.attr;
+      layerA.addTo(map);
+      requestAnimationFrame(() => requestAnimationFrame(() => layerA && layerA.setOpacity(opacity)));
+    } else if (layerA) {
+      removeOverlay('a');
+    }
+  } else {
+    // 比較モード
+    if (eraA && eraA.url) {
+      if (!layerA || (layerA.options && layerA._url !== eraA.url)) {
+        if (layerA) removeOverlay('a');
+        layerA = makeLayer(eraA);
+        attrA = eraA.attr;
+        layerA.addTo(map);
+      }
+      requestAnimationFrame(() => layerA && layerA.setOpacity(1 - blendAB));
+    } else if (layerA) {
+      removeOverlay('a');
+    }
+    if (eraB && eraB.url) {
+      if (!layerB || (layerB.options && layerB._url !== eraB.url)) {
+        if (layerB) removeOverlay('b');
+        layerB = makeLayer(eraB);
+        attrB = eraB.attr;
+        layerB.addTo(map);
+      }
+      requestAnimationFrame(() => layerB && layerB.setOpacity(blendAB));
+    } else if (layerB) {
+      removeOverlay('b');
+    }
+  }
+  renderUI();
 }
 
 // ============================================================
-// タイムライン UI
+// ティック選択
 // ============================================================
-function renderTimeline() {
-  const inner = document.getElementById('timelineInner');
-  // 既存 ticks を削除 (track だけ残す)
-  Array.from(inner.querySelectorAll('.tick')).forEach(el => el.remove());
+function tickClicked(eraId) {
+  const era = findEra(eraId);
+  if (!era || !era.url) return;
+  if (mode === 'single') {
+    eraA = era; eraB = null;
+  } else {
+    // 比較モード: A 空 → A、A 埋まって B 空 → B、両方埋まって同じ ID をクリック → 解除、別 ID → A 上書き
+    if (!eraA) {
+      eraA = era;
+    } else if (eraA.id === era.id) {
+      // 同じ A を再クリック → 解除して B を A に昇格
+      eraA = eraB; eraB = null;
+    } else if (eraB && eraB.id === era.id) {
+      eraB = null;
+    } else if (!eraB) {
+      eraB = era;
+    } else {
+      // 両方埋まってる状態で新しいティック → B を新しいものに置換 (A を残す方が直感的)
+      eraB = era;
+    }
+  }
+  applyState();
+}
 
+// ============================================================
+// UI 更新
+// ============================================================
+function renderEraInfo() {
+  const yearEl = document.getElementById('eraYear');
+  const labelEl = document.getElementById('eraLabel');
+  const subEl = document.getElementById('eraSub');
+  const attrEl = document.getElementById('eraAttr');
+  if (mode === 'compare') {
+    const aStr = eraA ? `${eraA.year} ${eraA.label}` : '?';
+    const bStr = eraB ? `${eraB.year} ${eraB.label}` : '? (もう一つクリック)';
+    yearEl.textContent = '⇆';
+    labelEl.textContent = `A: ${aStr} ／ B: ${bStr}`;
+    subEl.textContent = (eraA && eraB) ? `スライダーで A↔B を切替` : 'A・B 2つの時代を選択中';
+    attrEl.innerHTML = [eraA && eraA.attr, eraB && eraB.attr].filter(Boolean).join(' / ');
+  } else if (eraA) {
+    yearEl.textContent = eraA.year;
+    labelEl.textContent = eraA.label;
+    subEl.textContent = eraA.sub || '';
+    attrEl.innerHTML = eraA.attr || '';
+  }
+}
+
+function renderTicks() {
+  const aerialDiv = document.getElementById('aerialTicks');
+  const paperDiv = document.getElementById('paperTicks');
+  aerialDiv.innerHTML = '';
+  paperDiv.innerHTML = '';
   ERAS.forEach(era => {
-    if (era.cat === 'topo' && !era.url) return; // 未検出の地形図はスキップ
+    if (era.cat === 'modern') return;
+    if (!era.url) return; // qchizu 検出前の topo はスキップ
     const tick = document.createElement('div');
-    tick.className = `tick cat-${era.cat}` + (era.id === currentEraId ? ' active' : '');
+    tick.className = `tick cat-${era.cat}`;
     tick.dataset.id = era.id;
-    tick.title = `${era.year} ${era.label}`;
+    tick.style.left = yearToX(era.year) + '%';
     tick.innerHTML = `
       <div class="dot"></div>
       <div class="year">${era.year}</div>
-      <div class="tooltip">${era.label} — ${era.sub || ''}</div>
+      <div class="tooltip">${era.year} ${era.label}${era.sub ? ' — ' + era.sub : ''}</div>
     `;
-    tick.addEventListener('click', () => setEra(era.id));
-    inner.appendChild(tick);
+    tick.addEventListener('click', () => tickClicked(era.id));
+    if (era.cat === 'aerial') aerialDiv.appendChild(tick);
+    else paperDiv.appendChild(tick); // 'old' or 'topo'
   });
 }
 
-function renderTimelineActive() {
+function renderTickHighlights() {
   document.querySelectorAll('.tick').forEach(t => {
-    t.classList.toggle('active', t.dataset.id === currentEraId);
+    t.classList.remove('active', 'select-a', 'select-b');
+    if (mode === 'single' && eraA && t.dataset.id === eraA.id) {
+      t.classList.add('active');
+    } else if (mode === 'compare') {
+      if (eraA && t.dataset.id === eraA.id) t.classList.add('select-a');
+      if (eraB && t.dataset.id === eraB.id) t.classList.add('select-b');
+    }
   });
-  // active を中央付近にスクロール
-  const active = document.querySelector('.tick.active');
-  if (active) {
-    active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  document.getElementById('tracksWrap').classList.toggle('compare', mode === 'compare');
+}
+
+function renderControls() {
+  const slider = document.getElementById('opacitySlider');
+  const label = document.getElementById('opacityLabel');
+  const val = document.getElementById('opacityVal');
+  const row = document.getElementById('controlsRow');
+  row.classList.toggle('compare', mode === 'compare');
+  if (mode === 'compare') {
+    label.textContent = 'A⇄B';
+    slider.value = Math.round(blendAB * 100);
+    val.textContent = `B ${slider.value}%`;
+  } else {
+    label.textContent = '透過';
+    slider.value = Math.round(opacity * 100);
+    val.textContent = slider.value + '%';
   }
+  document.getElementById('compareBtn').classList.toggle('active', mode === 'compare');
+}
+
+function renderUI() {
+  renderEraInfo();
+  renderTickHighlights();
+  renderControls();
 }
 
 // ============================================================
-// 透過スライダー
+// 透過 / A↔B スライダー
 // ============================================================
 const slider = document.getElementById('opacitySlider');
 const sliderVal = document.getElementById('opacityVal');
 slider.addEventListener('input', () => {
-  currentOpacity = slider.value / 100;
-  sliderVal.textContent = slider.value + '%';
-  if (overlayLayer) overlayLayer.setOpacity(currentOpacity);
+  const v = slider.value / 100;
+  if (mode === 'compare') {
+    blendAB = v;
+    sliderVal.textContent = `B ${slider.value}%`;
+    if (layerA) layerA.setOpacity(1 - blendAB);
+    if (layerB) layerB.setOpacity(blendAB);
+  } else {
+    opacity = v;
+    sliderVal.textContent = slider.value + '%';
+    if (layerA) layerA.setOpacity(opacity);
+  }
 });
 
 // ============================================================
-// 再生 (時代を順送り)
+// 比較モード切替
 // ============================================================
-let playTimer = null;
-const playBtn = document.getElementById('playBtn');
-function getAvailableEras() {
-  return ERAS.filter(e => e.url || e.cat === 'modern');
-}
-playBtn.addEventListener('click', () => {
-  if (playTimer) {
-    clearInterval(playTimer);
-    playTimer = null;
-    playBtn.classList.remove('playing');
-    playBtn.textContent = '▶ 再生';
-    return;
+document.getElementById('compareBtn').addEventListener('click', () => {
+  if (mode === 'single') {
+    mode = 'compare';
+    // 現在のA を残し、B は空でスタート
+    eraB = null;
+    blendAB = 0.5;
+    applyState();
+    showHint('もう一つの時代をタイムラインから選択 → スライダーで A↔B を切替', 4000);
+  } else {
+    mode = 'single';
+    eraB = null;
+    if (layerB) removeOverlay('b');
+    applyState();
   }
-  playBtn.classList.add('playing');
-  playBtn.textContent = '⏸ 停止';
-  const list = getAvailableEras();
-  playTimer = setInterval(() => {
-    const idx = list.findIndex(e => e.id === currentEraId);
-    const next = list[(idx + 1) % list.length];
-    setEra(next.id);
-  }, 1800);
 });
+
+function getAvailableEras() {
+  return ERAS.filter(e => e.url);
+}
 
 // ============================================================
 // 現在地
@@ -816,10 +1009,11 @@ function showHint(msg, dur = 0) {
 // ============================================================
 // 起動
 // ============================================================
-renderTimeline();
-setEra('edo_late'); // 江戸末期 (1860) で始める — 古地図と現代の差が一番ドラマチック
+renderTicks();
+eraA = findEra('edo_late'); // 江戸末期 1860 でスタート
+applyState();
 
-// バックグラウンドで qchizu 地形図 URL 検出 → ERAS の topo_X.url を埋める → タイムライン再描画
+// バックグラウンドで qchizu 地形図 URL 検出 → ERAS の topo_X.url を埋める → トラック再描画
 showHint('地形図タイルを検出中…');
 (async () => {
   const pattern = await detectTopoPattern();
@@ -829,9 +1023,9 @@ showHint('地形図タイルを検出中…');
         e.url = pattern.replace('{NN}', e.topoNN);
       }
     });
-    renderTimeline();
-    renderTimelineActive();
-    showHint('✅ 1:3,000地形図 8世代を追加 (タイムラインに緑色のマーカー)', 3200);
+    renderTicks();
+    renderUI();
+    showHint('✅ 1:3,000地形図 8世代を紙地図トラックに追加', 3200);
   } else {
     showHint('地形図タイル検出失敗 — 古地図と航空写真のみ利用可', 5000);
   }
