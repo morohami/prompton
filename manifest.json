@@ -24,7 +24,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779734355097.jpg",
-    "thumbVer": 1779737229026
+    "thumbVer": 1779738140355
   },
   {
     "id": "p1779489296529",
@@ -45,7 +45,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779489296529.jpg"
+    "thumb": "thumbs/p1779489296529.jpg",
+    "thumbVer": 1779738119730
   },
   {
     "id": "p1779487555469",
@@ -66,7 +67,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779487555469.jpg"
+    "thumb": "thumbs/p1779487555469.jpg",
+    "thumbVer": 1779738117035
   },
   {
     "id": "p1779487217532",
@@ -95,7 +97,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779487217532.jpg"
+    "thumb": "thumbs/p1779487217532.jpg",
+    "thumbVer": 1779738113614
   },
   {
     "id": "p1779555000001",
@@ -122,7 +125,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779555000001.jpg"
+    "thumb": "thumbs/p1779555000001.jpg",
+    "thumbVer": 1779738122345
   },
   {
     "id": "p1779555000003",
@@ -147,7 +151,8 @@
     "variables": [],
     "reproPrompt": "",
     "devNotes": "",
-    "thumb": "thumbs/p1779555000003.jpg"
+    "thumb": "thumbs/p1779555000003.jpg",
+    "thumbVer": 1779738125661
   },
   {
     "id": "p1779555000004",
@@ -176,7 +181,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779555000004.jpg"
+    "thumb": "thumbs/p1779555000004.jpg",
+    "thumbVer": 1779738130051
   },
   {
     "id": "p1779555000005",
@@ -218,7 +224,9 @@
     "usage": [],
     "variables": [],
     "reproPrompt": "",
-    "devNotes": ""
+    "devNotes": "",
+    "thumb": "thumbs/p1779555000005.jpg",
+    "thumbVer": 1779738132816
   },
   {
     "id": "p1779555000007",
@@ -247,7 +255,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779555000007.jpg"
+    "thumb": "thumbs/p1779555000007.jpg",
+    "thumbVer": 1779738135998
   },
   {
     "id": "p1779462705263",
@@ -268,7 +277,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": "thumbs/p1779462705263.jpg"
+    "thumb": "thumbs/p1779462705263.jpg",
+    "thumbVer": 1779738105394
   },
   {
     "id": "p001",
@@ -323,7 +333,8 @@
     "downloads": 1284,
     "forks": 47,
     "parentId": null,
-    "thumb": "thumbs/p001.jpg"
+    "thumb": "thumbs/p001.jpg",
+    "thumbVer": 1779738082480
   },
   {
     "id": "p002",
@@ -354,7 +365,8 @@
     "parentId": null,
     "coverEligible": true,
     "editorsNote": "Tomas proves dashboards don't have to look like they were designed by a committee. The retro terminal aesthetic isn't just nostalgic — the thin display weights and cyan accent make the numbers genuinely scannable. Thirty-one forks and counting.",
-    "thumb": "thumbs/p002.jpg"
+    "thumb": "thumbs/p002.jpg",
+    "thumbVer": 1779738085015
   },
   {
     "id": "p003",
@@ -472,7 +484,8 @@
         "changelog": "Introduced {{RECIPIENT}} and {{KINDNESS}} variables so others can personalize without editing the prompt. Kept the tone anchored by requiring a sensory detail."
       }
     ],
-    "thumb": "thumbs/p003.jpg"
+    "thumb": "thumbs/p003.jpg",
+    "thumbVer": 1779738087545
   },
   {
     "id": "p004",
@@ -500,7 +513,8 @@
     "downloads": 612,
     "forks": 19,
     "parentId": null,
-    "thumb": "thumbs/p004.jpg"
+    "thumb": "thumbs/p004.jpg",
+    "thumbVer": 1779738090078
   },
   {
     "id": "p005",
@@ -551,7 +565,8 @@
     "parentId": null,
     "coverEligible": true,
     "editorsNote": "A study-tool prompt that respects the learner's time. Mira stripped away every animation that delays a review cycle and built the progress bar to feel honest, not gamified. Sixty-two forks so far, spanning Korean, Mandarin, and even GRE vocabulary.",
-    "thumb": "thumbs/p005.jpg"
+    "thumb": "thumbs/p005.jpg",
+    "thumbVer": 1779738092611
   },
   {
     "id": "p006",
@@ -580,7 +595,8 @@
     "downloads": 789,
     "forks": 24,
     "parentId": "p005",
-    "thumb": "thumbs/p006.jpg"
+    "thumb": "thumbs/p006.jpg",
+    "thumbVer": 1779738095145
   },
   {
     "id": "p007",
@@ -608,7 +624,8 @@
     "downloads": 423,
     "forks": 11,
     "parentId": null,
-    "thumb": "thumbs/p007.jpg"
+    "thumb": "thumbs/p007.jpg",
+    "thumbVer": 1779738097678
   },
   {
     "id": "p008",
@@ -639,7 +656,8 @@
     "parentId": null,
     "coverEligible": true,
     "editorsNote": "A bilingual cover entry that shows the platform's range. Kenji's Rirekisho template follows the exact table conventions Japanese employers expect — right down to the furigana row and photo placeholder. Thirty-eight forks, mostly from job-seekers prepping for spring hiring.",
-    "thumb": "thumbs/p008.jpg"
+    "thumb": "thumbs/p008.jpg",
+    "thumbVer": 1779738100211
   },
   {
     "id": "p009",
@@ -696,6 +714,7 @@
     "downloads": 312,
     "forks": 8,
     "parentId": "p003",
-    "thumb": "thumbs/p009.jpg"
+    "thumb": "thumbs/p009.jpg",
+    "thumbVer": 1779738102744
   }
 ]
