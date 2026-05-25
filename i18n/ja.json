@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "browse": "ブラウズ",
+    "rankings": "ランキング",
+    "profile": "プロフィール",
+    "share": "＋ promptonをシェア",
+    "theme": "ライト/ダークテーマ切替",
+    "settings": "GitHub同期設定"
+  },
+  "issue": {
+    "lede": "毎日使えるAIのレシピブック",
+    "count": "公開中のプロンプト"
+  },
+  "tagline": {
+    "main": "<em>実際に</em>使えるプロンプト。",
+    "sub": "全部HTML、全部プロンプト。ギャラリーを見て、フォークして、改良して、シェア。"
+  },
+  "filter": {
+    "all": "すべて",
+    "sort": "並び替え:",
+    "sortNew": "新着順",
+    "sortOld": "古い順",
+    "sortDl": "ダウンロード数",
+    "sortFk": "フォーク数",
+    "searchPlaceholder": "プロンプト・タグ・作者を検索…",
+    "compare": "⇄ 比較"
+  },
+  "detail": {
+    "open": "↗ Claude.aiで開く",
+    "copy": "⎘ コピー",
+    "download": "↓ HTMLをダウンロード",
+    "favorite": "♡ お気に入り",
+    "favorited": "♥ お気に入り済み",
+    "share": "↗ シェア",
+    "fork": "⑂ フォーク",
+    "compareOriginal": "⇄ オリジナルと比較",
+    "saveVersion": "✎ 新バージョンを保存",
+    "edit": "✎ 編集",
+    "delete": "🗑 削除"
+  },
+  "profile": {
+    "published": "公開",
+    "favorites": "お気に入り",
+    "followers": "フォロワー",
+    "following": "フォロー中",
+    "forks": "フォーク",
+    "downloads": "ダウンロード",
+    "favoritesEmpty": "まだお気に入りがありません。プロンプトの♡をタップして保存しましょう。"
+  },
+  "rankings": {
+    "title": "ランキング",
+    "downloadsBtn": "↓ ダウンロード",
+    "forksBtn": "⑂ フォーク"
+  },
+  "settings": {
+    "back": "← ギャラリーへ戻る",
+    "ghTitle": "<em>GitHub</em>と同期。",
+    "save": "保存",
+    "testConn": "接続テスト",
+    "clearToken": "保存済みトークンを削除",
+    "tagTitle": "タグ管理",
+    "thumbTitle": "サムネイル",
+    "thumbRegen": "全サムネイルを再生成",
+    "language": "言語",
+    "languageHint": "UI表示の言語設定（プロンプト本文には影響しません）"
+  }
+}

@@ -36,7 +36,7 @@ function renderRankings(metric) {
 
   el.innerHTML = `
     <div class="rankings-wrap">
-      <h1><em>Rankings</em></h1>
+      <h1><em>${escapeHtml(t('rankings.title'))}</em></h1>
       <p class="lede">Top prompts by ${metric}. Updated live from the manifest.</p>
       <div class="ranking-totals">
         <div><div class="num">${formatNum(totalDl)}</div><div class="lbl">Total downloads</div></div>
@@ -44,8 +44,8 @@ function renderRankings(metric) {
         <div><div class="num">${all.length}</div><div class="lbl">Prompts</div></div>
       </div>
       <div class="ranking-toggle">
-        <button type="button" class="${metric === 'downloads' ? 'active' : ''}" data-rank="downloads">↓ Downloads</button>
-        <button type="button" class="${metric === 'forks' ? 'active' : ''}" data-rank="forks">⑂ Forks</button>
+        <button type="button" class="${metric === 'downloads' ? 'active' : ''}" data-rank="downloads">${escapeHtml(t('rankings.downloadsBtn'))}</button>
+        <button type="button" class="${metric === 'forks' ? 'active' : ''}" data-rank="forks">${escapeHtml(t('rankings.forksBtn'))}</button>
       </div>
       <ol class="ranking-list">
         ${top.map((p, i) => {
@@ -506,16 +506,16 @@ function renderDetail(id, viewingVersionNum) {
         </div>
       </div>
       <div class="detail-actions">
-        <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">↗ Open in Claude.ai</button>
-        <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">⎘ Copy</button>
-        <button class="btn secondary" id="downloadBtn">↓ Download HTML</button>
-        <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${isFavorited(p.id) ? '♥ Favorited' : '♡ Favorite'}</button>
-        <button class="btn secondary" id="shareBtn" title="Share this prompt">↗ Share</button>
-        <button class="btn secondary" id="forkBtn">⑂ Fork</button>
-        ${parent ? `<button class="btn secondary" id="compareOriginalBtn">⇄ Compare with original</button>` : ''}
-        ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">✎ Save new version</button>` : ''}
-        ${isOwner() ? `<button class="btn secondary" id="editMetadataBtn" title="Edit title / description / tags / license">✎ Edit</button>` : ''}
-        ${isOwner() ? `<button class="btn danger" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">🗑 Delete</button>` : ''}
+        <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">${escapeHtml(t('detail.open'))}</button>
+        <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">${escapeHtml(t('detail.copy'))}</button>
+        <button class="btn secondary" id="downloadBtn">${escapeHtml(t('detail.download'))}</button>
+        <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${escapeHtml(isFavorited(p.id) ? t('detail.favorited') : t('detail.favorite'))}</button>
+        <button class="btn secondary" id="shareBtn" title="Share this prompt">${escapeHtml(t('detail.share'))}</button>
+        <button class="btn secondary" id="forkBtn">${escapeHtml(t('detail.fork'))}</button>
+        ${parent ? `<button class="btn secondary" id="compareOriginalBtn">${escapeHtml(t('detail.compareOriginal'))}</button>` : ''}
+        ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">${escapeHtml(t('detail.saveVersion'))}</button>` : ''}
+        ${isOwner() ? `<button class="btn secondary" id="editMetadataBtn" title="Edit title / description / tags / license">${escapeHtml(t('detail.edit'))}</button>` : ''}
+        ${isOwner() ? `<button class="btn danger" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">${escapeHtml(t('detail.delete'))}</button>` : ''}
       </div>
     </div>
 
@@ -735,7 +735,7 @@ function renderDetail(id, viewingVersionNum) {
     favBtn.addEventListener('click', () => {
       const nowFav = toggleFavorite(p.id);
       favBtn.classList.toggle('on', nowFav);
-      favBtn.textContent = nowFav ? '♥ Favorited' : '♡ Favorite';
+      favBtn.textContent = nowFav ? t('detail.favorited') : t('detail.favorite');
     });
   }
 
@@ -1476,28 +1476,28 @@ function renderProfile(handle, tab) {
       <div class="profile-stats-v2">
         <button type="button" class="stat-card ${activeTab === 'published' ? 'active' : ''}" data-tab="published">
           <div class="num">${mine.length}</div>
-          <div class="lbl">Published</div>
+          <div class="lbl">${escapeHtml(t('profile.published'))}</div>
         </button>
         ${isYou ? `
         <button type="button" class="stat-card ${activeTab === 'favorites' ? 'active' : ''}" data-tab="favorites">
           <div class="num">${formatNum(favorites.length)}</div>
-          <div class="lbl">Favorites</div>
+          <div class="lbl">${escapeHtml(t('profile.favorites'))}</div>
         </button>` : `
         <div class="stat-card non-tab">
           <div class="num">${formatNum(totalDl)}</div>
-          <div class="lbl">Downloads</div>
+          <div class="lbl">${escapeHtml(t('profile.downloads'))}</div>
         </div>`}
         <button type="button" class="stat-card ${activeTab === 'followers' ? 'active' : ''}" data-tab="followers">
           <div class="num">${profile.followers.length}</div>
-          <div class="lbl">Followers</div>
+          <div class="lbl">${escapeHtml(t('profile.followers'))}</div>
         </button>
         <button type="button" class="stat-card ${activeTab === 'following' ? 'active' : ''}" data-tab="following">
           <div class="num">${profile.following.length}</div>
-          <div class="lbl">Following</div>
+          <div class="lbl">${escapeHtml(t('profile.following'))}</div>
         </button>
         <div class="stat-card non-tab">
           <div class="num">${formatNum(totalFk)}</div>
-          <div class="lbl">Forks</div>
+          <div class="lbl">${escapeHtml(t('profile.forks'))}</div>
         </div>
       </div>
 
@@ -1571,7 +1571,7 @@ function renderProfileTab(handle, tab) {
       .map(id => prompts.find(x => x.id === id))
       .filter(Boolean);
     if (!mineFavs.length) {
-      el.innerHTML = '<div class="empty-state">No favorites yet. Tap ♡ on any prompt to save it here.</div>';
+      el.innerHTML = '<div class="empty-state">' + escapeHtml(t('profile.favoritesEmpty')) + '</div>';
       return;
     }
     el.innerHTML = '<div class="grid" id="profileGrid"></div>';

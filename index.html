@@ -14,18 +14,18 @@
 <header class="masthead">
   <div class="brand" data-nav="gallery">Prompton <em>— recipes for AI</em></div>
   <nav class="nav-actions">
-    <a data-nav="gallery">Browse</a>
-    <a data-nav="rankings">Rankings</a>
-    <a data-nav="profile">Profile</a>
-    <a id="themeToggle" class="nav-theme" title="Toggle light/dark theme" aria-label="Toggle theme">☀</a>
-    <a data-nav="settings" class="nav-settings" title="GitHub sync settings">⚙</a>
-    <button class="btn-upload" data-nav="upload">＋ Share a prompton</button>
+    <a data-nav="gallery" data-i18n="nav.browse">Browse</a>
+    <a data-nav="rankings" data-i18n="nav.rankings">Rankings</a>
+    <a data-nav="profile" data-i18n="nav.profile">Profile</a>
+    <a id="themeToggle" class="nav-theme" data-i18n-title="nav.theme" title="Toggle light/dark theme" aria-label="Toggle theme">☀</a>
+    <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="GitHub sync settings">⚙</a>
+    <button class="btn-upload" data-nav="upload" data-i18n="nav.share">＋ Share a prompton</button>
   </nav>
 </header>
 
 <div class="issue-line">
   <span id="issueDate">Vol. I · Issue 03 · Tuesday</span>
-  <span>The recipe-book for everyday AI</span>
+  <span data-i18n="issue.lede">The recipe-book for everyday AI</span>
   <span id="issueCount">— prompts in circulation</span>
 </div>
 
@@ -34,24 +34,24 @@
 <!-- ════════ GALLERY ════════ -->
 <section class="view active" id="view-gallery">
   <div class="intro-tagline">
-    <div class="tagline-1">Prompts you can <em>actually</em> cook with.</div>
-    <div class="tagline-2">Every HTML, every prompt. Browse the gallery, fork, make it better, share.</div>
+    <div class="tagline-1" data-i18n-html="tagline.main">Prompts you can <em>actually</em> cook with.</div>
+    <div class="tagline-2" data-i18n="tagline.sub">Every HTML, every prompt. Browse the gallery, fork, make it better, share.</div>
   </div>
 
   <div id="magazineSection"></div>
   <div id="archiveHeader"></div>
 
   <div class="filter-bar">
-    <input type="text" class="search" id="searchInput" placeholder="Search prompts, tags, authors…" />
-    <button class="chip active" data-filter="all">All</button>
+    <input type="text" class="search" id="searchInput" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search prompts, tags, authors…" />
+    <button class="chip active" data-filter="all" data-i18n="filter.all">All</button>
     <span id="tagChips" class="tag-chips"></span>
-    <span class="sort-label">Sort:</span>
+    <span class="sort-label" data-i18n="filter.sort">Sort:</span>
     <select id="sortSelect">
-      <option value="new">Newest</option>
-      <option value="downloads">Most downloaded</option>
-      <option value="forks">Most forked</option>
+      <option value="new" data-i18n="filter.sortNew">Newest</option>
+      <option value="downloads" data-i18n="filter.sortDl">Most downloaded</option>
+      <option value="forks" data-i18n="filter.sortFk">Most forked</option>
     </select>
-    <button class="compare-toggle" id="compareToggle" type="button">⇄ Compare</button>
+    <button class="compare-toggle" id="compareToggle" type="button" data-i18n="filter.compare">⇄ Compare</button>
   </div>
 
   <div class="grid" id="cardGrid"></div>
@@ -184,9 +184,9 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
 <!-- ════════ SETTINGS ════════ -->
 <section class="view" id="view-settings">
-  <span class="back-link" data-nav="gallery">← Back to gallery</span>
+  <span class="back-link" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div class="settings-wrap">
-    <h1>Sync with <em>GitHub</em>.</h1>
+    <h1 data-i18n-html="settings.ghTitle">Sync with <em>GitHub</em>.</h1>
     <p class="lede">Your collection lives in a GitHub repo. New uploads are committed via the GitHub API using a Personal Access Token (PAT) you supply here. Read access stays public — only you can write.</p>
     <form id="settingsForm">
       <div class="settings-field">
@@ -211,7 +211,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
     </form>
 
     <div class="tag-curation" id="tagCurationPanel">
-      <h2>Tag curation</h2>
+      <h2 data-i18n="settings.tagTitle">Tag curation</h2>
       <p class="lede">Tags come from your prompts. The list below is the union of every tag attached to a prompt, after normalization through the alias map. Add aliases below to fold variants like <code>ai</code> → <code>AI</code> together.</p>
       <div class="settings-field">
         <label>Tags in use <span class="hint">Auto-derived from prompts on save — no manual entry</span></label>
@@ -234,12 +234,21 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
     </div>
 
     <div class="tag-curation" id="thumbnailPanel">
-      <h2>Thumbnails</h2>
+      <h2 data-i18n="settings.thumbTitle">Thumbnails</h2>
       <p class="lede">Static JPG thumbnails replace the live iframes on cards — much faster, especially on mobile. Regenerate them when you change a prompt's first-paint look.</p>
       <div class="settings-actions">
-        <button type="button" id="thumbRegenBtn" class="btn-secondary">Regenerate all thumbnails</button>
+        <button type="button" id="thumbRegenBtn" class="btn-secondary" data-i18n="settings.thumbRegen">Regenerate all thumbnails</button>
       </div>
       <div class="settings-status" id="thumbStatus"></div>
+    </div>
+
+    <div class="tag-curation" id="languagePanel">
+      <h2 data-i18n="settings.language">Language</h2>
+      <p class="lede" data-i18n="settings.languageHint">App language — affects UI labels only (prompt content stays unchanged)</p>
+      <div class="settings-actions">
+        <button type="button" class="btn-secondary lang-btn" data-locale="en">English</button>
+        <button type="button" class="btn-secondary lang-btn" data-locale="ja">日本語</button>
+      </div>
     </div>
 
   </div>
@@ -987,8 +996,24 @@ function renderSettings() {
     status.innerHTML = 'Configured: <code>' + escapeHtml(cfg.repo) + '</code> on branch <code>' + escapeHtml(cfg.branch || 'main') + '</code>. Click "Test connection" to verify.';
   }
   renderTagCurationPanel();
+  // Mark the active locale button so the toggle reflects current state.
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.locale === currentLocale);
+  });
   showView('settings');
 }
+document.querySelectorAll('.lang-btn').forEach(b => {
+  b.addEventListener('click', async () => {
+    await setLocale(b.dataset.locale);
+    document.querySelectorAll('.lang-btn').forEach(x => x.classList.toggle('active', x.dataset.locale === currentLocale));
+    // Re-render whatever view is showing so dynamic strings refresh too.
+    const hash = location.hash;
+    if (hash.startsWith('#/profile/')) renderProfile(hash.replace('#/profile/', ''));
+    else if (hash.startsWith('#/p/')) renderDetail(hash.replace('#/p/', ''));
+    else if (hash === '#/rankings' || hash.startsWith('#/rankings')) renderRankings(hash.indexOf('forks') >= 0 ? 'forks' : 'downloads');
+    else renderGallery();
+  });
+});
 document.getElementById('settingsForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const cfg = {
@@ -1105,6 +1130,79 @@ document.getElementById('tagSaveBtn').addEventListener('click', async () => {
 });
 
 // ─── Remote data loader (manifest.json + htmls/*.html) ───
+// ─── i18n ───
+// Two-locale toggle (en / ja). Persisted in localStorage; first visit picks
+// based on navigator.language. t(key) does dot-path lookup with English
+// fallback. Use {{var}} for interpolation. Static markup uses data-i18n="key"
+// for textContent and data-i18n-html="key" when the value contains HTML.
+const I18N_KEY = 'prompton_locale_v1';
+const I18N_DEFAULT = 'en';
+const I18N_LOCALES = ['en', 'ja'];
+let currentLocale = (() => {
+  try {
+    const saved = localStorage.getItem(I18N_KEY);
+    if (saved && I18N_LOCALES.indexOf(saved) >= 0) return saved;
+  } catch (e) {}
+  return (navigator.language || '').toLowerCase().startsWith('ja') ? 'ja' : I18N_DEFAULT;
+})();
+let i18nDict = {};
+let i18nFallback = {};
+function getByPath(obj, path) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (const p of parts) {
+    if (cur && typeof cur === 'object' && p in cur) cur = cur[p];
+    else return undefined;
+  }
+  return typeof cur === 'string' ? cur : undefined;
+}
+function t(key, vars) {
+  let v = getByPath(i18nDict, key);
+  if (v === undefined) v = getByPath(i18nFallback, key);
+  if (v === undefined) v = key;
+  if (vars) for (const k of Object.keys(vars)) v = v.split('{{' + k + '}}').join(vars[k]);
+  return v;
+}
+async function loadLocale(locale) {
+  const r = await fetch('i18n/' + locale + '.json');
+  if (!r.ok) throw new Error('i18n/' + locale + '.json ' + r.status);
+  return r.json();
+}
+async function setLocale(locale) {
+  if (I18N_LOCALES.indexOf(locale) < 0) return;
+  if (locale !== I18N_DEFAULT && !Object.keys(i18nFallback).length) {
+    try { i18nFallback = await loadLocale(I18N_DEFAULT); } catch (e) {}
+  }
+  try {
+    i18nDict = locale === I18N_DEFAULT && Object.keys(i18nFallback).length
+      ? i18nFallback
+      : await loadLocale(locale);
+  } catch (e) { console.warn('Locale load failed for ' + locale + ':', e); return; }
+  currentLocale = locale;
+  try { localStorage.setItem(I18N_KEY, locale); } catch (e) {}
+  document.documentElement.setAttribute('lang', locale);
+  applyI18n();
+}
+function applyI18n(root) {
+  const r = root || document;
+  r.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.getAttribute('data-i18n'));
+    if (v) el.textContent = v;
+  });
+  r.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const v = t(el.getAttribute('data-i18n-html'));
+    if (v) el.innerHTML = v;
+  });
+  r.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const v = t(el.getAttribute('data-i18n-title'));
+    if (v) el.setAttribute('title', v);
+  });
+  r.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const v = t(el.getAttribute('data-i18n-placeholder'));
+    if (v) el.setAttribute('placeholder', v);
+  });
+}
+
 async function fetchSeed() {
   const [manifestRaw, profileSeed, tagSeed] = await Promise.all([
     fetch('manifest.json').then(r => { if (!r.ok) throw new Error('manifest.json ' + r.status); return r.json(); }),
@@ -1146,6 +1244,10 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
 
 // ─── Bootstrap ───
 (async () => {
+  // Kick off the i18n load alongside fetchSeed so initial paint is localized.
+  // setLocale is forgiving — if the locale file fails, we fall through with
+  // English defaults baked into the static markup.
+  const i18nReady = setLocale(currentLocale).catch(err => console.warn('i18n init failed:', err));
   try {
     await fetchSeed();
   } catch (e) {
@@ -1167,6 +1269,7 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   if (typeof deriveCuratedTags === 'function') tagConfig.curated = deriveCuratedTags();
   updateSyncBadge();
   window._uploadTagPicker = mountTagPicker('uploadTagPicker', []);
+  await i18nReady;  // ensure first render sees localized strings
   if (!handleCompareHash()) renderGallery();
 })();
 </script>

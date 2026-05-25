@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "browse": "Browse",
+    "rankings": "Rankings",
+    "profile": "Profile",
+    "share": "＋ Share a prompton",
+    "theme": "Toggle light/dark theme",
+    "settings": "GitHub sync settings"
+  },
+  "issue": {
+    "lede": "The recipe-book for everyday AI",
+    "count": "prompts in circulation"
+  },
+  "tagline": {
+    "main": "Prompts you can <em>actually</em> cook with.",
+    "sub": "Every HTML, every prompt. Browse the gallery, fork, make it better, share."
+  },
+  "filter": {
+    "all": "All",
+    "sort": "Sort:",
+    "sortNew": "Newest",
+    "sortOld": "Oldest",
+    "sortDl": "Most downloaded",
+    "sortFk": "Most forked",
+    "searchPlaceholder": "Search prompts, tags, authors…",
+    "compare": "⇄ Compare"
+  },
+  "detail": {
+    "open": "↗ Open in Claude.ai",
+    "copy": "⎘ Copy",
+    "download": "↓ Download HTML",
+    "favorite": "♡ Favorite",
+    "favorited": "♥ Favorited",
+    "share": "↗ Share",
+    "fork": "⑂ Fork",
+    "compareOriginal": "⇄ Compare with original",
+    "saveVersion": "✎ Save new version",
+    "edit": "✎ Edit",
+    "delete": "🗑 Delete"
+  },
+  "profile": {
+    "published": "Published",
+    "favorites": "Favorites",
+    "followers": "Followers",
+    "following": "Following",
+    "forks": "Forks",
+    "downloads": "Downloads",
+    "favoritesEmpty": "No favorites yet. Tap ♡ on any prompt to save it here."
+  },
+  "rankings": {
+    "title": "Rankings",
+    "downloadsBtn": "↓ Downloads",
+    "forksBtn": "⑂ Forks"
+  },
+  "settings": {
+    "back": "← Back to gallery",
+    "ghTitle": "Sync with <em>GitHub</em>.",
+    "save": "Save",
+    "testConn": "Test connection",
+    "clearToken": "Clear stored token",
+    "tagTitle": "Tag curation",
+    "thumbTitle": "Thumbnails",
+    "thumbRegen": "Regenerate all thumbnails",
+    "language": "Language",
+    "languageHint": "App language — affects UI labels only (prompt content stays unchanged)"
+  }
+}

@@ -1025,6 +1025,9 @@
   /* Detail action: filled state for the favorite button */
   .btn.secondary.on { color: var(--accent); border-color: var(--accent); }
 
+  /* Language toggle buttons in Settings */
+  .lang-btn.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+
   .card .meta-top {
     display: none;
   }

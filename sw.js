@@ -12,7 +12,9 @@ const SHELL = [
   // Split CSS / JS modules — precache so the shell renders styled even on
   // first paint and so offline visits don't lose layout.
   './css/main.css',
-  './js/github.js', './js/render.js', './js/tags.js', './js/router.js', './js/upload.js'
+  './js/github.js', './js/render.js', './js/tags.js', './js/router.js', './js/upload.js',
+  // i18n locale files — needed for first paint of localized strings.
+  './i18n/en.json', './i18n/ja.json'
 ];
 
 self.addEventListener('install', (e) => {
