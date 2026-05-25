@@ -8,7 +8,12 @@
     "context": "Single-file HTML, Leaflet 1.9.4 CDN. 2 synced Leaflet instances stacked with clip-path on top map for swipe compare. Mobile-first. Files: edo-konjaku-map.html",
     "model": "Claude Opus 4.7",
     "license": "CC0 — Public domain",
-    "tags": ["map", "tokyo", "history", "leaflet"],
+    "tags": [
+      "map",
+      "tokyo",
+      "history",
+      "leaflet"
+    ],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -18,7 +23,8 @@
     "parentId": null,
     "usage": [],
     "variables": [],
-    "thumb": ""
+    "thumb": "thumbs/p1779734355097.jpg",
+    "thumbVer": 1779736163657
   },
   {
     "id": "p1779489296529",
