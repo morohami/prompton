@@ -44,4 +44,7 @@ jobs:
             exit 0
           fi
           git commit -m "Prompton: regenerate thumbnails [skip ci]"
+          # Owner uploads can land on main while we're generating — rebase on
+          # top of whatever's there now so the push fast-forwards.
+          git pull --rebase origin main
           git push
