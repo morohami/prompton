@@ -5,10 +5,10 @@
 //   - Cache-first for htmls/* and other static assets
 //   - Bypass GitHub API requests entirely (writes must always hit the network)
 
-const VERSION = 'prompton-v5';
+const VERSION = 'prompton-v6';
 const SHELL = [
   './', './index.html', './404.html',
-  './manifest.json', './profiles.json', './tags.json',
+  './manifest.json', './profiles.json', './tags.json', './playlists.json',
   // Split CSS / JS modules — precache so the shell renders styled even on
   // first paint and so offline visits don't lose layout.
   './css/main.css',

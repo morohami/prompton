@@ -2,6 +2,7 @@
   "nav": {
     "browse": "Browse",
     "rankings": "Rankings",
+    "playlists": "Playlists",
     "profile": "Profile",
     "share": "＋ Share a prompton",
     "theme": "Toggle light/dark theme",
@@ -31,6 +32,7 @@
     "download": "↓ Download HTML",
     "favorite": "♡ Favorite",
     "favorited": "♥ Favorited",
+    "playlist": "♫ Playlist",
     "share": "↗ Share",
     "fork": "⑂ Fork",
     "compareOriginal": "⇄ Compare with original",
@@ -51,6 +53,25 @@
     "title": "Rankings",
     "downloadsBtn": "↓ Downloads",
     "forksBtn": "⑂ Forks"
+  },
+  "playlists": {
+    "title": "Playlists",
+    "lede": "Themed collections of prompts. Make one, drop prompts into it, share the URL.",
+    "empty": "No playlists yet — make the first one.",
+    "emptyTiles": "Empty playlist. Open a prompt and add it from the ♫ Playlist button.",
+    "new": "New playlist",
+    "newInline": "Create one",
+    "noneYet": "No playlists yet.",
+    "newTitle": "New playlist",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Productivity tools",
+    "colorLabel": "Color",
+    "create": "Create",
+    "cancel": "Cancel",
+    "nameRequired": "Playlist name is required.",
+    "by": "by",
+    "delete": "Delete playlist",
+    "confirmDelete": "Delete \"{{name}}\"? This cannot be undone."
   },
   "settings": {
     "back": "← Back to gallery",

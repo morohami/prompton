@@ -402,6 +402,23 @@ async function renameOwnerHandle(oldHandle, newHandle) {
   ], 'Prompton: rename @' + oldHandle + ' → @' + newHandle);
 }
 
+// Owner-only: persist the local `playlists` array to playlists.json on the
+// repo. Read-modify-write on the live sha to avoid clobbering concurrent edits.
+async function pushPlaylistsToGitHub() {
+  if (!isOwner()) return;
+  const cfg = getSyncConfig();
+  const branch = cfg.branch || 'main';
+  let sha;
+  try {
+    const raw = await ghFetch('/contents/playlists.json?ref=' + encodeURIComponent(branch));
+    sha = raw.sha;
+  } catch (e) {
+    // File may not exist yet on the repo — PUT without sha creates it.
+    sha = undefined;
+  }
+  await ghPutFile('playlists.json', JSON.stringify(playlists, null, 2), 'Prompton: update playlists', sha);
+}
+
 async function pushPromptToGitHub(prompt) {
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';

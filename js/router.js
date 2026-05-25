@@ -17,6 +17,7 @@ document.querySelectorAll('[data-nav]').forEach(el => {
     if (target === 'profile') renderProfile(ownerHandle()); // Always YOUR profile from nav
     if (target === 'settings') renderSettings();
     if (target === 'rankings') renderRankings();
+    if (target === 'playlists') renderPlaylists();
   });
 });
 
@@ -105,6 +106,9 @@ function handleHashRoute() {
   if (h === '#/settings') { renderSettings(); return true; }
   if (h === '#/rankings') { renderRankings(); return true; }
   if (h === '#/rankings/forks') { renderRankings('forks'); return true; }
+  if (h === '#/playlists') { renderPlaylists(); return true; }
+  const playlistM = h.match(/^#\/playlists\/([^/]+)$/);
+  if (playlistM) { renderPlaylistDetail(playlistM[1]); return true; }
   if (h === '' || h === '#' || h === '#/') { renderGallery(); return true; }
   return false;
 }

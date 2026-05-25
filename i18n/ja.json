@@ -2,6 +2,7 @@
   "nav": {
     "browse": "ブラウズ",
     "rankings": "ランキング",
+    "playlists": "プレイリスト",
     "profile": "プロフィール",
     "share": "＋ promptonをシェア",
     "theme": "ライト/ダークテーマ切替",
@@ -31,6 +32,7 @@
     "download": "↓ HTMLをダウンロード",
     "favorite": "♡ お気に入り",
     "favorited": "♥ お気に入り済み",
+    "playlist": "♫ プレイリスト",
     "share": "↗ シェア",
     "fork": "⑂ フォーク",
     "compareOriginal": "⇄ オリジナルと比較",
@@ -51,6 +53,25 @@
     "title": "ランキング",
     "downloadsBtn": "↓ ダウンロード",
     "forksBtn": "⑂ フォーク"
+  },
+  "playlists": {
+    "title": "プレイリスト",
+    "lede": "プロンプトのテーマ別コレクション。作って、追加して、URLでシェア。",
+    "empty": "まだプレイリストがありません — 最初の一つを作りましょう。",
+    "emptyTiles": "空のプレイリストです。プロンプトを開いて ♫ プレイリストボタンから追加してください。",
+    "new": "新規プレイリスト",
+    "newInline": "作成",
+    "noneYet": "まだプレイリストがありません。",
+    "newTitle": "新規プレイリスト",
+    "nameLabel": "名前",
+    "namePlaceholder": "例: 仕事効率化ツール",
+    "colorLabel": "色",
+    "create": "作成",
+    "cancel": "キャンセル",
+    "nameRequired": "プレイリスト名は必須です。",
+    "by": "作成者",
+    "delete": "プレイリストを削除",
+    "confirmDelete": "「{{name}}」を削除しますか？元に戻せません。"
   },
   "settings": {
     "back": "← ギャラリーへ戻る",

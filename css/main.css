@@ -1028,6 +1028,107 @@
   /* Language toggle buttons in Settings */
   .lang-btn.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
 
+  /* ─── Playlists ─── */
+  #view-playlists { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  #view-playlists h1 { font-family: 'Fraunces', serif; font-size: 36px; line-height: 1.1; margin-bottom: 8px; }
+  #view-playlists h1 em { color: var(--accent); font-style: italic; }
+  #view-playlists .lede { color: var(--text-secondary); margin-bottom: 24px; }
+  .playlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .playlist-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    aspect-ratio: 4 / 3;
+    padding: 18px;
+    border-radius: 12px;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    text-align: left;
+    transition: transform 0.15s ease, box-shadow 0.18s ease;
+  }
+  .playlist-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+  .playlist-tile .pl-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  .playlist-tile .pl-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+  }
+  .playlist-tile.new-pl {
+    background: var(--bg-2);
+    color: var(--text-secondary);
+    border: 2px dashed var(--border-strong);
+    align-items: center;
+    justify-content: center;
+  }
+  .playlist-tile.new-pl .pl-name { color: var(--text); }
+
+  .playlist-header {
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    background: var(--bg-card);
+    border-radius: 6px;
+  }
+  .playlist-header h1 { font-size: 28px; margin: 0 0 4px; }
+  .playlist-header .lede { margin: 0 0 12px; font-size: 13px; }
+
+  /* New-playlist modal color swatches */
+  .pl-color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pl-color-swatch {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+  .pl-color-swatch.active {
+    border-color: var(--text);
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+
+  /* Add-to-playlist popover anchored under the detail button */
+  .pl-menu-popover {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    min-width: 220px;
+    overflow: hidden;
+  }
+  .pl-menu-inner { display: flex; flex-direction: column; }
+  .pl-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+  }
+  .pl-menu-item:hover { background: var(--hover); }
+  .pl-menu-item:last-child { border-bottom: none; }
+  .pl-menu-item .pl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .pl-menu-item .pl-menu-name { flex: 1; }
+  .pl-menu-item .pl-menu-check { color: var(--text-muted); font-weight: 600; }
+  .pl-menu-item.on .pl-menu-check { color: var(--accent); }
+  .pl-menu-empty { padding: 14px; font-size: 13px; color: var(--text-secondary); }
+
   .card .meta-top {
     display: none;
   }

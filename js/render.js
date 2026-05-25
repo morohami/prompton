@@ -22,6 +22,184 @@ function titleWithEmphasis(title) {
   return escapeHtml(words.join(' ')) + ' <em>' + escapeHtml(last) + '</em>';
 }
 
+// ─── Playlists view (user-defined collections) ───
+function renderPlaylists() {
+  setRoute('playlists');
+  const el = document.getElementById('playlistsContent');
+  if (!el) return;
+  const me_h = ownerHandle();
+  const tiles = playlists.map(pl => {
+    const color = pl.color || '#8C1515';
+    const count = (pl.promptIds || []).length;
+    return `<a class="playlist-tile" data-pl-id="${escapeAttr(pl.id)}" style="background:${escapeAttr(color)}">
+      <div class="pl-name">${escapeHtml(pl.name)}</div>
+      <div class="pl-count">${count} ${count === 1 ? 'prompt' : 'prompts'}</div>
+    </a>`;
+  }).join('');
+  el.innerHTML = `
+    <h1><em>${escapeHtml(t('playlists.title'))}</em></h1>
+    <p class="lede">${escapeHtml(t('playlists.lede'))}</p>
+    <div class="playlist-grid">
+      ${tiles || `<div class="empty-state">${escapeHtml(t('playlists.empty'))}</div>`}
+      <button type="button" class="playlist-tile new-pl" id="newPlaylistBtn">
+        <div class="pl-name">+ ${escapeHtml(t('playlists.new'))}</div>
+      </button>
+    </div>
+  `;
+  el.querySelectorAll('[data-pl-id]').forEach(a =>
+    a.addEventListener('click', () => renderPlaylistDetail(a.dataset.plId)));
+  const newBtn = document.getElementById('newPlaylistBtn');
+  if (newBtn) newBtn.addEventListener('click', openCreatePlaylistModal);
+  showView('playlists');
+}
+
+function renderPlaylistDetail(plId) {
+  const pl = playlists.find(x => x.id === plId);
+  if (!pl) { renderPlaylists(); return; }
+  setRoute('playlists/' + plId);
+  const el = document.getElementById('playlistsContent');
+  if (!el) return;
+  const inPlaylist = (pl.promptIds || [])
+    .map(id => prompts.find(p => p.id === id))
+    .filter(Boolean);
+  const color = pl.color || '#8C1515';
+  const me_h = ownerHandle();
+  const canEdit = pl.owner === me_h;
+  el.innerHTML = `
+    <div class="playlist-header" style="border-left:4px solid ${escapeAttr(color)}">
+      <h1>${escapeHtml(pl.name)}</h1>
+      <div class="lede">${inPlaylist.length} ${inPlaylist.length === 1 ? 'prompt' : 'prompts'} · ${escapeHtml(t('playlists.by'))} @${escapeHtml(pl.owner)}</div>
+      ${canEdit ? `<button type="button" class="btn secondary" id="deletePlaylistBtn">${escapeHtml(t('playlists.delete'))}</button>` : ''}
+    </div>
+    <div class="grid" id="playlistGrid"></div>
+  `;
+  const grid = el.querySelector('#playlistGrid');
+  if (!inPlaylist.length) {
+    grid.innerHTML = `<div class="empty-state">${escapeHtml(t('playlists.emptyTiles'))}</div>`;
+  } else {
+    inPlaylist.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const thumbInner = p.thumb
+        ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
+        : `<iframe class="thumb" srcdoc="${escapeAttr(p.html || '')}" sandbox="" scrolling="no" tabindex="-1"></iframe>`;
+      card.innerHTML = `
+        <div class="thumb-wrap">${thumbInner}</div>
+        <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
+        <h3>${escapeHtml(p.title)}</h3>
+        <div class="by">by <span data-author="${p.author}">${escapeHtml(p.authorName)}</span></div>
+      `;
+      card.addEventListener('click', () => renderDetail(p.id));
+      grid.appendChild(card);
+    });
+  }
+  if (canEdit) {
+    const delBtn = document.getElementById('deletePlaylistBtn');
+    if (delBtn) delBtn.addEventListener('click', async () => {
+      if (!confirm(t('playlists.confirmDelete', { name: pl.name }))) return;
+      playlists = playlists.filter(x => x.id !== plId);
+      savePlaylists();
+      if (isOwner()) {
+        try { await pushPlaylistsToGitHub(); } catch (e) { console.warn('Playlist sync failed:', e); }
+      }
+      renderPlaylists();
+    });
+  }
+  showView('playlists');
+}
+
+function openCreatePlaylistModal() {
+  const existing = document.getElementById('playlistModal');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'profile-modal-overlay';
+  overlay.id = 'playlistModal';
+  const colorOptions = PLAYLIST_COLORS.map((c, i) =>
+    `<button type="button" class="pl-color-swatch ${i === 0 ? 'active' : ''}" data-color="${c}" style="background:${c}"></button>`).join('');
+  overlay.innerHTML = `
+    <div class="profile-modal-content">
+      <h2>${escapeHtml(t('playlists.newTitle'))}</h2>
+      <div class="field">
+        <label>${escapeHtml(t('playlists.nameLabel'))}</label>
+        <input type="text" id="newPlName" placeholder="${escapeAttr(t('playlists.namePlaceholder'))}" maxlength="60">
+      </div>
+      <div class="field">
+        <label>${escapeHtml(t('playlists.colorLabel'))}</label>
+        <div class="pl-color-row">${colorOptions}</div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn primary" id="createPlBtn">${escapeHtml(t('playlists.create'))}</button>
+        <button type="button" class="btn-cancel" id="cancelPlBtn">${escapeHtml(t('playlists.cancel'))}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  let chosenColor = PLAYLIST_COLORS[0];
+  overlay.querySelectorAll('.pl-color-swatch').forEach(b => b.addEventListener('click', () => {
+    overlay.querySelectorAll('.pl-color-swatch').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    chosenColor = b.dataset.color;
+  }));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('cancelPlBtn').addEventListener('click', () => overlay.remove());
+  document.getElementById('createPlBtn').addEventListener('click', async () => {
+    const name = document.getElementById('newPlName').value.trim();
+    if (!name) { toast(t('playlists.nameRequired')); return; }
+    const pl = {
+      id: newPlaylistId(),
+      name: name,
+      color: chosenColor,
+      owner: ownerHandle(),
+      promptIds: [],
+      created: new Date().toISOString().slice(0, 10)
+    };
+    playlists.unshift(pl);
+    savePlaylists();
+    overlay.remove();
+    if (isOwner()) {
+      try { await pushPlaylistsToGitHub(); } catch (e) { console.warn('Playlist sync failed:', e); }
+    }
+    renderPlaylistDetail(pl.id);
+  });
+  setTimeout(() => { const i = document.getElementById('newPlName'); if (i) i.focus(); }, 50);
+}
+
+// "Add to playlist" menu rendered into a container on the detail view.
+function renderAddToPlaylistMenu(container, promptId) {
+  const me_h = ownerHandle();
+  const mine = playlists.filter(pl => pl.owner === me_h);
+  if (!mine.length) {
+    container.innerHTML = `<div class="pl-menu-empty">${escapeHtml(t('playlists.noneYet'))} <button type="button" class="btn-text" id="plMenuNew">${escapeHtml(t('playlists.newInline'))}</button></div>`;
+    const nb = document.getElementById('plMenuNew');
+    if (nb) nb.addEventListener('click', () => { container.parentElement.remove(); openCreatePlaylistModal(); });
+    return;
+  }
+  container.innerHTML = mine.map(pl => {
+    const isIn = (pl.promptIds || []).indexOf(promptId) >= 0;
+    return `<button type="button" class="pl-menu-item ${isIn ? 'on' : ''}" data-pl-id="${escapeAttr(pl.id)}">
+      <span class="pl-dot" style="background:${escapeAttr(pl.color || '#8C1515')}"></span>
+      <span class="pl-menu-name">${escapeHtml(pl.name)}</span>
+      <span class="pl-menu-check">${isIn ? '✓' : '+'}</span>
+    </button>`;
+  }).join('');
+  container.querySelectorAll('[data-pl-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pl = playlists.find(x => x.id === btn.dataset.plId);
+      if (!pl) return;
+      pl.promptIds = pl.promptIds || [];
+      const idx = pl.promptIds.indexOf(promptId);
+      if (idx >= 0) pl.promptIds.splice(idx, 1);
+      else pl.promptIds.push(promptId);
+      savePlaylists();
+      btn.classList.toggle('on');
+      btn.querySelector('.pl-menu-check').textContent = idx >= 0 ? '+' : '✓';
+      if (isOwner()) {
+        try { await pushPlaylistsToGitHub(); } catch (e) { console.warn('Playlist sync failed:', e); }
+      }
+    });
+  });
+}
+
 // ─── Rankings view (top prompts by downloads / forks) ───
 function renderRankings(metric) {
   metric = metric || 'downloads';   // 'downloads' or 'forks'
@@ -511,6 +689,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">${escapeHtml(t('detail.copy'))}</button>
         <button class="btn secondary" id="downloadBtn">${escapeHtml(t('detail.download'))}</button>
         <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${escapeHtml(isFavorited(p.id) ? t('detail.favorited') : t('detail.favorite'))}</button>
+        <button class="btn secondary" id="addToPlaylistBtn" title="Add to playlist">${escapeHtml(t('detail.playlist'))}</button>
         <button class="btn secondary" id="shareBtn" title="Share this prompt">${escapeHtml(t('detail.share'))}</button>
         <button class="btn secondary" id="forkBtn">${escapeHtml(t('detail.fork'))}</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">${escapeHtml(t('detail.compareOriginal'))}</button>` : ''}
@@ -726,6 +905,33 @@ function renderDetail(id, viewingVersionNum) {
     shareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       openSharePopover(shareBtn, p);
+    });
+  }
+
+  // Add-to-playlist popover — anchor under the button, click outside closes.
+  const plBtn = document.getElementById('addToPlaylistBtn');
+  if (plBtn) {
+    plBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const existing = document.getElementById('plMenuPopover');
+      if (existing) { existing.remove(); return; }
+      const rect = plBtn.getBoundingClientRect();
+      const pop = document.createElement('div');
+      pop.id = 'plMenuPopover';
+      pop.className = 'pl-menu-popover';
+      pop.style.cssText = `position:absolute;top:${rect.bottom + window.scrollY + 6}px;left:${rect.left + window.scrollX}px;z-index:1000;`;
+      const inner = document.createElement('div');
+      inner.className = 'pl-menu-inner';
+      pop.appendChild(inner);
+      document.body.appendChild(pop);
+      renderAddToPlaylistMenu(inner, p.id);
+      const offClick = (e) => {
+        if (!pop.contains(e.target) && e.target !== plBtn) {
+          pop.remove();
+          document.removeEventListener('click', offClick);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', offClick), 0);
     });
   }
 
