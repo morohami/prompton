@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鳥羽伏見の戦い ─ 戊辰戦争の幕開け</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --bg-elev:#11162a;
+  --bg-panel:#161c33;
+  --line:#252b48;
+  --text:#e8e4d8;
+  --text-dim:#9a9684;
+  --vermillion:#c8403c;
+  --vermillion-soft:#a83a36;
+  --gold:#c8a14a;
+  --indigo:#5b6ba8;
+  --green-army:#5e8a5a;
+  --shogun:#a86b3c;
+  --imperial:#c8a14a;
+  --neutral:#5d6076;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Shippori Mincho',serif;overflow:hidden}
+body{display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:340px 1fr;grid-template-areas:"header header" "panel map" "timeline timeline"}
+
+/* HEADER */
+header{grid-area:header;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(180deg,#11162a 0%,#0d1222 100%);border-bottom:1px solid var(--line);z-index:500}
+.title-block{display:flex;align-items:baseline;gap:18px}
+.title{font-size:22px;font-weight:700;letter-spacing:.04em}
+.title .accent{color:var(--vermillion)}
+.subtitle{font-size:12px;color:var(--text-dim);letter-spacing:.1em}
+.era-badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 10px;border:1px solid var(--line);border-radius:2px;color:var(--gold);background:rgba(200,161,74,.05)}
+.header-controls{display:flex;gap:8px}
+.btn{font-family:'Shippori Mincho',serif;font-size:12px;padding:6px 12px;background:transparent;color:var(--text-dim);border:1px solid var(--line);border-radius:2px;cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--text);border-color:var(--vermillion);background:rgba(200,64,60,.08)}
+.btn.active{color:var(--vermillion);border-color:var(--vermillion);background:rgba(200,64,60,.12)}
+
+/* PANEL */
+aside{grid-area:panel;background:var(--bg-panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tab{flex:1;padding:10px 4px;font-size:12px;color:var(--text-dim);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--vermillion);border-bottom-color:var(--vermillion)}
+.tab-content{flex:1;overflow-y:auto;padding:18px}
+.tab-content::-webkit-scrollbar{width:6px}
+.tab-content::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+/* Phase narrative */
+.phase-header{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.phase-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.15em}
+.phase-title{font-size:17px;font-weight:600;margin-top:4px;letter-spacing:.03em}
+.phase-date{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.phase-body{font-size:13px;line-height:1.85;color:var(--text);margin-bottom:14px}
+.phase-body .key{color:var(--vermillion);font-weight:600}
+
+.section-label{font-size:10px;letter-spacing:.2em;color:var(--text-dim);margin:18px 0 8px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.event-list{list-style:none;font-size:12px;line-height:1.7}
+.event-list li{padding:6px 0;border-bottom:1px solid rgba(37,43,72,.5);display:flex;gap:10px}
+.event-list li:last-child{border-bottom:0}
+.event-time{font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:10px;min-width:48px;flex-shrink:0}
+.event-text{flex:1}
+
+.commander-card{padding:10px 12px;margin-bottom:8px;background:var(--bg-elev);border-left:3px solid var(--neutral);border-radius:2px;font-size:12px}
+.commander-card.imperial{border-left-color:var(--gold)}
+.commander-card.shogun{border-left-color:var(--shogun)}
+.commander-name{font-weight:600;font-size:13px;margin-bottom:2px}
+.commander-meta{font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.05em}
+.commander-note{font-size:11px;color:var(--text-dim);line-height:1.6;margin-top:6px}
+
+.source-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 6px;margin-left:6px;border-radius:2px;letter-spacing:.05em;text-transform:uppercase;vertical-align:middle}
+.src-primary{background:rgba(94,138,90,.2);color:#8ab586}
+.src-research{background:rgba(91,107,168,.2);color:#8a9bd6}
+.src-tradition{background:rgba(168,107,60,.2);color:#d69a6a}
+
+.ai-debate{display:flex;flex-direction:column;height:100%}
+.ai-config{padding:12px;background:var(--bg-elev);border-radius:2px;margin-bottom:12px;font-size:11px}
+.ai-config input{width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--line);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:4px;border-radius:2px}
+.ai-roster{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.ai-char{padding:8px;background:var(--bg-elev);border:1px solid var(--line);border-radius:2px;cursor:pointer;font-size:11px;text-align:center;transition:all .15s}
+.ai-char:hover{border-color:var(--vermillion)}
+.ai-char.active{border-color:var(--vermillion);background:rgba(200,64,60,.1);color:var(--vermillion)}
+.ai-messages{flex:1;overflow-y:auto;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;line-height:1.7;min-height:160px;margin-bottom:8px}
+.ai-msg{margin-bottom:10px;padding:8px 10px;border-radius:2px}
+.ai-msg-user{background:rgba(91,107,168,.1);border-left:2px solid var(--indigo)}
+.ai-msg-bot{background:rgba(200,64,60,.05);border-left:2px solid var(--vermillion)}
+.ai-msg-meta{font-size:9px;color:var(--text-dim);letter-spacing:.1em;margin-bottom:3px;font-family:'JetBrains Mono',monospace}
+.ai-input{display:flex;gap:6px}
+.ai-input input{flex:1;padding:8px;background:var(--bg-elev);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:12px;border-radius:2px}
+.ai-input button{padding:8px 12px;background:var(--vermillion);color:#fff;border:0;border-radius:2px;cursor:pointer;font-family:inherit;font-size:12px}
+.ai-input button:disabled{opacity:.4;cursor:not-allowed}
+
+/* MAP */
+#map{grid-area:map;background:#000;position:relative}
+.leaflet-container{background:#0a0e1a;font-family:'Shippori Mincho',serif}
+.leaflet-tile{filter:contrast(.92) brightness(.85) saturate(.5) hue-rotate(-10deg)}
+.troop-marker{display:flex;flex-direction:column;align-items:center}
+.troop-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border-radius:50%;border:2px solid;background:rgba(10,14,26,.95);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 2px 6px rgba(0,0,0,.5)}
+.troop-icon.imperial{color:var(--gold);border-color:var(--gold)}
+.troop-icon.shogun{color:var(--shogun);border-color:var(--shogun)}
+.troop-icon.neutral{color:var(--text-dim);border-color:var(--neutral)}
+.troop-label{font-size:10px;background:rgba(10,14,26,.85);color:var(--text);padding:1px 6px;border-radius:2px;margin-top:2px;white-space:nowrap;font-weight:600;letter-spacing:.05em}
+.place-marker{font-size:11px;color:var(--text);background:rgba(10,14,26,.85);padding:2px 7px;border:1px solid var(--line);border-radius:2px;white-space:nowrap;letter-spacing:.03em}
+.place-marker.key{color:var(--vermillion);border-color:var(--vermillion);font-weight:600}
+
+.legend{position:absolute;bottom:20px;left:20px;background:rgba(17,22,42,.92);border:1px solid var(--line);border-radius:2px;padding:12px 14px;font-size:11px;z-index:600;backdrop-filter:blur(6px);max-width:240px}
+.legend h4{font-size:10px;letter-spacing:.15em;color:var(--text-dim);margin-bottom:8px;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+.legend-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.legend-swatch{width:14px;height:14px;border-radius:2px;flex-shrink:0}
+.legend-line{width:14px;height:2px;flex-shrink:0}
+
+.layer-toggle{position:absolute;top:20px;right:20px;background:rgba(17,22,42,.92);border:1px solid var(--line);border-radius:2px;padding:10px;font-size:11px;z-index:600;backdrop-filter:blur(6px)}
+.layer-toggle label{display:block;margin:3px 0;cursor:pointer;user-select:none}
+.layer-toggle input{margin-right:6px;vertical-align:middle}
+
+/* TIMELINE */
+.timeline{grid-area:timeline;background:var(--bg-elev);border-top:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:18px;position:relative}
+.timeline-rail{flex:1;height:36px;position:relative;display:flex;align-items:center}
+.timeline-rail::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line);transform:translateY(-50%)}
+.tick{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:pointer;transform:translateX(-50%);transition:all .15s}
+.tick-dot{width:11px;height:11px;background:var(--bg-elev);border:2px solid var(--neutral);border-radius:50%;transition:all .2s}
+.tick.active .tick-dot{border-color:var(--vermillion);background:var(--vermillion);box-shadow:0 0 0 4px rgba(200,64,60,.2)}
+.tick:hover .tick-dot{border-color:var(--text)}
+.tick-label{position:absolute;top:18px;font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.05em;white-space:nowrap}
+.tick.active .tick-label{color:var(--text)}
+.phase-controls{display:flex;gap:6px}
+.phase-controls .btn{padding:4px 12px;font-size:11px}
+
+/* RESPONSIVE */
+@media (max-width:900px){
+  body{grid-template-columns:1fr;grid-template-rows:auto 280px 1fr auto;grid-template-areas:"header" "panel" "map" "timeline"}
+  aside{border-right:0;border-bottom:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div>
+      <div class="title">鳥羽<span class="accent">・</span>伏見の戦い</div>
+      <div class="subtitle">BOSHIN WAR ─ OPENING BATTLE</div>
+    </div>
+    <span class="era-badge">慶応4年1月3日 ─ 1月6日</span>
+  </div>
+  <div class="header-controls">
+    <button class="btn" id="btnAutoplay">自動再生</button>
+    <button class="btn" id="btnReset">初期位置</button>
+  </div>
+</header>
+
+<aside>
+  <div class="tabs">
+    <div class="tab active" data-tab="phase">戦況</div>
+    <div class="tab" data-tab="commanders">将</div>
+    <div class="tab" data-tab="aftermath">その後</div>
+    <div class="tab" data-tab="sources">史料</div>
+    <div class="tab" data-tab="ai">AI討論</div>
+  </div>
+  <div class="tab-content" id="tabContent"></div>
+</aside>
+
+<div id="map">
+  <div class="legend">
+    <h4>陣営</h4>
+    <div class="legend-row"><div class="legend-swatch" style="background:var(--gold)"></div>新政府軍（薩長土）</div>
+    <div class="legend-row"><div class="legend-swatch" style="background:var(--shogun)"></div>旧幕府軍（会・桑・幕）</div>
+    <div class="legend-row"><div class="legend-swatch" style="background:var(--neutral)"></div>中立・離反</div>
+    <h4 style="margin-top:10px">領分（慶応4年1月時点）</h4>
+    <div class="legend-row"><div class="legend-swatch" style="background:rgba(200,64,60,.25);border:1px solid var(--vermillion)"></div>山城淀藩</div>
+    <div class="legend-row"><div class="legend-swatch" style="background:rgba(200,161,74,.18);border:1px solid var(--gold)"></div>皇室領</div>
+    <div class="legend-row"><div class="legend-swatch" style="background:rgba(91,107,168,.18);border:1px solid var(--indigo)"></div>公家領</div>
+    <h4 style="margin-top:10px">街道</h4>
+    <div class="legend-row"><div class="legend-line" style="background:var(--vermillion)"></div>戦闘発生街道</div>
+    <div class="legend-row"><div class="legend-line" style="background:var(--gold)"></div>進軍路</div>
+  </div>
+  <div class="layer-toggle">
+    <label><input type="checkbox" id="lyrHan" checked>領分（藩境界）</label>
+    <label><input type="checkbox" id="lyrRoads" checked>街道</label>
+    <label><input type="checkbox" id="lyrPlaces" checked>地名</label>
+    <hr style="border:0;border-top:1px solid var(--line);margin:6px 0">
+    <label style="font-size:10px;color:var(--text-dim)">背景</label>
+    <select id="baseLayer" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:3px;font-size:11px;font-family:inherit">
+      <option value="pale">淡色地図</option>
+      <option value="std">標準地図</option>
+      <option value="ortho">空中写真</option>
+      <option value="meiji">明治迅速図 1892-1910（推奨）</option>
+      <option value="historic">色別標高図（地形）</option>
+    </select>
+  </div>
+</div>
+
+<div class="timeline">
+  <div class="phase-controls">
+    <button class="btn" id="btnPrev">◀</button>
+    <button class="btn" id="btnNext">▶</button>
+  </div>
+  <div class="timeline-rail" id="timelineRail"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ========== DATA ========== */
+
+const HAN_POLYGONS = {
+  '山城淀藩': [[135.6831,34.86291],[135.6829,34.91002],[135.7034,34.93412],[135.7401,34.90389],[135.7345,34.88203],[135.7252,34.87515],[135.7106,34.86723],[135.6921,34.86291],[135.6831,34.86291]],
+  '公家領': [[135.7141,34.99281],[135.7203,34.98042],[135.7363,34.96011],[135.7641,34.95011],[135.7941,35.04357],[135.7203,35.04],[135.6993,35.00891],[135.7141,34.99281]],
+  '皇室領': [[135.7243,34.99224],[135.772,34.99044],[135.8243,35.01072],[135.8383,35.02021],[135.776,35.02988],[135.7392,35.02472],[135.7243,34.99224]],
+  '社寺領': [[135.7311,34.97014],[135.7592,34.96701],[135.7782,34.97121],[135.7965,34.98621],[135.8014,35.00012],[135.7783,35.00872],[135.7472,35.00691],[135.7281,34.99272],[135.7242,34.98381],[135.7311,34.97014]]
+};
+
+const KEY_PLACES = [
+  {n:'御香宮神社',     lat:34.9367, lng:135.7625, role:'imperial', key:true,  note:'新政府軍本陣（薩摩藩駐屯）'},
+  {n:'伏見奉行所',     lat:34.9341, lng:135.7626, role:'shogun',   key:true,  note:'旧幕府軍本陣・炎上'},
+  {n:'小枝橋',         lat:34.9319, lng:135.7411, role:'imperial', key:true,  note:'1月3日 開戦地'},
+  {n:'鳥羽離宮跡',     lat:34.9352, lng:135.7392, role:'imperial', key:false, note:'鳥羽方面戦場'},
+  {n:'富ノ森',         lat:34.9156, lng:135.7390, role:'shogun',   key:false, note:'幕府軍陣地'},
+  {n:'千両松',         lat:34.9078, lng:135.7361, role:'shogun',   key:false, note:'4日激戦地'},
+  {n:'淀城',           lat:34.9082, lng:135.7106, role:'neutral',  key:true,  note:'入城拒否の現場'},
+  {n:'八幡（男山）',   lat:34.8784, lng:135.7038, role:'shogun',   key:false, note:'5日抵抗地'},
+  {n:'橋本',           lat:34.8627, lng:135.6957, role:'shogun',   key:false, note:'6日最終抵抗'},
+  {n:'大坂城',         lat:34.6873, lng:135.5259, role:'shogun',   key:true,  note:'徳川慶喜本陣'},
+  {n:'京都御所',       lat:35.0254, lng:135.7621, role:'imperial', key:true,  note:'朝廷'},
+  {n:'二条城',         lat:35.0143, lng:135.7480, role:'neutral',  key:false, note:'旧幕府京都拠点'}
+];
+
+const ROADS = [
+  {n:'鳥羽街道', kind:'battle', path:[[34.9352,135.7392],[34.9319,135.7411],[34.9156,135.7390],[34.9078,135.7361],[34.9082,135.7106]]},
+  {n:'伏見街道', kind:'battle', path:[[34.9367,135.7625],[34.9341,135.7626],[34.9078,135.7570]]},
+  {n:'京街道',   kind:'march',  path:[[34.6873,135.5259],[34.7400,135.5800],[34.8000,135.6300],[34.8627,135.6957],[34.8784,135.7038],[34.9082,135.7106],[34.9341,135.7626],[35.0143,135.7480]]}
+];
+
+/* Phases ─ 5 phases of the battle */
+const PHASES = [
+  {
+    id:1, date:'1月3日 朝', title:'進軍と対峙',
+    bbox:[[34.80,135.55],[35.05,135.85]],
+    narrative:`大坂城を発した旧幕府軍 <span class="key">約15,000</span>（幕府陸軍・会津・桑名・新撰組）が京街道・鳥羽街道を北上。京都南郊で薩摩・長州を主力とする新政府軍 <span class="key">約5,000</span> と対峙した。<br><br>新政府軍は <span class="key">御香宮神社</span> と <span class="key">小枝橋</span> 周辺に砲兵を配置。旧幕府軍は通過を要求するも、薩摩側は朝廷の許可なしと拒否。`,
+    events:[
+      {t:'未明', e:'旧幕府軍、大坂城を出立'},
+      {t:'午後', e:'鳥羽街道で薩摩兵と接触、口論'},
+      {t:'夕刻', e:'交渉決裂、緊張高まる'}
+    ]
+  },
+  {
+    id:2, date:'1月3日 夕', title:'開戦・伏見奉行所炎上',
+    bbox:[[34.91,135.72],[34.95,135.78]],
+    narrative:`午後5時頃、業を煮やした旧幕府軍が前進を強行した直後、<span class="key">薩摩藩が大砲・銃で一斉射撃を開始</span>。鳥羽街道での砲声を合図に伏見方面でも交戦開始。新政府軍は御香宮の高所から伏見奉行所に砲撃を集中、<span class="key">弾薬庫に着弾し奉行所炎上</span>。新撰組も戦闘に投入されるが、隊士の3分の1が戦死または負傷。`,
+    events:[
+      {t:'17時頃', e:'鳥羽街道で開戦（薩摩 vs 旧幕府軍）'},
+      {t:'夜',    e:'伏見奉行所炎上、新撰組退却'},
+      {t:'夜',    e:'近藤勇は怪我で指揮取れず（大坂で療養中）'}
+    ]
+  },
+  {
+    id:3, date:'1月4日', title:'富ノ森・千両松の攻防',
+    bbox:[[34.88,135.71],[34.94,135.78]],
+    narrative:`旧幕府軍は <span class="key">富ノ森</span>・<span class="key">千両松</span> に陣地を構築して反撃。地形（桂川堤防上の狭い街道、湿地と田畑）を活かし、会津・大垣藩の伏兵が薩長軍を一時押し戻す。しかし新政府軍は<span class="key">アームストロング砲とミニエー銃</span>の火力で圧倒。<br><br>夕刻、旧幕府軍は <span class="key">淀</span> へ後退、城内への入城を要請。`,
+    events:[
+      {t:'未明',  e:'旧幕府軍、富ノ森に陣地構築'},
+      {t:'昼',    e:'千両松で激戦、伏兵戦術で薩長一時後退'},
+      {t:'夕刻',  e:'新政府軍の砲火が支配、旧幕府軍敗走'},
+      {t:'夜',    e:'淀藩（譜代）に入城要請'}
+    ]
+  },
+  {
+    id:4, date:'1月5日', title:'錦の御旗・淀藩の離反',
+    bbox:[[34.85,135.69],[34.94,135.78]],
+    narrative:`<span class="key">仁和寺宮嘉彰親王</span>が新政府軍の征討大将軍に任命され、<span class="key">錦の御旗</span>が掲げられた。これにより旧幕府軍は <span class="key">朝敵</span> となり、戦意が一気に崩壊。<br><br>同日、<span class="key">淀藩は入城を拒否</span>。譜代藩でありながら、朝敵となった旧幕府軍を匿うことを避けた。これは戦局の決定的な転換点となった。`,
+    events:[
+      {t:'朝',    e:'仁和寺宮嘉彰親王が征討大将軍に'},
+      {t:'昼',    e:'錦の御旗、新政府軍前線に翻る'},
+      {t:'昼',    e:'淀藩、旧幕府軍の入城拒否'},
+      {t:'夕',    e:'旧幕府軍、八幡・橋本へ後退'}
+    ]
+  },
+  {
+    id:5, date:'1月6日 ─ 7日未明', title:'橋本敗走・慶喜の脱出',
+    bbox:[[34.65,135.50],[34.95,135.78]],
+    narrative:`<span class="key">八幡・橋本</span>で旧幕府軍が最終防衛線を構築。しかし対岸の <span class="key">山崎</span> に陣取った津藩（藤堂家、譜代）が突如新政府軍に内応、旧幕府軍の側背を砲撃。挟撃に耐えきれず崩壊、大坂城へ敗走。<br><br>1月6日夜、徳川慶喜は会津容保・桑名定敬らとともに大坂城を脱出、<span class="key">幕府軍艦「開陽丸」で江戸へ逃走</span>。総大将の戦線離脱により、戊辰戦争は新政府軍の完全勝利で幕を開けた。`,
+    events:[
+      {t:'朝',    e:'八幡・橋本で防衛線構築'},
+      {t:'昼',    e:'津藩が新政府軍に内応、山崎から砲撃'},
+      {t:'夕',    e:'旧幕府軍崩壊、大坂城へ敗走'},
+      {t:'深夜',  e:'徳川慶喜、開陽丸で江戸へ脱出'}
+    ]
+  }
+];
+
+/* Commanders ─ key generals with position per phase */
+const COMMANDERS = [
+  /* 新政府軍 */
+  {id:'saigo',   name:'西郷隆盛',     side:'imperial', han:'薩摩', role:'征討総督参謀',
+   note:'新政府軍の総指揮。鳥羽伏見では実戦には出ず、後方から大局を見る。',
+   positions:[[34.9367,135.7625],[34.9367,135.7625],[34.9367,135.7625],[34.9367,135.7625],[34.9700,135.7600]]},
+  {id:'ijichi',  name:'伊地知正治', side:'imperial', han:'薩摩', role:'参謀・実戦指揮',
+   note:'御香宮を本陣とし、伏見方面の砲兵運用を指揮。',
+   positions:[[34.9367,135.7625],[34.9367,135.7625],[34.9341,135.7626],[34.9341,135.7626],[34.9300,135.7600]]},
+  {id:'yamagata',name:'山県狂介',   side:'imperial', han:'長州', role:'長州軍参謀',
+   note:'後の山県有朋。鳥羽伏見では長州軍の中枢として参加。',
+   positions:[[34.9352,135.7392],[34.9319,135.7411],[34.9156,135.7390],[34.9078,135.7361],[34.8784,135.7038]]},
+
+  /* 旧幕府軍 */
+  {id:'yoshinobu',name:'徳川慶喜',    side:'shogun', han:'徳川', role:'前征夷大将軍',
+   note:'大坂城に在陣。前線には立たず、後に開陽丸で江戸へ脱出。',
+   positions:[[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259]]},
+  {id:'katamori',name:'松平容保',   side:'shogun', han:'会津', role:'前京都守護職',
+   note:'会津藩主、京都守護職を解任されたばかり。鳥羽伏見では大坂城に在陣、戦後は江戸→会津へ。',
+   positions:[[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259]]},
+  {id:'sadaaki', name:'松平定敬',   side:'shogun', han:'桑名', role:'前京都所司代',
+   note:'桑名藩主、容保の弟。大坂城に在陣、容保とともに江戸へ。',
+   positions:[[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259]]},
+  {id:'takenaka',name:'竹中重固',   side:'shogun', han:'幕府', role:'幕府陸軍奉行',
+   note:'陸軍奉行として鳥羽伏見の旧幕府軍を実質指揮。指揮系統の混乱で苦戦。',
+   positions:[[34.9100,135.7400],[34.9156,135.7390],[34.9156,135.7390],[34.9078,135.7106],[34.8627,135.6957]]},
+  {id:'kondo',   name:'近藤勇',      side:'shogun', han:'新撰組', role:'局長',
+   note:'伏見奉行所付近で銃創を負い大坂で療養中、戦闘指揮できず。',
+   positions:[[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259],[34.6873,135.5259]]},
+  {id:'hijikata',name:'土方歳三',   side:'shogun', han:'新撰組', role:'副長',
+   note:'近藤負傷により新撰組を実質指揮。伏見で奮戦するも撤退、後に箱館戦争で戦死。',
+   positions:[[34.9341,135.7626],[34.9341,135.7626],[34.9156,135.7390],[34.8784,135.7038],[34.6873,135.5259]]}
+];
+
+const SOURCES = [
+  {title:'『復古記』', kind:'primary', note:'明治政府編纂の戊辰戦争公式記録。新政府側視点が強い。'},
+  {title:'『京都守護職始末』', kind:'primary', note:'会津藩家老山川浩の記録。旧幕府側視点。'},
+  {title:'『開国起原』中根雪江', kind:'primary', note:'越前藩士による幕末記録、当事者証言豊富。'},
+  {title:'『鳥羽伏見の戦い』野口武彦', kind:'research', note:'近年の代表的研究書。兵力・武器・戦術を実証的に検証。'},
+  {title:'『戊辰戦争』佐々木克', kind:'research', note:'戊辰戦争の通史的研究、政治的背景を重視。'},
+  {title:'『近世日本国民史』徳富蘇峰', kind:'tradition', note:'明治大正期の通俗史観。物語的だが偏向あり。'},
+  {title:'CODH 幕末期近世村領域データセット', kind:'research', note:'国立情報学研究所・人文学オープンデータ共同利用センター作成。慶応4年1月1日時点の藩領分を反映。'}
+];
+
+const AI_CHARS = [
+  {id:'saigo',   name:'西郷隆盛',   role:'新政府軍を率いた薩摩藩士。冷静沈着、薩摩弁を時に交える。'},
+  {id:'yoshinobu',name:'徳川慶喜',  role:'旧幕府将軍。聡明だが、ここでは決定的瞬間に逃げたと批判される。江戸城無血開城で再評価も。'},
+  {id:'katamori',name:'松平容保',   role:'会津藩主、忠義を貫いた人物。戊辰戦争で会津若松落城まで戦う。'},
+  {id:'kondo',   name:'近藤勇',     role:'新撰組局長。鳥羽伏見では負傷で不在。武士的価値観の体現。'}
+];
+
+/* ========== STATE ========== */
+let currentPhase = 0;
+let map, baseLayers={}, currentBase, layerHan, layerRoads, layerPlaces, layerCommanders;
+let activeTab='phase', autoplayTimer=null, selectedAIChar='saigo';
+
+/* ========== MAP INIT ========== */
+function initMap(){
+  map = L.map('map',{zoomControl:false,attributionControl:true}).setView([34.93,135.74],13);
+  L.control.zoom({position:'topleft'}).addTo(map);
+
+  baseLayers.pale = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+    {attribution:'地理院淡色地図', maxZoom:18});
+  baseLayers.std = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
+    {attribution:'地理院標準地図', maxZoom:18});
+  baseLayers.ortho = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg',
+    {attribution:'地理院オルソ画像', maxZoom:18});
+  baseLayers.historic = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png',
+    {attribution:'地理院色別標高図', maxZoom:15});
+  // 明治迅速図 1892-1910 (1/20000) — 戊辰戦争(1868)から24年後の京阪神地形図。
+  // 出典: 今昔マップ on the web (谷謙二, 埼玉大) / 国土地理院承認 平27情複第1088号
+  baseLayers.meiji = L.tileLayer(
+    'https://ktgis.net/kjmapw/kjtilemap/keihansin/2man/{z}/{x}/{y}.png',
+    {attribution:'<a href="https://ktgis.net/kjmapw/" target="_blank">今昔マップ on the web</a> 谷謙二・埼玉大 / 国土地理院承認 平27情複1088',
+     tms:true, minZoom:8, maxNativeZoom:16, maxZoom:18});
+
+  currentBase = baseLayers.pale;
+  currentBase.addTo(map);
+
+  document.getElementById('baseLayer').addEventListener('change',(e)=>{
+    map.removeLayer(currentBase);
+    currentBase = baseLayers[e.target.value];
+    currentBase.addTo(map);
+  });
+
+  /* Han polygons */
+  layerHan = L.layerGroup();
+  const hanStyles = {
+    '山城淀藩': {color:'#c8403c', fillColor:'#c8403c', fillOpacity:.18, weight:1.5, dashArray:'4,4'},
+    '皇室領':   {color:'#c8a14a', fillColor:'#c8a14a', fillOpacity:.14, weight:1, dashArray:'2,3'},
+    '公家領':   {color:'#5b6ba8', fillColor:'#5b6ba8', fillOpacity:.14, weight:1, dashArray:'2,3'},
+    '社寺領':   {color:'#8a9676', fillColor:'#8a9676', fillOpacity:.12, weight:1, dashArray:'2,3'}
+  };
+  for(const [han, coords] of Object.entries(HAN_POLYGONS)){
+    const latlngs = coords.map(c=>[c[1],c[0]]);
+    const poly = L.polygon(latlngs, hanStyles[han]);
+    poly.bindTooltip(han, {sticky:true, direction:'top', className:'han-tooltip'});
+    layerHan.addLayer(poly);
+  }
+  layerHan.addTo(map);
+
+  /* Roads */
+  layerRoads = L.layerGroup();
+  ROADS.forEach(road=>{
+    const color = road.kind==='battle' ? '#c8403c' : '#c8a14a';
+    const weight = road.kind==='battle' ? 3 : 2;
+    const dash = road.kind==='battle' ? null : '6,4';
+    const line = L.polyline(road.path,{color, weight, dashArray:dash, opacity:.8});
+    line.bindTooltip(road.n, {sticky:true});
+    layerRoads.addLayer(line);
+  });
+  layerRoads.addTo(map);
+
+  /* Places */
+  layerPlaces = L.layerGroup();
+  KEY_PLACES.forEach(p=>{
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="place-marker ${p.key?'key':''}">${p.n}</div>`,
+      iconSize:null, iconAnchor:[40,8]
+    });
+    const m = L.marker([p.lat,p.lng],{icon});
+    m.bindTooltip(p.note, {direction:'bottom'});
+    layerPlaces.addLayer(m);
+  });
+  layerPlaces.addTo(map);
+
+  /* Commanders (drawn per phase) */
+  layerCommanders = L.layerGroup().addTo(map);
+
+  /* Layer toggle wiring */
+  document.getElementById('lyrHan').addEventListener('change',(e)=>{
+    e.target.checked ? layerHan.addTo(map) : map.removeLayer(layerHan);
+  });
+  document.getElementById('lyrRoads').addEventListener('change',(e)=>{
+    e.target.checked ? layerRoads.addTo(map) : map.removeLayer(layerRoads);
+  });
+  document.getElementById('lyrPlaces').addEventListener('change',(e)=>{
+    e.target.checked ? layerPlaces.addTo(map) : map.removeLayer(layerPlaces);
+  });
+}
+
+/* ========== RENDER COMMANDERS ========== */
+function renderCommanders(phaseIdx){
+  layerCommanders.clearLayers();
+  COMMANDERS.forEach(c=>{
+    const pos = c.positions[phaseIdx];
+    if(!pos) return;
+    const initial = c.name.charAt(0);
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="troop-marker">
+              <div class="troop-icon ${c.side}">${initial}</div>
+              <div class="troop-label">${c.name}</div>
+            </div>`,
+      iconSize:null, iconAnchor:[20,18]
+    });
+    const m = L.marker(pos,{icon, zIndexOffset:1000});
+    m.bindPopup(`<div style="font-family:Shippori Mincho,serif;color:#161c33;min-width:200px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:4px">${c.name}</div>
+      <div style="font-size:11px;color:#666;margin-bottom:6px">${c.han}・${c.role}</div>
+      <div style="font-size:12px;line-height:1.6">${c.note}</div>
+    </div>`);
+    layerCommanders.addLayer(m);
+  });
+}
+
+/* ========== RENDER PHASE ========== */
+function renderPhase(idx){
+  currentPhase = idx;
+  const p = PHASES[idx];
+
+  /* Bound view */
+  if(p.bbox) map.fitBounds(p.bbox,{padding:[40,40], duration:.8});
+
+  /* Commanders */
+  renderCommanders(idx);
+
+  /* Timeline ticks */
+  document.querySelectorAll('.tick').forEach((t,i)=>{
+    t.classList.toggle('active', i===idx);
+  });
+
+  /* Tab content (if on phase tab) */
+  if(activeTab==='phase') renderPhaseTab();
+}
+
+function renderPhaseTab(){
+  const p = PHASES[currentPhase];
+  const html = `
+    <div class="phase-header">
+      <div class="phase-num">PHASE ${p.id} / ${PHASES.length}</div>
+      <div class="phase-title">${p.title}</div>
+      <div class="phase-date">${p.date}</div>
+    </div>
+    <div class="phase-body">${p.narrative}</div>
+    <div class="section-label">主要動向</div>
+    <ul class="event-list">
+      ${p.events.map(e=>`<li><span class="event-time">${e.t}</span><span class="event-text">${e.e}</span></li>`).join('')}
+    </ul>
+  `;
+  document.getElementById('tabContent').innerHTML = html;
+}
+
+function renderCommandersTab(){
+  const html = `
+    <div class="section-label">新政府軍</div>
+    ${COMMANDERS.filter(c=>c.side==='imperial').map(c=>`
+      <div class="commander-card imperial">
+        <div class="commander-name">${c.name} <span class="source-tag src-research">${c.han}</span></div>
+        <div class="commander-meta">${c.role}</div>
+        <div class="commander-note">${c.note}</div>
+      </div>
+    `).join('')}
+    <div class="section-label">旧幕府軍</div>
+    ${COMMANDERS.filter(c=>c.side==='shogun').map(c=>`
+      <div class="commander-card shogun">
+        <div class="commander-name">${c.name} <span class="source-tag src-research">${c.han}</span></div>
+        <div class="commander-meta">${c.role}</div>
+        <div class="commander-note">${c.note}</div>
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('tabContent').innerHTML = html;
+}
+
+function renderAftermathTab(){
+  document.getElementById('tabContent').innerHTML = `
+    <div class="section-label">戦後</div>
+    <div class="phase-body">
+      <p style="margin-bottom:12px">兵力で3倍勝った旧幕府軍が4日で敗北。新政府軍は<span class="key">アームストロング砲とミニエー銃</span>の火力、<span class="key">錦の御旗</span>による正統性、そして指揮系統の混乱という旧幕府側の弱点を突いた。<span class="source-tag src-research">研究</span></p>
+      <p style="margin-bottom:12px"><span class="key">徳川慶喜の戦線離脱</span>は今も論争。臆病か、内戦の早期終結を狙った決断か。江戸城無血開城に繋がる流れの起点。<span class="source-tag src-tradition">通説</span><span class="source-tag src-research">修正</span></p>
+      <p style="margin-bottom:12px"><span class="key">会津藩</span>は朝敵として敗走、会津戦争へ。容保は最後まで戦った。</p>
+      <p style="margin-bottom:12px"><span class="key">新撰組</span>は壊滅的損害。近藤勇は流山で捕縛・斬首、土方歳三は箱館戦争で戦死。</p>
+      <p style="margin-bottom:12px"><span class="key">淀藩</span>と<span class="key">津藩</span>の離反は、譜代諸藩の朝廷側への雪崩を引き起こした。戊辰戦争全体の流れを決定。</p>
+      <p style="margin-bottom:12px"><span class="key">死傷者数</span>は新政府軍110名、旧幕府軍280名（戦死）程度。<span class="source-tag src-primary">復古記</span></p>
+    </div>
+    <div class="section-label">次の局面へ</div>
+    <ul class="event-list">
+      <li><span class="event-time">1月7日</span><span class="event-text">慶喜追討令、徳川征討の正式開始</span></li>
+      <li><span class="event-time">1月下旬</span><span class="event-text">新政府軍、東海道・東山道・北陸道から東進</span></li>
+      <li><span class="event-time">3月</span><span class="event-text">江戸城無血開城（西郷・勝海舟会談）</span></li>
+      <li><span class="event-time">5-9月</span><span class="event-text">奥羽越列藩同盟、会津戦争へ</span></li>
+      <li><span class="event-time">1869年5月</span><span class="event-text">箱館戦争終結、戊辰戦争完結</span></li>
+    </ul>
+  `;
+}
+
+function renderSourcesTab(){
+  const html = `
+    <div class="section-label">主要史料・参考文献</div>
+    ${SOURCES.map(s=>{
+      const cls = s.kind==='primary' ? 'src-primary' : s.kind==='research' ? 'src-research' : 'src-tradition';
+      const label = s.kind==='primary' ? '一次史料' : s.kind==='research' ? '研究' : '通俗史';
+      return `<div class="commander-card">
+        <div class="commander-name">${s.title} <span class="source-tag ${cls}">${label}</span></div>
+        <div class="commander-note">${s.note}</div>
+      </div>`;
+    }).join('')}
+    <div class="section-label">地理データ</div>
+    <div class="commander-card">
+      <div class="commander-name">幕末期近世村領域データセット <span class="source-tag src-research">CC BY-SA 4.0</span></div>
+      <div class="commander-note">人文学オープンデータ共同利用センター（CODH）作成。本マップの領分（藩境界）は本データから算出した凸包近似。慶応4年1月1日時点。</div>
+    </div>
+    <div class="commander-card">
+      <div class="commander-name">国土地理院タイル</div>
+      <div class="commander-note">背景地図（淡色・標準・空中写真・旧版地形図）として使用。</div>
+    </div>
+  `;
+  document.getElementById('tabContent').innerHTML = html;
+}
+
+function renderAITab(){
+  const charButtons = AI_CHARS.map(c=>`
+    <div class="ai-char ${c.id===selectedAIChar?'active':''}" data-char="${c.id}">${c.name}</div>
+  `).join('');
+  document.getElementById('tabContent').innerHTML = `
+    <div class="ai-debate">
+      <div class="ai-config">
+        <div style="color:var(--text-dim);margin-bottom:6px">OpenRouter API Key（保存はブラウザのlocalStorageのみ）</div>
+        <input type="password" id="apiKey" placeholder="sk-or-..." value="${localStorage.getItem('orkey')||''}">
+      </div>
+      <div class="section-label" style="margin-top:0">対話する人物</div>
+      <div class="ai-roster">${charButtons}</div>
+      <div class="ai-messages" id="aiMessages">
+        <div style="color:var(--text-dim);font-size:11px;text-align:center;padding:20px 0">人物を選び、質問を入力してください。<br>例：「なぜ大坂城を出たのですか」「淀藩を恨んでいますか」</div>
+      </div>
+      <div class="ai-input">
+        <input type="text" id="aiInput" placeholder="質問を入力...">
+        <button id="aiSend">送信</button>
+      </div>
+    </div>
+  `;
+  document.querySelectorAll('.ai-char').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selectedAIChar = el.dataset.char;
+      document.querySelectorAll('.ai-char').forEach(e=>e.classList.toggle('active', e===el));
+    });
+  });
+  document.getElementById('aiSend').addEventListener('click', sendAIMessage);
+  document.getElementById('aiInput').addEventListener('keydown',(e)=>{
+    if(e.key==='Enter') sendAIMessage();
+  });
+}
+
+async function sendAIMessage(){
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if(!apiKey){ alert('OpenRouter API Keyを入力してください'); return; }
+  localStorage.setItem('orkey', apiKey);
+
+  const char = AI_CHARS.find(c=>c.id===selectedAIChar);
+  const messages = document.getElementById('aiMessages');
+
+  /* User bubble */
+  messages.innerHTML += `<div class="ai-msg ai-msg-user">
+    <div class="ai-msg-meta">質問者 → ${char.name}</div>${escapeHtml(msg)}
+  </div>`;
+  input.value = '';
+  messages.scrollTop = messages.scrollHeight;
+
+  /* Placeholder while waiting */
+  messages.innerHTML += `<div class="ai-msg ai-msg-bot" id="pending">
+    <div class="ai-msg-meta">${char.name}</div><span style="color:var(--text-dim)">…</span>
+  </div>`;
+
+  const systemPrompt = `あなたは「鳥羽伏見の戦い」（慶応4年1月3日〜6日、1868年）の最中もしくは直後の${char.name}本人として答えてください。${char.role} 文体は当時の士族としての品格を保ち、現代語訳調で構いません。歴史的事実に反することは答えず、心情と判断の理由を率直に語ってください。回答は2〜4文程度に簡潔に。`;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Authorization':`Bearer ${apiKey}`,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        model:'anthropic/claude-3.5-sonnet',
+        messages:[
+          {role:'system', content:systemPrompt},
+          {role:'user', content:msg}
+        ],
+        max_tokens:400
+      })
+    });
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content || '（応答取得失敗）';
+    document.getElementById('pending').innerHTML = `<div class="ai-msg-meta">${char.name}</div>${escapeHtml(reply)}`;
+    document.getElementById('pending').id = '';
+  } catch (e) {
+    document.getElementById('pending').innerHTML = `<div class="ai-msg-meta">エラー</div>${escapeHtml(String(e))}`;
+    document.getElementById('pending').id = '';
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ========== UI WIRING ========== */
+function initTimeline(){
+  const rail = document.getElementById('timelineRail');
+  PHASES.forEach((p,i)=>{
+    const tick = document.createElement('div');
+    tick.className = 'tick' + (i===0?' active':'');
+    tick.style.left = ((i/(PHASES.length-1))*100) + '%';
+    tick.innerHTML = `<div class="tick-dot"></div><div class="tick-label">${p.date}</div>`;
+    tick.addEventListener('click',()=>renderPhase(i));
+    rail.appendChild(tick);
+  });
+}
+
+function initTabs(){
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x===t));
+      activeTab = t.dataset.tab;
+      switch(activeTab){
+        case 'phase':      renderPhaseTab(); break;
+        case 'commanders': renderCommandersTab(); break;
+        case 'aftermath':  renderAftermathTab(); break;
+        case 'sources':    renderSourcesTab(); break;
+        case 'ai':         renderAITab(); break;
+      }
+    });
+  });
+}
+
+function initControls(){
+  document.getElementById('btnPrev').addEventListener('click',()=>{
+    if(currentPhase>0) renderPhase(currentPhase-1);
+  });
+  document.getElementById('btnNext').addEventListener('click',()=>{
+    if(currentPhase<PHASES.length-1) renderPhase(currentPhase+1);
+  });
+  document.getElementById('btnReset').addEventListener('click',()=>{
+    renderPhase(0);
+  });
+  document.getElementById('btnAutoplay').addEventListener('click',(e)=>{
+    if(autoplayTimer){
+      clearInterval(autoplayTimer);
+      autoplayTimer = null;
+      e.target.classList.remove('active');
+      e.target.textContent = '自動再生';
+    } else {
+      e.target.classList.add('active');
+      e.target.textContent = '停止';
+      autoplayTimer = setInterval(()=>{
+        if(currentPhase < PHASES.length-1) renderPhase(currentPhase+1);
+        else { renderPhase(0); }
+      }, 6000);
+    }
+  });
+}
+
+/* ========== BOOT ========== */
+window.addEventListener('DOMContentLoaded',()=>{
+  initMap();
+  initTimeline();
+  initTabs();
+  initControls();
+  renderPhase(0);
+});
+</script>
+</body>
+</html>
