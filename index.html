@@ -1127,8 +1127,14 @@ function renderCompare(idLeft, idRight, returnTo) {
 // Hash routing + share popover live in js/router.js.
 
 // ─── Issue date (daily, newspaper-style) ───
-document.getElementById('issueDate').textContent =
-  `Vol. I · Issue ${getIssueNumber()} · ${getTodayLongDate()}`;
+// #issueDate was removed from the masthead in d955ed1 (Instagram-style overhaul).
+// Guard against the missing element so the inline script doesn't halt on a
+// TypeError, which would leave currentLocale in TDZ and break renderGallery.
+const _issueDateEl = document.getElementById('issueDate');
+if (_issueDateEl) {
+  _issueDateEl.textContent =
+    `Vol. I · Issue ${getIssueNumber()} · ${getTodayLongDate()}`;
+}
 
 // ─── Undeclared variable detection in upload form ───
 function checkUndeclaredVars() {

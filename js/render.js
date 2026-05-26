@@ -719,7 +719,8 @@ function renderGallery() {
   });
   // Apply compare-mode class
   grid.classList.toggle('compare-mode', compareMode);
-  document.getElementById('issueCount').textContent = `${prompts.length} prompts in circulation`;
+  const _issueCountEl = document.getElementById('issueCount');
+  if (_issueCountEl) _issueCountEl.textContent = `${prompts.length} prompts in circulation`;
   // Lazy-mount the grid's iframe thumbnails — only what enters the viewport.
   mountAlbumThumbs(grid);
   showView('gallery');
