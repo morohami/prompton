@@ -71,37 +71,29 @@ Then cherry-pick features back in one by one with verification.
 
 ---
 
-## ⚠️ Local git is diverged — there are 2 unmerged drafts
+## ✅ Local git is now clean (was diverged earlier)
+
+The rebase conflict described in the previous draft of this file was
+resolved during this session. Final state:
+
+- `780b0f8 Add International 調整さん (8-bit & Elegant editions)` —
+  applied via the pre-existing `780b0f8` commit (the rebase was aborted,
+  and the local-only commit was pushed in a later commit chain).
+- Fourier prompt (`p1779746643461`) — recovered after an accidental
+  deletion in commit `6b4676b` (HANDOFF.md commit was made on a stale
+  branch tree). Restored in commit `3a0b582` from `cb412f8`.
+- Working tree is clean. `origin/main` and local `main` match.
+
+Most recent commits at handoff time:
 
 ```
-ローカル main:  …d955ed1 → 279eee7 → 780b0f8 (Int'l 調整さん 8-bit + Elegant)
-リモート main:  …d955ed1 → 279eee7 → 60cc5bd (Fourier add) → 09e1823 → cb412f8
+3a0b582 Restore Fourier prompt HTML + OG card
+6b4676b HANDOFF.md: complete rewrite for next-session pickup
+279eee7 Defensive: masthead never breaks layout, bootstrap never strands user
+d955ed1 インスタ風: 検索を最上部・即投稿・GitHub URL対応・stories PC表示
 ```
 
-The previous session had an interactive rebase in progress that got
-`--abort`-ed. There are now:
-
-- **1 local-only commit**: `780b0f8 Add International 調整さん (8-bit & Elegant
-  editions)` — adds `htmls/p1779770067635.html` (8-bit) +
-  `htmls/p1779770067636.html` (Elegant) and 2 entries in `manifest.json`.
-- **3 remote-only commits**: a Fourier prompt (`p1779746643461`) added via
-  another Claude Code session, plus the workflow's thumbnail regen.
-
-`git pull --rebase origin main` will conflict on `manifest.json` because
-both sides added entries. To resolve cleanly:
-
-```bash
-git fetch origin
-git rebase origin/main
-# When manifest.json conflicts, manually merge both new prompt objects
-# into the array (Fourier + 8-bit + Elegant), remove conflict markers,
-# then:
-git add manifest.json
-git rebase --continue
-git push origin main
-```
-
-The thumbnails workflow will auto-regenerate thumbs for both new prompts
+The thumbnails workflow will auto-regenerate thumbs for any new prompts
 on the next push to `htmls/**`. No client-side thumbnail step.
 
 ---
