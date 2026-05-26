@@ -281,24 +281,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // 武蔵国スケール：多摩西端（奥多摩）〜千葉境（江戸川）。
-  // 境界は少し余裕を持たせ、東は浦安・市川あたりまで含めて切れないように。
-  const MUSASHI_BOUNDS = L.latLngBounds(
-    [35.30, 138.80],  // 南西（多摩西端・横浜南端側）
-    [36.40, 140.30]   // 北東（埼玉北端・千葉県境を少し越える）
-  );
-
-  // 初期ビュー用は少し狭め（武蔵国らしい範囲）
+  // 初期ビュー用：武蔵国らしい範囲。
+  // ※ maxBounds は外した（パン制限が UX を壊していた）。
+  //   初回表示だけ武蔵国に寄せ、以降は自由にスクロール・ズーム可。
   const INITIAL_BOUNDS = L.latLngBounds(
-    [35.45, 139.00],
-    [36.20, 140.10]
+    [35.45, 139.00],  // 南西（多摩〜横浜境）
+    [36.20, 140.10]   // 北東（埼玉北部〜千葉境）
   );
 
   const map = L.map('map', {
     zoomControl: false,
-    maxBounds: MUSASHI_BOUNDS,
-    maxBoundsViscosity: 0.6,  // 粘性を緩めてズーム時にも自由に動かせる
-    minZoom: 9,
+    minZoom: 8,
     maxZoom: 18
   });
 
