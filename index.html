@@ -680,11 +680,22 @@ function renderTagChips() { /* removed — see renderSearchSuggest */ }
 
 // Show up to 8 matching prompts as a dropdown below the search input.
 // Match against title, author handle/name, tags. Click → jump to detail.
+// Currently focused index inside the search-suggest dropdown. -1 = nothing focused.
+// Reset whenever the list is re-rendered or the dropdown is closed.
+let searchSuggestIndex = -1;
+function updateSearchSuggestFocus() {
+  const host = document.getElementById('searchSuggest');
+  if (!host) return;
+  const items = host.querySelectorAll('.search-suggest-item');
+  items.forEach((el, i) => el.classList.toggle('focused', i === searchSuggestIndex));
+  const focused = items[searchSuggestIndex];
+  if (focused) focused.scrollIntoView({ block: 'nearest' });
+}
 function renderSearchSuggest() {
   const host = document.getElementById('searchSuggest');
   if (!host) return;
   const q = currentSearch.trim().toLowerCase();
-  if (!q) { host.innerHTML = ''; host.classList.remove('open'); return; }
+  if (!q) { host.innerHTML = ''; host.classList.remove('open'); searchSuggestIndex = -1; return; }
   const matches = prompts.filter(p => {
     const haystack = [p.title, p.authorName, p.author, ...(p.tags || []), p.tag]
       .filter(Boolean).join(' ').toLowerCase();
@@ -693,6 +704,7 @@ function renderSearchSuggest() {
   if (!matches.length) {
     host.innerHTML = '<div class="search-suggest-empty">No matches.</div>';
     host.classList.add('open');
+    searchSuggestIndex = -1;
     return;
   }
   host.innerHTML = matches.map(p => {
@@ -706,11 +718,20 @@ function renderSearchSuggest() {
       + '</button>';
   }).join('');
   host.classList.add('open');
+  // Reset focus to no item — first ArrowDown picks index 0. This avoids
+  // a "focused but invisible" item appearing as the user types.
+  searchSuggestIndex = -1;
+  updateSearchSuggestFocus();
+  // Mouse hover should sync the focus index so Enter still works.
+  host.querySelectorAll('.search-suggest-item').forEach((el, i) => {
+    el.addEventListener('mouseenter', () => { searchSuggestIndex = i; updateSearchSuggestFocus(); });
+  });
   host.querySelectorAll('[data-go-id]').forEach(b =>
     b.addEventListener('click', () => {
       host.classList.remove('open');
       document.getElementById('searchInput').value = '';
       currentSearch = '';
+      searchSuggestIndex = -1;
       renderDetail(b.dataset.goId);
     }));
 }
@@ -719,12 +740,41 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
   renderSearchSuggest();
 });
 document.getElementById('searchInput').addEventListener('focus', renderSearchSuggest);
+// ↑/↓/Enter/Esc navigation in the search-suggest dropdown.
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  const host = document.getElementById('searchSuggest');
+  if (!host || !host.classList.contains('open')) return;
+  const items = host.querySelectorAll('.search-suggest-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!items.length) return;
+    searchSuggestIndex = (searchSuggestIndex + 1) % items.length;
+    updateSearchSuggestFocus();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!items.length) return;
+    searchSuggestIndex = (searchSuggestIndex - 1 + items.length) % items.length;
+    updateSearchSuggestFocus();
+  } else if (e.key === 'Enter') {
+    if (searchSuggestIndex >= 0 && items[searchSuggestIndex]) {
+      e.preventDefault();
+      items[searchSuggestIndex].click();
+    }
+    // No selection → let the default form-submit behavior bubble (no-op here).
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    host.classList.remove('open');
+    searchSuggestIndex = -1;
+    e.target.blur();
+  }
+});
 document.addEventListener('click', (e) => {
   const wrap = document.querySelector('.search-wrap');
   if (!wrap) return;
   if (!wrap.contains(e.target)) {
     const host = document.getElementById('searchSuggest');
     if (host) host.classList.remove('open');
+    searchSuggestIndex = -1;
   }
 });
 document.getElementById('sortSelect').addEventListener('change', (e) => {
@@ -1159,7 +1209,7 @@ function checkUndeclaredVars() {
   const warningEl = document.getElementById('undeclaredWarning');
   if (!warningEl) return;
   if (undeclared.size > 0) {
-    warningEl.innerHTML = '💡 Found ' + [...undeclared].map(k => '<code>{{' + k + '}}</code>').join(', ') + ' in your prompt — declare them in Advanced → Variables so users can personalize.';
+    warningEl.innerHTML = '※ Found ' + [...undeclared].map(k => '<code>{{' + k + '}}</code>').join(', ') + ' in your prompt — declare them in Advanced → Variables so users can personalize.';
     warningEl.style.display = '';
   } else {
     warningEl.style.display = 'none';

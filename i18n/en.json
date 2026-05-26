@@ -76,7 +76,9 @@
     "pasted": "Pasted from clipboard.",
     "clipboardDenied": "Clipboard access denied — paste manually.",
     "clipboardEmpty": "Clipboard is empty.",
-    "confirmDelete": "Delete this draft?"
+    "confirmDelete": "Delete this draft?",
+    "autosaveDirty": "Unsaved…",
+    "autosaveSaved": "Saved"
   },
   "mobile": {
     "feed": "Feed",

@@ -50,9 +50,9 @@ function openSharePopover(anchorBtn, prompt) {
   const pop = document.createElement('div');
   pop.className = 'share-popover';
   pop.innerHTML = `
-    ${canNativeShare ? `<button type="button" data-act="native">📤 Share via…</button>` : ''}
+    ${canNativeShare ? `<button type="button" data-act="native">↗ Share via…</button>` : ''}
     <button type="button" data-act="copy">⎘ Copy link</button>
-    <a target="_blank" rel="noopener" href="https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}">💬 Share on LINE</a>
+    <a target="_blank" rel="noopener" href="https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}">↗ Share on LINE</a>
     <a target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}">𝕏 Share on X</a>
   `;
   document.body.appendChild(pop);

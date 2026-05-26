@@ -82,6 +82,7 @@ function openDraftEditorModal(draftId) {
       <div class="draft-toolbar">
         <button type="button" class="btn-text" id="draftPasteBtn">${escapeHtml(t('drafts.pasteBtn'))}</button>
         <button type="button" class="btn-text" id="draftGitHubBtn">${escapeHtml(t('drafts.githubBtn'))}</button>
+        <span class="draft-autosave-status" id="draftAutosaveStatus" aria-live="polite"></span>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn primary" id="draftPostBtn">${escapeHtml(t('drafts.post'))}</button>
@@ -95,6 +96,67 @@ function openDraftEditorModal(draftId) {
 
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   document.getElementById('draftCancelBtn').addEventListener('click', () => overlay.remove());
+
+  // ─── Auto-save (2-second debounce) ─────────────────────────────────────
+  // Persists this draft to drafts[] + localStorage 2s after the last keystroke.
+  // - Skips empty drafts (no title and no body) so we don't litter localStorage
+  //   with blank entries when the user opens "+ 新規" and closes immediately.
+  // - The explicit "下書き保存" button still works; it just performs the same
+  //   save synchronously and closes the modal.
+  // - When the user publishes (投稿), publishDraftDirect filters this draft
+  //   out of drafts[], so the auto-saved entry is cleaned up automatically.
+  const statusEl = document.getElementById('draftAutosaveStatus');
+  function setAutosaveStatus(key) {
+    if (!statusEl) return;
+    statusEl.textContent = key ? t(key) : '';
+  }
+  let autosaveTimer = null;
+  function scheduleAutosave() {
+    const titleNow = document.getElementById('draftTitle').value.trim();
+    const bodyNow = document.getElementById('draftBody').value;
+    if (!titleNow && !bodyNow.trim()) { setAutosaveStatus(''); return; }
+    setAutosaveStatus('drafts.autosaveDirty');
+    if (autosaveTimer) clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+      autosaveTimer = null;
+      draft.title = titleNow;
+      draft.body = bodyNow;
+      draft.updatedAt = new Date().toISOString();
+      const idx = drafts.findIndex(x => x.id === draft.id);
+      if (idx >= 0) drafts[idx] = draft;
+      else drafts.unshift(draft);
+      try { saveDrafts(); } catch (e) { console.warn('draft autosave failed:', e); }
+      renderStoriesBar();
+      setAutosaveStatus('drafts.autosaveSaved');
+    }, 2000);
+  }
+  document.getElementById('draftTitle').addEventListener('input', scheduleAutosave);
+  document.getElementById('draftBody').addEventListener('input', scheduleAutosave);
+  // If the modal closes (overlay click, cancel button, Esc), flush a final save
+  // so we never lose the last few keystrokes.
+  const flushAndCleanup = () => {
+    if (autosaveTimer) {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = null;
+      const titleNow = document.getElementById('draftTitle')?.value.trim();
+      const bodyNow = document.getElementById('draftBody')?.value;
+      if (titleNow || (bodyNow && bodyNow.trim())) {
+        draft.title = titleNow || '';
+        draft.body = bodyNow || '';
+        draft.updatedAt = new Date().toISOString();
+        const idx = drafts.findIndex(x => x.id === draft.id);
+        if (idx >= 0) drafts[idx] = draft;
+        else drafts.unshift(draft);
+        try { saveDrafts(); } catch (e) {}
+        renderStoriesBar();
+      }
+    }
+  };
+  // Hook into MutationObserver — when overlay is removed from DOM, flush.
+  const removalObserver = new MutationObserver(() => {
+    if (!document.body.contains(overlay)) { flushAndCleanup(); removalObserver.disconnect(); }
+  });
+  removalObserver.observe(document.body, { childList: true });
 
   // Claude paste — read clipboard, extract the largest code fence.
   document.getElementById('draftPasteBtn').addEventListener('click', async () => {
@@ -1832,10 +1894,10 @@ function renderProfile(handle, tab) {
           <div class="handle">@${escapeHtml(handle)}</div>
           ${profile.bio ? `<p class="bio">${escapeHtml(profile.bio)}</p>` : ''}
           <div class="profile-meta">
-            ${profile.location ? `<span>📍 ${escapeHtml(profile.location)}</span>` : ''}
-            ${profile.website ? `<span>🔗 <a href="${escapeAttr(websiteHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteDisplay)}</a></span>` : ''}
+            ${profile.location ? `<span>· ${escapeHtml(profile.location)}</span>` : ''}
+            ${profile.website ? `<span>↗ <a href="${escapeAttr(websiteHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteDisplay)}</a></span>` : ''}
             ${isYou && profile.email ? `<span>✉ ${escapeHtml(profile.email)}</span>` : ''}
-            <span>📅 Joined ${formatDate(profile.joined)}</span>
+            <span>· Joined ${formatDate(profile.joined)}</span>
           </div>
         </div>
         <div class="profile-actions">
@@ -2026,7 +2088,7 @@ function openEditProfileModal() {
           (profile.avatar ? '' : escapeHtml(profile.name.charAt(0).toUpperCase())) +
         '</div>' +
         '<div class="avatar-edit-actions">' +
-          '<button type="button" class="btn secondary" id="changeAvatarBtn">📷 Change avatar</button>' +
+          '<button type="button" class="btn secondary" id="changeAvatarBtn">✎ Change avatar</button>' +
           '<button type="button" class="btn-cancel" id="removeAvatarBtn" style="' + (profile.avatar ? '' : 'display:none') + '">× Remove avatar</button>' +
           '<input type="file" id="avatarFileInput" accept="image/*" style="display:none">' +
         '</div>' +

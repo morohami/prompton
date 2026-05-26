@@ -3954,7 +3954,7 @@
        stays on a single line. */
     @media (max-width: 380px) {
       .nav-actions a[data-nav="rankings"] { font-size: 0; padding: 6px 4px; }
-      .nav-actions a[data-nav="rankings"]::before { content: "🏆"; font-size: 16px; }
+      .nav-actions a[data-nav="rankings"]::before { content: "✦"; font-size: 16px; }
       .nav-actions .btn-upload { font-size: 0; padding: 8px 10px; }
       .nav-actions .btn-upload::before { content: "＋"; font-size: 16px; }
     }
@@ -4143,6 +4143,19 @@
     padding: 6px 12px;
     border-radius: 6px;
   }
+  /* Auto-save indicator — pushed to the right edge of the toolbar.
+     Subtle gray "未保存…" while typing, fades to "保存済" 2s after the
+     last keystroke. Reserves a small min-width so the toolbar doesn't
+     reflow when the label appears/disappears. */
+  .draft-toolbar .draft-autosave-status {
+    margin-left: auto;
+    align-self: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 60px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
 
   /* ─── Mobile detail polish ─── */
   body.mobile-app #view-detail { padding-bottom: 130px; /* room for sticky bar + bottom nav */ }
@@ -4238,7 +4251,11 @@
     text-align: left;
   }
   .search-suggest-item:last-child { border-bottom: none; }
-  .search-suggest-item:hover { background: var(--hover); }
+  .search-suggest-item:hover,
+  .search-suggest-item.focused { background: var(--hover); }
+  /* Keyboard-focused item gets a slightly stronger left edge so users can
+     tell it apart from a passive mouse-hover when both happen at once. */
+  .search-suggest-item.focused { box-shadow: inset 2px 0 0 var(--accent); }
   .search-suggest-item .ss-thumb {
     width: 40px; height: 40px;
     border-radius: 4px;

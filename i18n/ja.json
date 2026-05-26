@@ -76,7 +76,9 @@
     "pasted": "クリップボードから貼り付けました。",
     "clipboardDenied": "クリップボードアクセスが拒否されました — 手動で貼り付けてください。",
     "clipboardEmpty": "クリップボードが空です。",
-    "confirmDelete": "このドラフトを削除しますか？"
+    "confirmDelete": "このドラフトを削除しますか？",
+    "autosaveDirty": "未保存…",
+    "autosaveSaved": "保存済"
   },
   "mobile": {
     "feed": "ホーム",
