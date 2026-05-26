@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東京被災マップ — Step 5</title>
+<title>東京被災マップ — Step 9</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
@@ -234,6 +234,56 @@
     0%, 100% { opacity: 0.3; transform: scale(0.8); }
     50%      { opacity: 1;   transform: scale(1.2); }
   }
+
+  /* === Leaflet popup ダーク化 === */
+  .leaflet-popup-content-wrapper {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
+  }
+  .leaflet-popup-tip {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+  }
+  .leaflet-popup-content {
+    margin: 12px 16px !important;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .leaflet-popup-content .pop-title {
+    font-weight: 900;
+    font-size: 13px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .leaflet-popup-content .pop-year {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .leaflet-popup-content .pop-desc {
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .leaflet-popup-content .pop-cat {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    text-transform: uppercase;
+    color: #0a0a0f;
+  }
+  .leaflet-container a.leaflet-popup-close-button {
+    color: var(--text-secondary) !important;
+  }
 </style>
 </head>
 <body>
@@ -272,7 +322,7 @@
   </div>
 
   <div class="sidebar-footer">
-    <span class="step-badge">Step 5</span>ロード画面 + ロゴ
+    <span class="step-badge">Step 6–9</span>歴史レイヤー（戦争・大火・地震・水害）
   </div>
 </aside>
 
@@ -280,6 +330,175 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
+// ======================================================
+//   カテゴリ定義
+// ======================================================
+const CATEGORIES = {
+  war:    { label: '戦争・内乱',  color: '#cc2255' },
+  fire:   { label: '大火',        color: '#ff4444' },
+  quake:  { label: '地震',        color: '#ff8c1a' },
+  flood:  { label: '水害・台風',  color: '#1a9fff' },
+  hazard: { label: '現代ハザード', color: '#f0c030' },
+  price:  { label: '地価',        color: '#30d98a' }
+};
+
+// ======================================================
+//   レイヤーデータ（Step 6-9 ぶん）
+//   ※ 座標はすべて近似値。正確な被災範囲は資料館 GeoJSON 化が必要。
+// ======================================================
+const LAYERS_DATA = [
+  // ───────────── 戦争・内乱 ─────────────
+  {
+    id: 'ueno-1868', cat: 'war', year: 1868, name: '上野戦争（彰義隊の戦い）',
+    desc: '旧幕府軍・彰義隊と新政府軍が上野寛永寺で交戦。雨の中アームストロング砲が放たれ、わずか1日で彰義隊は壊滅。',
+    type: 'points',
+    data: [
+      { lat: 35.7155, lng: 139.7738, label: '寛永寺（本営）' },
+      { lat: 35.7148, lng: 139.7752, label: '黒門口（激戦地）' },
+      { lat: 35.7128, lng: 139.7706, label: '不忍池畔（包囲戦）' }
+    ]
+  },
+  {
+    id: 'airraid-1945-03-10', cat: 'war', year: 1945, name: '東京大空襲（3月10日）',
+    desc: 'B-29 約300機が深川・本所・浅草など下町に焼夷弾を投下。約10万人が死亡、罹災者100万人超。',
+    type: 'polygon',
+    data: [
+      [35.745, 139.785], [35.745, 139.835], [35.730, 139.860],
+      [35.690, 139.860], [35.670, 139.830], [35.680, 139.785]
+    ]
+  },
+  {
+    id: 'airraid-1945-04-13', cat: 'war', year: 1945, name: '城北大空襲（4月13日）',
+    desc: '王子・滝野川・荒川区を中心に焼夷弾。軍需工場と住宅密集地が標的に。',
+    type: 'polygon',
+    data: [
+      [35.770, 139.715], [35.785, 139.770], [35.770, 139.815],
+      [35.735, 139.810], [35.730, 139.760], [35.745, 139.715]
+    ]
+  },
+  {
+    id: 'airraid-1945-05-25', cat: 'war', year: 1945, name: '山の手大空襲（5月25日）',
+    desc: '渋谷・新宿・港・世田谷東部の山の手地域を焼き払った最後の大空襲。皇居・赤坂離宮も延焼。',
+    type: 'polygon',
+    data: [
+      [35.690, 139.685], [35.700, 139.745], [35.680, 139.770],
+      [35.640, 139.760], [35.635, 139.700], [35.660, 139.680]
+    ]
+  },
+  {
+    id: 'airraid-1945-05-29', cat: 'war', year: 1945, name: '横浜大空襲（5月29日）',
+    desc: 'B-29 約500機が横浜中心部を焼夷攻撃。市街地の42%が焼失、死者約8,000人。',
+    type: 'polygon',
+    data: [
+      [35.475, 139.620], [35.495, 139.660], [35.465, 139.680],
+      [35.430, 139.665], [35.420, 139.630]
+    ]
+  },
+
+  // ───────────── 大火 ─────────────
+  {
+    id: 'meireki-1657', cat: 'fire', year: 1657, name: '明暦の大火（振袖火事）',
+    desc: '本郷丸山本妙寺から出火、3日間燃え続け江戸の60%以上が焼失。死者10万人超。江戸城天守も焼け落ち、再建されなかった。',
+    type: 'polygon',
+    data: [
+      [35.720, 139.745], [35.735, 139.770], [35.735, 139.810],
+      [35.715, 139.825], [35.680, 139.820], [35.665, 139.785],
+      [35.670, 139.750]
+    ]
+  },
+  {
+    id: 'meiwa-1772', cat: 'fire', year: 1772, name: '明和の大火（目黒行人坂火事）',
+    desc: '目黒行人坂大円寺から出火し、北東に延焼。麻布・赤坂・麹町・神田まで焼き、江戸三大大火のひとつ。',
+    type: 'polygon',
+    data: [
+      [35.635, 139.700], [35.665, 139.720], [35.700, 139.745],
+      [35.715, 139.770], [35.695, 139.785], [35.660, 139.770],
+      [35.640, 139.730]
+    ]
+  },
+  {
+    id: 'bunka-1806', cat: 'fire', year: 1806, name: '文化の大火（丙寅の大火）',
+    desc: '芝車町より出火、南西の風に煽られ京橋・日本橋・神田まで焼亡。死者1,200人超。',
+    type: 'polygon',
+    data: [
+      [35.630, 139.745], [35.655, 139.755], [35.685, 139.770],
+      [35.690, 139.785], [35.670, 139.785], [35.640, 139.765]
+    ]
+  },
+
+  // ───────────── 地震 ─────────────
+  {
+    id: 'ansei-1855', cat: 'quake', year: 1855, name: '安政江戸地震',
+    desc: 'M7.0 の直下型。本所・深川・浅草など低地で被害集中。死者約7,000〜1万人。鯰絵が大量に出版された地震。',
+    type: 'polygon',
+    data: [
+      [35.690, 139.780], [35.730, 139.790], [35.735, 139.830],
+      [35.720, 139.850], [35.680, 139.840], [35.670, 139.800]
+    ]
+  },
+  {
+    id: 'kanto-1923', cat: 'quake', year: 1923, name: '関東大震災',
+    desc: 'M7.9。武蔵・相模を中心に死者・行方不明約10万5千人。火災旋風による被害が大半で、本所被服廠跡だけで3万8千人焼死。',
+    type: 'multipolygon',
+    data: [
+      // 東京下町〜山の手
+      [[35.680, 139.700], [35.755, 139.730], [35.770, 139.810],
+       [35.730, 139.860], [35.665, 139.860], [35.640, 139.795],
+       [35.655, 139.720]],
+      // 横浜
+      [[35.500, 139.610], [35.515, 139.660], [35.480, 139.690],
+       [35.425, 139.675], [35.410, 139.625]]
+    ]
+  },
+
+  // ───────────── 水害・台風 ─────────────
+  {
+    id: 'meiji-1910', cat: 'flood', year: 1910, name: '明治43年大水害',
+    desc: '梅雨末期の豪雨で利根川・荒川が決壊。東京下町・足立・葛飾・本所深川が水没、罹災者150万人超。',
+    type: 'polygon',
+    data: [
+      [35.755, 139.760], [35.820, 139.785], [35.835, 139.840],
+      [35.780, 139.880], [35.720, 139.860], [35.720, 139.820]
+    ]
+  },
+  {
+    id: 'taisho-1917', cat: 'flood', year: 1917, name: '大正6年高潮',
+    desc: '台風による東京湾高潮。深川・本所・洲崎・浦安が冠水、死者・行方不明1,300人超。隅田川以東が広く水没。',
+    type: 'polygon',
+    data: [
+      [35.620, 139.785], [35.720, 139.790], [35.735, 139.875],
+      [35.665, 139.905], [35.610, 139.850]
+    ]
+  },
+  {
+    id: 'kathleen-1947', cat: 'flood', year: 1947, name: 'カスリーン台風',
+    desc: '利根川・荒川が決壊。埼玉から葛飾・江戸川区まで濁流が流れ、死者・行方不明1,900人。利根川東遷後最大の関東水害。',
+    type: 'polygon',
+    data: [
+      [35.760, 139.795], [35.840, 139.810], [35.860, 139.905],
+      [35.785, 139.930], [35.730, 139.895], [35.725, 139.840]
+    ]
+  },
+  {
+    id: 'kanogawa-1958', cat: 'flood', year: 1958, name: '狩野川台風',
+    desc: '東京で神田川・善福寺川・石神井川など中小河川が氾濫。杉並・中野・板橋・北区で大規模浸水。',
+    type: 'polygon',
+    data: [
+      [35.685, 139.605], [35.745, 139.640], [35.755, 139.720],
+      [35.705, 139.745], [35.665, 139.710], [35.660, 139.650]
+    ]
+  },
+  {
+    id: 'hagibis-2019', cat: 'flood', year: 2019, name: '令和元年東日本台風（19号）',
+    desc: '多摩川が世田谷・大田・川崎で越水、武蔵小杉・二子玉川が浸水。荒川も水位記録更新、首都圏で死者多数。',
+    type: 'polygon',
+    data: [
+      [35.555, 139.575], [35.625, 139.585], [35.660, 139.680],
+      [35.635, 139.730], [35.580, 139.720], [35.535, 139.665]
+    ]
+  }
+];
+
 document.addEventListener('DOMContentLoaded', function() {
   // 初期ビュー用：武蔵国らしい範囲。
   // ※ maxBounds は外した（パン制限が UX を壊していた）。
@@ -302,6 +521,83 @@ document.addEventListener('DOMContentLoaded', function() {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  // ===================================================
+  //   レイヤー描画
+  // ===================================================
+  const layerGroups = {}; // id -> L.LayerGroup
+
+  function popupHtml(layer, sublabel) {
+    const cat = CATEGORIES[layer.cat];
+    return `
+      <span class="pop-cat" style="background:${cat.color};">${cat.label}</span>
+      <span class="pop-year">${layer.year}年</span>
+      <span class="pop-title">${layer.name}</span>
+      ${sublabel ? `<div style="font-size:11px;color:var(--accent);margin-bottom:4px;">${sublabel}</div>` : ''}
+      <div class="pop-desc">${layer.desc}</div>
+    `;
+  }
+
+  function renderLayer(layer) {
+    const color = CATEGORIES[layer.cat].color;
+    const group = L.layerGroup();
+
+    if (layer.type === 'points') {
+      layer.data.forEach(p => {
+        L.circleMarker([p.lat, p.lng], {
+          radius: 8,
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.55,
+          weight: 2,
+          opacity: 0.9
+        })
+        .bindPopup(popupHtml(layer, p.label))
+        .addTo(group);
+      });
+    } else if (layer.type === 'polygon') {
+      L.polygon(layer.data, {
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.22,
+        weight: 1.5,
+        opacity: 0.85
+      })
+      .bindPopup(popupHtml(layer))
+      .addTo(group);
+    } else if (layer.type === 'multipolygon') {
+      layer.data.forEach(poly => {
+        L.polygon(poly, {
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.22,
+          weight: 1.5,
+          opacity: 0.85
+        })
+        .bindPopup(popupHtml(layer))
+        .addTo(group);
+      });
+    }
+
+    group.addTo(map);
+    layerGroups[layer.id] = group;
+  }
+
+  LAYERS_DATA.forEach(renderLayer);
+
+  // ===================================================
+  //   サイドバー: カテゴリごとのレイヤー数を反映
+  // ===================================================
+  const counts = {};
+  Object.keys(CATEGORIES).forEach(k => counts[k] = 0);
+  LAYERS_DATA.forEach(l => { counts[l.cat] = (counts[l.cat] || 0) + 1; });
+  document.querySelectorAll('#cat-list .cat-row').forEach(row => {
+    const label = row.querySelector('.cat-label').textContent.trim();
+    const key = Object.keys(CATEGORIES).find(k => CATEGORIES[k].label === label);
+    if (key) {
+      row.querySelector('.cat-count').textContent = counts[key] > 0 ? counts[key] : '—';
+    }
+  });
 
   // ロード画面のフェードアウト：初回タイル読み込み完了 or 最低 800ms 表示
   const loader = document.getElementById('loader');
