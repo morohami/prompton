@@ -62,26 +62,6 @@
     "thumbVer": 1779823306207
   },
   {
-    "id": "p1779821110927",
-    "title": "test",
-    "description": "",
-    "systemPrompt": "",
-    "userPrompt": "",
-    "context": "",
-    "model": "Claude Opus 4.7",
-    "license": "CC0 — Public domain",
-    "tags": [],
-    "tag": "other",
-    "author": "you",
-    "authorName": "You",
-    "date": "2026-05-26",
-    "downloads": 0,
-    "forks": 0,
-    "parentId": null,
-    "usage": [],
-    "variables": []
-  },
-  {
     "id": "p1779797611652",
     "title": "東京被災マップ — Step 9 (WIP)",
     "description": "武蔵国 (多摩含む) を対象に、400年の被災史 × 現代ハザード × 公示地価を重ねるインタラクティブ地図の制作途中版。Step 1-9 完了：Leaflet 1.9.4 + OSM ダークタイル、左固定340pxサイドバー、ロード画面 + ロゴアニメ、歴史被災レイヤー15件描画 (上野戦争1868 / 空襲1945×4 / 明暦1657 / 明和1772 / 文化1806 / 安政1855 / 関東大震災1923 / 明治1910 / 大正高潮1917 / カスリーン1947 / 狩野川1958 / 令和元年台風19号2019)。クリックでダーク popup 表示。残り：トグル / クリック履歴カード / タイムライン / 現代ハザード / 地価。",
