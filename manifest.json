@@ -32,11 +32,11 @@
   },
   {
     "id": "p1779823200001",
-    "title": "Monolith: 鳥羽伏見の戦い・",
-    "description": "1868年正月3日〜6日の鳥羽伏見の戦いを、5フェーズのタイムラインで時間×空間に展開するインタラクティブ地図。9武将（西郷・伊地知・山県・慶喜・容保・定敬・竹中・近藤・土方）が各フェーズで自動移動、12ランドマーク、3街道（鳥羽・伏見・京）、藩境界（凸包近似4藩：淀・公家・皇室・社寺）、4タブ（戦況・将・その後・史料）＋AI討論タブ。背景は地理院4種（淡色・標準・空中写真・色別標高図）に加え、今昔マップ on the web 由来の明治迅速図 1892-1910（戊辰の24年後）も切替可能。",
+    "title": "Monolith: 鳥羽伏見の戦い・V2",
+    "description": "1868年正月3日〜6日の鳥羽伏見の戦いを、5フェーズのタイムラインで時間×空間に展開するインタラクティブ地図。9武将（西郷・伊地知・山県・慶喜・容保・定敬・竹中・近藤・土方）が各フェーズで自動移動、12ランドマーク、3街道（鳥羽・伏見・京）、4タブ（戦況・将・その後・史料）＋AI討論タブ。V2では藩境界をCODH幕末期近世村領域データセット由来の実polygon 6藩（山城淀藩・公家領・皇室領・社寺領・伊勢桑名藩・陸奥会津藩）に差替・インライン埋込。背景は地理院4種＋今昔マップon the web由来の明治迅速図1892-1910（戊辰の24年後）の5種切替。",
     "systemPrompt": "",
     "userPrompt": "鳥羽伏見の戦い（1868年正月3-6日）のストーリー地図を Leaflet 単一 HTML で作って。5フェーズのタイムラインスライダー（1月3日朝→開戦→富ノ森千両松→錦の御旗淀藩離反→橋本敗走慶喜脱出）、武将9名の自動移動、ランドマーク、街道、藩境界polygon、4タブ（戦況・将・その後・史料）、AI討論タブ（OpenRouter）、ダークテーマ（#0a0e1a・朱赤・金）、Shippori Mincho。",
-    "context": "Single-file HTML, Leaflet 1.9.4, Shippori Mincho + JetBrains Mono via Google Fonts. Background tiles: GSI (pale/std/ort/relief) + 今昔マップ on the web (keihansin 2man 1892-1910, 1/20000 迅速図, TMS Y axis, maxNativeZoom 16). 藩境界は現状 4 藩の凸包近似を内蔵（本物 polygon への差替は次バージョン）。AI討論は OpenRouter API key 入力で動作。",
+    "context": "Single-file HTML (134KB), Leaflet 1.9.4, Shippori Mincho + JetBrains Mono via Google Fonts. Background tiles: GSI (pale/std/ort/relief) + 今昔マップ on the web (keihansin 2man 1892-1910, 1/20000 迅速図, TMS Y axis, maxNativeZoom 16). V2で藩境界を凸包近似→実polygon (CODH幕末期近世村領域データセット由来, Voronoi+dissolve, MultiPolygon)に差替、6藩を抽出インライン埋込（91KB追加, CC BY-SA 4.0）。AI討論は OpenRouter API key 入力で動作。",
     "model": "Claude Opus 4.7",
     "license": "CC BY-SA 4.0 (Wikipedia 史実 + CODH 領域データ 継承)",
     "tags": [
