@@ -2953,6 +2953,16 @@
     flex-wrap: wrap;
     align-items: center;
   }
+  /* Owner-only actions (edit / save version / delete) sit right after the
+     primary CTA so they're immediately visible on mobile, where the action
+     row is a single horizontally-scrolling strip. Subtle left edge marks
+     them as a distinct group without shouting. */
+  .detail-actions .owner-action {
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .detail-actions .btn.danger.owner-action {
+    box-shadow: inset 2px 0 0 #d04848;
+  }
   .detail-actions .btn,
   .detail-actions .btn.secondary {
     display: inline-flex;

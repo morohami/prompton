@@ -915,6 +915,9 @@ function renderDetail(id, viewingVersionNum) {
       </div>
       <div class="detail-actions">
         <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">${escapeHtml(t('detail.open'))}</button>
+        ${isOwner() ? `<button class="btn secondary owner-action" id="editMetadataBtn" title="Edit title / description / tags / license">${escapeHtml(t('detail.edit'))}</button>` : ''}
+        ${canSaveNewVersion ? `<button class="btn secondary owner-action" id="saveVersionBtn">${escapeHtml(t('detail.saveVersion'))}</button>` : ''}
+        ${isOwner() ? `<button class="btn danger owner-action" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">${escapeHtml(t('detail.delete'))}</button>` : ''}
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">${escapeHtml(t('detail.copy'))}</button>
         <button class="btn secondary" id="downloadBtn">${escapeHtml(t('detail.download'))}</button>
         <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${escapeHtml(isFavorited(p.id) ? t('detail.favorited') : t('detail.favorite'))}</button>
@@ -922,9 +925,6 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn secondary" id="shareBtn" title="Share this prompt">${escapeHtml(t('detail.share'))}</button>
         <button class="btn secondary" id="forkBtn">${escapeHtml(t('detail.fork'))}</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">${escapeHtml(t('detail.compareOriginal'))}</button>` : ''}
-        ${canSaveNewVersion ? `<button class="btn secondary" id="saveVersionBtn">${escapeHtml(t('detail.saveVersion'))}</button>` : ''}
-        ${isOwner() ? `<button class="btn secondary" id="editMetadataBtn" title="Edit title / description / tags / license">${escapeHtml(t('detail.edit'))}</button>` : ''}
-        ${isOwner() ? `<button class="btn danger" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">${escapeHtml(t('detail.delete'))}</button>` : ''}
       </div>
     </div>
 
@@ -1269,7 +1269,7 @@ function renderDetail(id, viewingVersionNum) {
       if (!confirm(msg)) return;
       const originalHTML = deleteBtn.innerHTML;
       deleteBtn.disabled = true;
-      deleteBtn.innerHTML = '⏳ Deleting…';
+      deleteBtn.innerHTML = '… Deleting';
       try {
         await deletePromptFromGitHub(p);
         // Remove from in-memory state and persist cache
