@@ -8,7 +8,16 @@
     "context": "Single-file HTML with GeoJSON inlined (218 han, 800KB minified). Leaflet 1.9.4 via unpkg, GSI pale tiles. License: CC BY-SA 4.0 (derived from CODH 幕末期近世村領域データセット by 本田謙一). Data generation: scipy.spatial.Voronoi + shapely unary_union.",
     "model": "Claude Sonnet 4.5",
     "license": "CC BY-SA 4.0 (CODH 幕末期近世村領域データセット 継承)",
-    "tags": ["map","japan","history","bakumatsu","han","geojson","leaflet","plugin"],
+    "tags": [
+      "map",
+      "japan",
+      "history",
+      "bakumatsu",
+      "han",
+      "geojson",
+      "leaflet",
+      "plugin"
+    ],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -17,7 +26,9 @@
     "forks": 0,
     "parentId": null,
     "usage": [],
-    "variables": []
+    "variables": [],
+    "thumb": "thumbs/p1779823200000.jpg",
+    "thumbVer": 1779823303259
   },
   {
     "id": "p1779823200001",
@@ -28,7 +39,16 @@
     "context": "Single-file HTML, Leaflet 1.9.4, Shippori Mincho + JetBrains Mono via Google Fonts. Background tiles: GSI (pale/std/ort/relief) + 今昔マップ on the web (keihansin 2man 1892-1910, 1/20000 迅速図, TMS Y axis, maxNativeZoom 16). 藩境界は現状 4 藩の凸包近似を内蔵（本物 polygon への差替は次バージョン）。AI討論は OpenRouter API key 入力で動作。",
     "model": "Claude Sonnet 4.5",
     "license": "CC BY-SA 4.0 (Wikipedia 史実 + CODH 領域データ 継承)",
-    "tags": ["map","japan","history","boshin","toba-fushimi","story-map","timeline","leaflet"],
+    "tags": [
+      "map",
+      "japan",
+      "history",
+      "boshin",
+      "toba-fushimi",
+      "story-map",
+      "timeline",
+      "leaflet"
+    ],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -37,7 +57,9 @@
     "forks": 0,
     "parentId": null,
     "usage": [],
-    "variables": []
+    "variables": [],
+    "thumb": "thumbs/p1779823200001.jpg",
+    "thumbVer": 1779823306207
   },
   {
     "id": "p1779821110927",
