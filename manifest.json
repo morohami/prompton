@@ -1,5 +1,32 @@
 [
   {
+    "id": "p1779797611652",
+    "title": "東京被災マップ — Step 4 (WIP)",
+    "description": "武蔵国 (多摩含む) を対象に、400年の被災史 × 現代ハザード × 公示地価を重ねるインタラクティブ地図の制作途中版。Step 1-4 完了：Leaflet 1.9.4 + OSM タイルをダークテーマ (CSS filter 反転) で表示、武蔵国スケールに setMaxBounds、左固定 340px サイドバーの枠を設置。全20ステップ予定 (戦争/大火/地震/水害/現代ハザード/地価レイヤー + タイムライン + クリック履歴カード + プリセット)。",
+    "systemPrompt": "",
+    "userPrompt": "武蔵国 (多摩含む) 400年の被災史と現代ハザード・公示地価を重ねて見られるインタラクティブ地図を、単一HTMLファイル (Leaflet 1.9.4 + OSMタイル) で作って。ダークテーマ、6カテゴリ × 約20レイヤーのトグル、タイムラインスライダー (1600-2026)、地図クリック→その地点の全時代被災履歴カード表示、おすすめプリセット (なぜこの土地は安い？等)。左固定340pxサイドバー。",
+    "context": "Single-file HTML, Leaflet 1.9.4 CDN, OSM タイルを CSS filter (invert + hue-rotate) でダーク化。武蔵国スコープ：setMaxBounds([35.40,138.90],[36.30,140.05])。HANDOFF.md ベースで Step 1-20 のうち Step 4 まで完了。",
+    "model": "Claude Sonnet 4.5",
+    "license": "CC0 — Public domain",
+    "tags": [
+      "map",
+      "tokyo",
+      "history",
+      "disaster",
+      "leaflet",
+      "wip"
+    ],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-05-26",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "p1779770067635",
     "title": "International 調整さん — 8-bit Edition",
     "description": "タイムゾーンを越えた日程調整ツールの 8-bit レトロゲーム版。13TZ対応の即時コンバーター (JST/NPT/IST/UTC/EST/CST/PST/CET/SGT/KST/AEST/GST/GMT) + 1分刻みの Apple iOS式時間ピッカー + ○△× 投票 + 回答編集 + 主催者による日程確定 → 確定通知メッセージ自動生成 (TZ自動変換付き) + 6種テーマ切替 (Game Boy / Mario / Zelda / Pokemon / Space / Tetris)。海外パートナーとのミーティング設定向け。姉妹版に elegant edition (p1779770067636) あり。",
