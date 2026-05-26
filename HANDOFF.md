@@ -1,218 +1,345 @@
 # Prompton — Handoff for next Claude Code session
 
-**Repo**: `morohami/prompton` (public) · **Live**: https://morohami.github.io/prompton/
-**Local working copy**: `C:\Users\松村峻長\prompton\` (Windows / PowerShell 5.1, Japanese Windows)
-**gh CLI**: authenticated as `morohami` (scopes: gist, read:org, repo, workflow)
-**Dev server**: port 3459, name `prompton`, started via `mcp__Claude_Preview__preview_start`. Script at `C:\Users\松村峻長\.claude\serve-prompton.ps1` rooted at `$env:USERPROFILE\prompton\`.
+**Repo**: `morohami/prompton` (public) · **Live**: <https://morohami.github.io/prompton/>
+**Local working copy**: `C:\Users\松村峻長\prompton\` (Windows / PowerShell 5.1)
+**gh CLI**: authenticated as `morohami`
+**Dev server**: port 3459, name `prompton`, started via `mcp__Claude_Preview__preview_start`.
+Script at `C:\Users\松村峻長\.claude\serve-prompton.ps1` rooted at `$env:USERPROFILE\prompton\`.
 
-## File layout (post-refactor)
+## ⚠️ START HERE — open the live site in a real browser BEFORE coding
 
-The original single-file SPA has been split:
+The previous session ended with two user-reported regressions that I could not
+reproduce in the in-tool preview (the `preview_eval` viewport got stuck at
+164px wide — likely a `mcp__Claude_Preview__preview_resize` artifact). Verify
+each on a real device first:
+
+1. **「コンテンツが消えた」** — gallery is blank after the most recent batch
+   of changes.
+2. **「設定ギアが動かない」** — clicking the ⚙ icon in the masthead doesn't
+   open Settings.
+
+### Where to look first
+
+- **Open <https://morohami.github.io/prompton/> in Chrome + iPhone Safari**.
+  DevTools Console → look for `Remote data fetch failed` or `Data hydration
+  failed` warns from the bootstrap. If those appear, fetchSeed is throwing
+  in production and `seedPrompts` stays empty.
+- **`document.querySelectorAll('[data-nav]').length`** in console — confirms
+  the wiring at `js/router.js:12` found the gear link. If 0, the script
+  loaded before the DOM was ready or the masthead markup is missing.
+- **`getComputedStyle(document.querySelector('[data-nav="settings"]'))`** —
+  check `pointer-events`, `display`, `position`. If something overlaps the
+  gear (z-index issue) it'll receive clicks instead.
+- **Network tab on the live site** → confirm `manifest.json`, `profiles.json`,
+  `tags.json`, `playlists.json`, `i18n/en.json`, `i18n/ja.json` all 200.
+
+### Likely culprits to consider
+
+- The masthead now hosts the search input in flex layout. CSS at
+  `css/main.css:93` adds `flex-wrap: nowrap` + `flex-shrink: 0` on
+  `.nav-actions` (defensive — landed in `279eee7`) but at narrow widths
+  before `@media (max-width: 900px)` kicks in (which hides the search),
+  the search could still push actions off-screen if `min-width: 0` isn't
+  honored. Inspect at exactly 700–900px.
+- `bootstrap` was hardened in `279eee7` to keep going on errors. If
+  the gallery is empty even after that lands, the failure is upstream
+  — likely a service-worker version mismatch. SW is currently `v7`
+  in `sw.js`. If the user's installed SW is older, it may be serving
+  a stale `index.html` that doesn't match the current JS.
+- **Hard fix if needed**: bump SW version to v8, or have the user
+  manually unregister: DevTools → Application → Service Workers →
+  Unregister. Then hard-reload.
+
+### Worst-case rollback
+
+If you can't find the cause within ~15 minutes, revert the masthead
+change cleanly:
+
+```bash
+# revert the inline-search masthead, keep the defensive bootstrap
+git revert d955ed1 --no-edit
+# OR: hard reset to the last known-good commit, then cherry-pick
+# 279eee7 to keep the defensive bootstrap
+git reset --hard 4170f70  # last verified-good commit (OAuth backend foundation)
+git cherry-pick 279eee7
+git push --force-with-lease origin main
+```
+
+This drops Instagram-style masthead + immediate-publish drafts + GitHub-URL
+import + a few other features, but returns the gallery to a known-good state.
+Then cherry-pick features back in one by one with verification.
+
+---
+
+## ⚠️ Local git is diverged — there are 2 unmerged drafts
 
 ```
-index.html      ~1,150 lines (HTML + bootstrap IIFE + theme/data helpers + Compare view + Settings handlers + fetchSeed)
-css/main.css    ~3,650 lines (extracted from <style>)
-js/github.js    ~450 lines  (GitHub API + thumbnail generation + ghBulkCommit)
-js/render.js    ~1,650 lines (renderGallery, renderDetail, renderProfile, renderRankings, version editor, metadata editor, fork helpers)
-js/upload.js    ~450 lines  (file drop, single + bulk upload, parsePromptBlocks)
-js/tags.js      ~280 lines  (tagConfig, normalizeTag, mountTagPicker, deriveCuratedTags, renderTagCurationPanel)
-js/router.js    ~120 lines  (hash routing, showView, share popover)
-manifest.json   prompt metadata (no html field)
-profiles.json   author profiles
-tags.json       { curated: [], aliases: {...} } — curated is auto-derived on save
-sw.js           service worker v4 — network-first for shell + css/js, cache-first for htmls/* + thumbs/*
-404.html        rewrites clean URLs like /prompton/p/<id> → /prompton/#/p/<id>
-htmls/<id>.html top-level prompt HTML (latest version)
-htmls/<id>_v<n>.html  per-version HTML when versions[] exists
-thumbs/<id>.jpg JPG snapshots (480px square, ~25KB)
-p/<id>/index.html  OG/Twitter card pages with JS redirect to SPA
+ローカル main:  …d955ed1 → 279eee7 → 780b0f8 (Int'l 調整さん 8-bit + Elegant)
+リモート main:  …d955ed1 → 279eee7 → 60cc5bd (Fourier add) → 09e1823 → cb412f8
 ```
 
-**Loading order in index.html**:
+The previous session had an interactive rebase in progress that got
+`--abort`-ed. There are now:
+
+- **1 local-only commit**: `780b0f8 Add International 調整さん (8-bit & Elegant
+  editions)` — adds `htmls/p1779770067635.html` (8-bit) +
+  `htmls/p1779770067636.html` (Elegant) and 2 entries in `manifest.json`.
+- **3 remote-only commits**: a Fourier prompt (`p1779746643461`) added via
+  another Claude Code session, plus the workflow's thumbnail regen.
+
+`git pull --rebase origin main` will conflict on `manifest.json` because
+both sides added entries. To resolve cleanly:
+
+```bash
+git fetch origin
+git rebase origin/main
+# When manifest.json conflicts, manually merge both new prompt objects
+# into the array (Fourier + 8-bit + Elegant), remove conflict markers,
+# then:
+git add manifest.json
+git rebase --continue
+git push origin main
+```
+
+The thumbnails workflow will auto-regenerate thumbs for both new prompts
+on the next push to `htmls/**`. No client-side thumbnail step.
+
+---
+
+## Recent feature waves (most recent first)
+
+| Wave | Highlights | Key commits |
+|---|---|---|
+| Defensive layer | `flex-shrink: 0` on `.nav-actions`, hide masthead search ≤900px, every bootstrap step wrapped in `try/catch`, `renderGallery()` always runs | `279eee7` |
+| Instagram-style overhaul | Masthead hosts the search input, grey issue-line removed, tagline removed, brand dot removed, stories bar shown on all viewports, draft modal goes straight to publish (no "send to upload form" detour), GitHub URL import (raw / blob / gist) | `d955ed1` |
+| Drafts / stories feature | Stories bar repurposed: shows local drafts (`prompton_drafts_v1`), tap → modal, "Claude paste" extracts the largest code-fence, supports save-only + publish + delete | `a599c43` |
+| Mobile detail polish | iframe live-preview hidden on phones, full-bleed thumbnail with a Fullscreen / Open-standalone overlay; action row pinned to bottom with backdrop-blur | `a599c43` |
+| Detail header trim | `by @handle · 5/26 · model` (was "by FullName · May 26, 2026 · Model · 2.1k downloads · 47 forks"), counts moved to a separate `.detail-counts` row | `a599c43` |
+| Numbers + search + emoji | `formatNum` returns full locale-aware numbers (no 2.1k abbreviation), tag chips gone — replaced by an autocomplete `.search-suggest` dropdown, bottom-tab emoji icons removed | `98cd089` |
+| Mobile polish round | PWA installable (`manifest.webmanifest` + SVG icons + theme-color), stories bar (initially mobile-only), sticky mobile detail action bar, workflow thumbnail compression to 640×640 q=72 | `7423df5` |
+| OAuth backend foundation | `functions/` directory for Cloudflare Pages Functions: `/auth/login`, `/auth/callback`, `/auth/logout`, `/auth/me`, `/api/write`. Stateless HMAC session cookies. `OAUTH_SETUP.md` deployment guide. Client uses `/auth/me` to detect signed-in state. **Not yet wired to existing write paths.** | `4170f70` |
+| Instagram-style mobile mode | `body.mobile-app` toggle via matchMedia, fixed bottom-tab nav, full-bleed single-column feed | `8aa84d7` |
+| Playlists | `playlists.json` + new view + add-to-playlist popover on detail | `f42c42a` |
+| Cleanup html2canvas | Deleted `js/html2canvas.min.js` (~200KB) + all client thumbnail code. Workflow owns thumbnails now | `cfc8dba` |
+| Playwright thumbnail workflow | `.github/workflows/thumbnails.yml` + `.github/scripts/generate-thumbs.mjs`. On push to `htmls/**`, headless Chrome screenshots → `thumbs/<id>.jpg` → committed back with `[skip ci]` | `12aadf1` |
+
+Earlier waves (Phase A/B/C) are documented in the original handoff git
+history if needed.
+
+---
+
+## File layout (current)
+
+```
+index.html                ~1,500 lines — HTML + inline bootstrap + i18n helpers
+                                       + profile/data/favorites/playlists/drafts
+                                       state + Settings panel logic
+css/main.css              ~4,000 lines — all styles incl. mobile-app overrides
+js/github.js              ~520 lines  — GitHub API + ghBulkCommit + rename
+                                       + bumpDownloadCountOnGitHub + push-
+                                       PlaylistsToGitHub + pushPromptToGitHub
+                                       (NO client thumbnail code — workflow owns it)
+js/render.js              ~1,800 lines — renderGallery + renderDetail +
+                                       renderProfile + renderRankings +
+                                       renderPlaylists + renderStoriesBar
+                                       (drafts) + openDraftEditorModal +
+                                       openCreatePlaylistModal + version editor +
+                                       metadata editor + thumbUrl + fork helpers
+js/upload.js              ~440 lines  — single + bulk upload, parsePromptBlocks
+                                       (no client thumbnails)
+js/tags.js                ~280 lines  — tag config, normalize, picker
+js/router.js              ~135 lines  — hash routing, [data-nav] click handlers
+                                       (including search/favorites helpers)
+i18n/en.json              EN strings
+i18n/ja.json              JP strings
+icons/icon.svg            PWA app icon (cardinal P)
+icons/maskable.svg        Android maskable variant
+manifest.webmanifest      PWA manifest
+manifest.json             prompt metadata
+profiles.json             author profiles
+tags.json                 { curated, aliases }
+playlists.json            user-defined collections
+sw.js                     SW v7 — precaches shell + i18n + icons + playlists.json
+404.html                  SPA hash rewrite
+htmls/<id>.html           top-level prompt HTML (latest version)
+htmls/<id>_v<n>.html      per-version HTML (when versions[] exists)
+thumbs/<id>.jpg           workflow-generated thumbnail (640×640 q=72)
+p/<id>/index.html         OG/Twitter card with JS redirect to SPA
+.github/workflows/thumbnails.yml   Playwright workflow
+.github/scripts/generate-thumbs.mjs
+functions/_utils.ts                HMAC session helpers
+functions/auth/{login,callback,logout,me}.ts
+functions/api/write.ts             Auth-gated GitHub Contents proxy
+OAUTH_SETUP.md            CF Pages deployment guide
+```
+
+**Loading order in `index.html`**:
+
 ```html
 <script src="js/github.js"></script>
 <script src="js/render.js"></script>
 <script src="js/tags.js"></script>
 <script src="js/router.js"></script>
 <script src="js/upload.js"></script>
-<script> /* inline bootstrap */ </script>
+<script> /* inline bootstrap incl. i18n, drafts, favorites, playlists */ </script>
 ```
 
-All extracted files are regular `<script>` (not modules) so functions stay as globals — callers didn't change.
-
-## Architecture rules
-
-- **Bootstrap is async**: `fetchSeed()` runs before render. Don't put module-level code that reads `prompts` synchronously — it'll see `[]`.
-- **Owner ops** gated by `isOwner()` (true when PAT + repo in localStorage `prompton_sync_v1`).
-- **Hash routes**: `#/`, `#/p/<id>`, `#/profile/<handle>`, `#/settings`, `#/rankings`, `#/rankings/forks`. `setRoute()` uses `replaceState` so internal nav doesn't double-fire the router.
-- **Tags**: `tagConfig.curated` is auto-derived from prompt usage via `deriveCuratedTags()` at bootstrap and on Save. Aliases stay manual (e.g. `ai → AI`).
-- **Lazy thumbnails**: `mountAlbumThumbs` mounts iframe previews when JPG thumb is missing. When `p.thumb` is set (path string), the card renders `<img class="thumb-img">` instead — instant paint.
-- **Live preview iframe** in detail view: assigned via `iframe.srcdoc = view.html` in JS (not inline attribute) to avoid mobile Safari + Chrome parser stalls on 70KB+ payloads.
-
-## Recent work (sessions to date)
-
-| Feature | Commit |
-|---|---|
-| JPG thumbnails (#1) | `0f2b0aa` |
-| Remove draft flow (#2) | `69df76b` |
-| Split GitHub layer to js/github.js (#3) | `b782d0f` |
-| Bulk upload via Tree API (#4) | `b9dac7e` |
-| Unused-curated-tag detector (#5) | `3325d1e` |
-| Bulk upload moved into Share section + "Share prompton" rename | `34f2010` |
-| Auto-derive tags, drop manual entry, junk-tag cleanup | `baf8911` |
-| Extract CSS to css/main.css | `76dab88` |
-| Extract render layer to js/render.js | `30e6819` |
-| Extract upload/bulk to js/upload.js | `5e18457` |
-| Extract tag system to js/tags.js | `f7d74c4` |
-| Extract router to js/router.js | `3d6489c` |
-| SW v4 + precache split shell | `9759f5e` |
-| iframe.srcdoc → JS assignment | `b29d91c` |
-| Rankings view + profile DL visible on mobile + tag input width | `7f4e484` |
-| Responsive: nav stays 1-row on iPhone-mini | `3fb7cfd` |
-
-## OPEN ASKS (with user decisions from final turn)
-
-User confirmed in the migration message:
-- **#5 mobile redesign**: **Instagram app風** (vertical scrolling feed, bottom-tab nav, full-bleed media)
-- **#8 genre = playlist**: User-defined like Spotify playlists (so: any user creates a "playlist" / collection of prompts, gives it a name + color)
-- **#10 @you rename**: `@chinchin` is the target new handle
-- **#3 thumbnails via GitHub Actions + Playwright**: **YES, proceed**
-
-### Pending items (all from one big feedback dump — see chat history above this handoff if available)
-
-1. **Download/Fork counts must persist accurately**
-   - Currently `p.downloads++` only updates memory + localStorage; not pushed to manifest. Lost on reload.
-   - Owner-only fix is easy (PUT manifest on increment). True multi-user counts need backend (#4).
-
-2. **Live preview slow / requires Open Standalone first**
-   - Fix: switch detail iframe from `srcdoc=` to `src="htmls/<id>.html"`. Browser streams + parses faster. Same URL as standalone → guaranteed render.
-   - Edit `js/render.js` around the `previewIframe.srcdoc =` line (added recently in detail render).
-
-3. **Thumbnails: smarter pipeline** ⭐ **user said YES**
-   - Add `.github/workflows/thumbnails.yml` that on push of `htmls/*.html`:
-     - Uses Playwright headless Chrome
-     - Loads each new/changed HTML, waits for network idle + ~2s
-     - Screenshots 1280×1280 → WebP @ q=82
-     - Commits `thumbs/<id>.webp` + updates manifest's `thumb` field
-   - Then remove client-side html2canvas dependency (and Brave-shield problem from #14).
-   - First implementation tip: trigger only on `htmls/*` changes, skip if manifest-only commit, use `[skip ci]` in bot commits.
-
-4. **Account system** (multi-user)
-   - GitHub OAuth via Cloudflare Pages Functions (free tier). Each user logs in, server holds the master PAT for writes, audits who wrote what.
-   - Big lift; not started.
-
-5. **Mobile redesign — Instagram app風** ⭐ user choice
-   - Bottom tab nav: 🏠 Feed / 🔍 Search / ❤ Favorites / 👤 Profile / ＋ Share (center FAB)
-   - Feed: vertical scroll, one prompt per row, large thumbnail (full-bleed width), title + author below, hearts + downloads on the right
-   - Stories-bar at top showing recent uploads as circular avatars (optional)
-   - Tap row → detail (slide-up modal)
-   - Use `@media (max-width: 680px)` or a `body.mobile-app` class added via JS based on viewport + ua.
-
-6. **Rankings: drop emoji** — change `🏆 Rankings` to just `Rankings` in nav (`index.html`) and the H1 in `renderRankings()` (`js/render.js`).
-
-7. **i18n (Japanese)**
-   - `i18n/ja.json` + `i18n/en.json` (key→value)
-   - `t(key, vars)` helper, detects `navigator.language` first time, language toggle in Settings
-   - Wrap every visible string — there are MANY. Start with: nav, gallery headers, filter bar, detail action buttons, profile stats, rankings, settings.
-
-8. **Playlists / Genres** ⭐ user choice: user-defined like Spotify
-   - New `playlists.json` (server-side state) — `{ id, name, color, owner, promptIds: [], cover?: string }`
-   - New view `#/playlists` showing playlist tiles in colored grid
-   - "+ New playlist" button (owner only)
-   - Detail page `#/playlists/<id>` shows prompts in that playlist
-   - "Add to playlist" button on prompt detail (owner only — needs auth from #4 for multi-user)
-   - For solo use, localStorage-only mode works; for shared, push to repo.
-
-9. **Favorites + replace profile "Downloads" with "Favorites"**
-   - `localStorage` key: `prompton_favorites_v1: [id, id, ...]`
-   - Heart button (filled = favorited) on card overlay + detail header
-   - Profile stat card "Downloads" → "Favorites" with count = `favorites.length`
-   - New profile tab "Favorites" listing those prompts
-   - **Privacy**: localStorage is per-device so naturally private — no sharing logic needed yet
-   - Note: this conflicts with #1 (which asked for download count display) — resolve by KEEPING download count in card stats but using FAVORITES as the profile headline metric.
-
-10. **@you handle rename to @chinchin** ⭐ user choice
-    - In Settings/profile editor, add a "Username" field (validation: `^[a-z0-9_.-]{3,20}$`, must not collide with existing handles in `profiles.json`)
-    - On save: rewrite `profiles.json` (rename key from old handle to new), rewrite every `prompt.author === oldHandle` to new handle across manifest, push as one commit
-    - Initial action for this user: change `you` → `chinchin` everywhere
-
-11. **"+ Share a prompt" button → "Share a prompton"**
-    - `index.html` line ~21: `<button class="btn-upload" data-nav="upload">＋ Share a prompton</button>`
-    - Also: at ≤380px the button collapses to just `＋` via the mobile CSS rule.
-
-12. **Color palette refresh** — Stanford / California / San Francisco vibe, both light + dark
-    - Light: paper `#fafaf6`, ink `#1c1c20`, accent **Stanford Cardinal** `#8C1515`, gold `#c9a14a`, rule `#c4c4c2` (issue-line border needs to be darker than current)
-    - Dark: bg `#0e1014` (Bay night), text `#e8e6e1`, accent `#b53a3a` (warm cardinal) or `#7a8b95` (SF fog), rule `#2a2e35`
-    - Edit CSS variables at top of `css/main.css` (`:root, :root[data-theme="light"]` and `:root[data-theme="dark"]`)
-
-13. **Stale thumbnails** — current thumbs sometimes show outdated content
-    - Add `thumbVer` field to manifest entries (Date.now() on regen)
-    - Card render: `src="${p.thumb}?v=${p.thumbVer || ''}"` to bust browser cache
-    - Change SW from cache-first to stale-while-revalidate for `/thumbs/*` so fresh thumbs propagate within a refresh
-
-14. **Brave compatibility**
-    - Brave Shields blocks cdnjs.cloudflare.com by default → html2canvas load fails → thumbnail generation silently breaks → Brave users may see other issues too
-    - Quick fix: download html2canvas 1.4.1 locally to `js/html2canvas.min.js`, change `loadHtml2Canvas()` in `js/github.js` to load from same origin
-    - Better fix: ship #3 (Playwright workflow), then client never needs html2canvas
-
-## Implementation order recommended for next session
-
-**Phase A — Quick wins** (~30 min total):
-- #11 button rename
-- #6 drop emoji
-- #2 iframe.srcdoc → iframe.src
-- #12 palette refresh (CSS variables only)
-- #13 thumb cache bust
-- #14 html2canvas local copy (so Brave works today)
-
-**Phase B — Solo user features** (~2 hours):
-- #9 Favorites (with localStorage)
-- #10 rename @you → @chinchin (one-shot rewrite + ongoing editable field)
-- #7 i18n scaffolding (just `t()` + JP/EN toggle + translate visible strings)
-- #1 download counter persistence (owner-only first)
-
-**Phase C — Big lifts** (each is its own session):
-- #3 GitHub Actions + Playwright thumbnails
-- #5 Instagram-style mobile redesign
-- #8 Playlists feature
-- #4 OAuth multi-user backend
-
-## Known operational notes
-
-- `git pull --rebase origin main && git push origin main` is the standard publish loop after commits.
-- Service worker v4 is current. Bump to v5 if shell assets change to force refresh.
-- `_uploadTagPicker` is a global mounted at bootstrap. Calls: `.getTags()`, `.setTags([])`.
-- `compareMode = true` no longer shows floating pill; selecting 2 cards auto-jumps to compare.
-- `cleanupHtml(raw)` is the canonical HTML normalizer (BOM strip, CRLF→LF, comment strip, blank-line collapse).
-- Any template literal that emits HTML containing `</script>` MUST use `const SC = '<' + '/script>'` — see `generateOGPageHtml` in `js/github.js` for the pattern.
-
-## User preferences
-
-- **Allow everything, NO permission prompts** — don't ask before write/edit/commit
-- Japanese + English mixed — respond in Japanese when user writes in Japanese
-- iPhone usage is real — mobile UX matters
-- Wants honest opinions; first option in any list should be the recommendation
-- Iterative shipping: small commits, verify in browser between changes
-
-## Windows / PowerShell gotchas
-
-- UTF-8 BOM for `.ps1` files with non-ASCII
-- `2>&1` on native exes wraps stderr as `NativeCommandError` — don't redirect
-- Bash tool's CWD doesn't persist between calls — chain commands or use `cd /c/Users/松村峻長/prompton && …`
-- Git pull warns about LF→CRLF — harmless
-
-## Verification workflow
-
-1. Edit with `Edit` tool
-2. Reload preview: `mcp__Claude_Preview__preview_eval` → `location.reload()`
-3. If edits don't appear: unregister SW + clear caches:
-   ```js
-   (async () => { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); for (const c of await caches.keys()) await caches.delete(c); location.reload(); })()
-   ```
-4. Verify with `preview_eval` returning state JSON
-5. `preview_console_logs` for errors
-6. Commit + push: `cd /c/Users/松村峻長/prompton && git add <file> && git commit -m "..." && git pull --rebase origin main && git push origin main`
+All extracted files are regular `<script>` (not modules) so functions stay
+globals.
 
 ---
 
-**Start the next session with**: read this file, confirm the phase A items are still wanted, then begin with #11 + #6 + #2 as the warm-up.
+## Architecture rules (still apply)
+
+- **Bootstrap is async** — `fetchSeed()` then hydrate, then `renderGallery()`.
+  Every step is now wrapped in `try/catch` so a partial failure can't strand
+  the user on a blank screen (commit `279eee7`).
+- **Owner ops** gated by `isOwner()` — true when PAT + repo are in localStorage
+  (`prompton_sync_v1`).
+- **Hash routes**: `#/`, `#/p/<id>`, `#/profile/<handle>`, `#/settings`,
+  `#/rankings`, `#/rankings/forks`, `#/playlists`, `#/playlists/<id>`.
+  `setRoute()` uses `replaceState` — internal nav doesn't re-fire the router.
+- **Tags**: `tagConfig.curated` is auto-derived from prompt usage at
+  bootstrap and on save. Aliases stay manual.
+- **Thumbnails**: workflow only. No client-side generation. Manifest's
+  `thumb` + `thumbVer` fields are written by `.github/scripts/generate-thumbs.mjs`.
+- **i18n**: `t(key, vars)` is TDZ-safe — if `i18nDict` isn't initialized yet
+  it returns the key. Locale files at `i18n/<locale>.json`. Toggle in Settings.
+- **Mobile mode**: `body.mobile-app` is added when `matchMedia('(max-width: 680px)')`
+  matches. Stories bar shows on every viewport now (overridden out of
+  `body.mobile-app` scope in `d955ed1`).
+- **Drafts**: `prompton_drafts_v1` in localStorage. Tap a story tile →
+  `openDraftEditorModal`. Publish calls `publishDraftDirect(title, body)`
+  which constructs a minimal prompt object and pushes to GitHub. Deletes
+  the draft on success.
+- **GitHub URL import**: `fetchFromGitHubUrl(url)` accepts raw, blob, and
+  gist URLs. Used by the draft modal's "From GitHub URL" button.
+
+---
+
+## Known issues / open asks (from the most recent user feedback)
+
+These are direct user quotes. Cross-reference with the verification steps in
+"START HERE" above.
+
+1. **🔴 「コンテンツが消えた」 / 「設定ギアが動かない」** — see top of file.
+   Highest priority.
+
+2. **「投稿できない」** — was reported earlier, was traced to the upload-form
+   prefill bug. The fix was to bypass the upload form entirely and publish
+   directly from the draft modal (`publishDraftDirect`). Verify this actually
+   works end-to-end on the live site by:
+   - Open the homepage
+   - Tap the "+ 新規" tile in the stories bar
+   - Paste an HTML snippet, give it a title
+   - Tap "投稿" → should commit to GitHub, return to feed, and the new card
+     should appear in the gallery (probably after a manifest refresh)
+
+3. **「ストーリー：パソコンに表示されない」** — was reported earlier; the CSS
+   was changed in `d955ed1` to remove the `body.mobile-app` scope so the
+   stories bar shows on every viewport. Verify it actually renders on
+   desktop now.
+
+4. **「上部帯の灰色をやめよう」** — done in `d955ed1`: `.issue-line {
+   display: none; }`. Verify nothing depends on `#issueDate` /
+   `#issueCount` (those `<span>`s were removed from the markup).
+
+5. **絵文字削除** — picture emoji are gone (🏠 🔍 ❤ 👤 🗑 ⇄ ♫). Typography
+   glyphs (♥ ♡ ⑂ ＋ ↗ ↓ ⎘ ✎) still in detail buttons, card stats, etc.
+   If the user wants those gone too, scrub `i18n/en.json` + `ja.json` +
+   any inline JSX-style strings in `js/render.js`.
+
+6. **Numbers are real numbers** — `formatNum` uses
+   `Number.toLocaleString(currentLocale === 'ja' ? 'ja-JP' : 'en-US')`.
+   No "2.1k" anywhere. Verify by visiting a prompt with high downloads
+   (look at seeded profiles — Tomas Lind, Eleanor Rosa).
+
+---
+
+## What the next session should do, in order
+
+1. **Reproduce in a real browser** the "blank gallery" + "settings gear
+   dead" reports. Use Chrome desktop + iPhone Safari. Capture console
+   warns / errors verbatim.
+2. **Resolve the diverged local repo** — see "Local git is diverged"
+   section. Decide with the user whether to:
+   - Resolve the manifest conflict and keep both new sets of prompts,
+   - Or drop the local `780b0f8` (the 8-bit + Elegant 調整さん) if the
+     user already pushed them from somewhere else.
+3. **Fix or revert** the masthead inline-search if it's the cause of
+   the settings-gear regression.
+4. **Verify drafts end-to-end** — paste an HTML snippet, hit 投稿,
+   confirm a real prompt lands in the feed and on GitHub.
+5. **Continue Instagram polish** — likely candidates:
+   - Keyboard nav in the search suggest (↑/↓/Enter/Esc)
+   - Pull-to-refresh on the mobile feed
+   - Story viewer: tap a story tile → full-screen preview overlay (not
+     just the edit modal)
+   - Auto-save drafts as the user types (2-sec debounce)
+
+---
+
+## Operational notes (Windows / PowerShell / etc.)
+
+- `cd /c/Users/松村峻長/prompton` first in bash sessions — the Bash tool's
+  CWD doesn't persist between calls.
+- Git pull warns about LF→CRLF — harmless.
+- UTF-8 BOM for `.ps1` files with non-ASCII.
+- `2>&1` on native exes wraps stderr as `NativeCommandError` — don't redirect.
+- Don't skip hooks unless explicitly asked.
+- **Commits should be plain text with no `<` characters in the heredoc
+  body** — PowerShell will complain. Use `1280 -> 640` not `1280→640`
+  inside `cat <<'EOF'`.
+
+---
+
+## User preferences (from earlier sessions, still apply)
+
+- **Allow everything, no permission prompts** — don't ask before write/edit/commit.
+- **Respond in Japanese** when the user writes in Japanese, and stay in
+  Japanese for the rest of the conversation if explicitly asked to switch
+  (see `~/.claude/projects/.../memory/feedback_language.md`).
+- **iPhone usage is real** — mobile UX matters; verify on small viewports.
+- **Honest opinions** — first option in any list should be the recommendation.
+- **Iterative shipping** — small commits, verify in browser between changes.
+- **Instagram is the explicit design north star** — "インスタグラムを完全に師
+  と仰いで". Strip ornamentation aggressively.
+
+---
+
+## Verification workflow (still valid)
+
+1. Edit with `Edit` / `Write` tools.
+2. Reload preview: `mcp__Claude_Preview__preview_eval` → `location.reload()`.
+3. If edits don't appear: unregister SW + clear caches:
+
+   ```js
+   (async () => {
+     for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+     for (const c of await caches.keys()) await caches.delete(c);
+     location.reload();
+   })()
+   ```
+
+4. Verify with `preview_eval` returning state JSON.
+5. `preview_console_logs` for errors.
+6. Commit + push:
+
+   ```bash
+   cd /c/Users/松村峻長/prompton && git add <files> && \
+     git commit -m "..." && \
+     git pull --rebase origin main && \
+     git push origin main
+   ```
+
+**⚠️ Caveat from this session**: `mcp__Claude_Preview__preview_resize`
+seemed to stick the viewport at narrow widths (164px) even after resetting
+to desktop. If the in-tool preview is misbehaving, trust a real browser
+over the preview tool.
+
+---
+
+**Start the next session with**: open
+<https://morohami.github.io/prompton/> in Chrome with DevTools open. Confirm
+or refute the "blank gallery" + "dead settings gear" reports. Then proceed
+through the "What the next session should do" list.
