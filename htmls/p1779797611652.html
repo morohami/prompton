@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東京被災マップ — Step 4</title>
+<title>東京被災マップ — Step 5</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
@@ -151,9 +151,102 @@
     border-color: var(--border) !important;
   }
   .leaflet-control-zoom a:hover { background: #22223a !important; }
+
+  /* === ロード画面 === */
+  #loader {
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, #1a1a28 0%, #0a0a0f 70%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  .loader-logo {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    background: linear-gradient(135deg,
+      var(--war-crimson) 0%,
+      var(--fire-red) 25%,
+      var(--quake-orange) 50%,
+      var(--water-blue) 80%,
+      var(--accent) 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: logo-shift 4s ease-in-out infinite;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .loader-en {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    color: var(--text-secondary);
+    margin-bottom: 36px;
+    text-transform: uppercase;
+  }
+  @keyframes logo-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+
+  /* ローダーバー */
+  .loader-bar {
+    width: 220px; height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .loader-bar::after {
+    content: '';
+    position: absolute; top: 0; left: -40%;
+    width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--fire-red), var(--water-blue), transparent);
+    animation: loader-sweep 1.4s ease-in-out infinite;
+  }
+  @keyframes loader-sweep {
+    0%   { left: -40%; }
+    100% { left: 100%; }
+  }
+
+  .loader-tagline {
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+  }
+  .loader-tagline .dot {
+    display: inline-block;
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 6px;
+    vertical-align: middle;
+    animation: dot-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes dot-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50%      { opacity: 1;   transform: scale(1.2); }
+  }
 </style>
 </head>
 <body>
+
+<!-- ロード画面 -->
+<div id="loader">
+  <div class="loader-logo">東京被災マップ</div>
+  <div class="loader-en">TOKYO &nbsp;·&nbsp; DISASTER &nbsp;·&nbsp; ATLAS</div>
+  <div class="loader-bar"></div>
+  <div class="loader-tagline">
+    武蔵国 400年の記憶を読み込み中<span class="dot"></span>
+  </div>
+</div>
 
 <aside id="sidebar">
   <div class="sidebar-header">
@@ -179,7 +272,7 @@
   </div>
 
   <div class="sidebar-footer">
-    <span class="step-badge">Step 4</span>サイドバー枠
+    <span class="step-badge">Step 5</span>ロード画面 + ロゴ
   </div>
 </aside>
 
@@ -188,28 +281,44 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // 武蔵国スケール：多摩西端（奥多摩）〜千葉境（江戸川）、
-  // 北は児玉・大里、南は横浜・川崎の多摩川南岸あたりまで包含
+  // 武蔵国スケール：多摩西端（奥多摩）〜千葉境（江戸川）。
+  // 境界は少し余裕を持たせ、東は浦安・市川あたりまで含めて切れないように。
   const MUSASHI_BOUNDS = L.latLngBounds(
-    [35.40, 138.90],  // 南西（多摩西端・横浜南端側）
-    [36.30, 140.05]   // 北東（埼玉北端・千葉境）
+    [35.30, 138.80],  // 南西（多摩西端・横浜南端側）
+    [36.40, 140.30]   // 北東（埼玉北端・千葉県境を少し越える）
+  );
+
+  // 初期ビュー用は少し狭め（武蔵国らしい範囲）
+  const INITIAL_BOUNDS = L.latLngBounds(
+    [35.45, 139.00],
+    [36.20, 140.10]
   );
 
   const map = L.map('map', {
     zoomControl: false,
     maxBounds: MUSASHI_BOUNDS,
-    maxBoundsViscosity: 1.0,
+    maxBoundsViscosity: 0.6,  // 粘性を緩めてズーム時にも自由に動かせる
     minZoom: 9,
     maxZoom: 18
   });
 
-  map.fitBounds(MUSASHI_BOUNDS, { padding: [20, 20] });
+  map.fitBounds(INITIAL_BOUNDS, { padding: [20, 20] });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  // ロード画面のフェードアウト：初回タイル読み込み完了 or 最低 800ms 表示
+  const loader = document.getElementById('loader');
+  const minDelay = new Promise(r => setTimeout(r, 800));
+  const tilesReady = new Promise(r => tileLayer.once('load', r));
+  // 安全弁：タイルが遅すぎても 4秒で閉じる
+  const safetyTimeout = new Promise(r => setTimeout(r, 4000));
+
+  Promise.all([minDelay, Promise.race([tilesReady, safetyTimeout])])
+    .then(() => loader.classList.add('hidden'));
 });
 </script>
 </body>
