@@ -1,5 +1,25 @@
 [
   {
+    "id": "p1779821110927",
+    "title": "test",
+    "description": "",
+    "systemPrompt": "",
+    "userPrompt": "",
+    "context": "",
+    "model": "Claude Opus 4.7",
+    "license": "CC0 — Public domain",
+    "tags": [],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-05-26",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "p1779797611652",
     "title": "東京被災マップ — Step 4 (WIP)",
     "description": "武蔵国 (多摩含む) を対象に、400年の被災史 × 現代ハザード × 公示地価を重ねるインタラクティブ地図の制作途中版。Step 1-4 完了：Leaflet 1.9.4 + OSM タイルをダークテーマ (CSS filter 反転) で表示、武蔵国スケールに setMaxBounds、左固定 340px サイドバーの枠を設置。全20ステップ予定 (戦争/大火/地震/水害/現代ハザード/地価レイヤー + タイムライン + クリック履歴カード + プリセット)。",
