@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東京被災マップ — Step 9</title>
+<title>東京被災マップ — Step 14</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
@@ -34,36 +34,30 @@
     overflow: hidden;
   }
 
-  /* === Layout: sidebar (left, fixed) + map (right) === */
+  /* === Layout === */
   #sidebar {
-    position: fixed;
-    top: 0; left: 0;
-    width: var(--sidebar-w);
-    height: 100vh;
+    position: fixed; top: 0; left: 0;
+    width: var(--sidebar-w); height: 100vh;
     background: var(--bg-panel);
     border-right: 1px solid var(--border);
     box-shadow: 4px 0 16px rgba(0,0,0,0.4);
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
     z-index: 1000;
   }
   #map {
-    position: fixed;
-    top: 0; left: var(--sidebar-w);
-    width: calc(100vw - var(--sidebar-w));
-    height: 100vh;
+    position: fixed; top: 0; left: var(--sidebar-w);
+    width: calc(100vw - var(--sidebar-w)); height: 100vh;
     background: var(--bg-dark);
   }
 
-  /* === Sidebar内部 === */
+  /* === Sidebar === */
   .sidebar-header {
     padding: 20px 20px 16px;
     border-bottom: 1px solid var(--border);
   }
   .sidebar-header h1 {
     margin: 0 0 4px;
-    font-size: 20px;
-    font-weight: 900;
+    font-size: 20px; font-weight: 900;
     letter-spacing: 0.02em;
     background: linear-gradient(135deg, var(--fire-red), var(--quake-orange), var(--water-blue));
     -webkit-background-clip: text;
@@ -71,34 +65,30 @@
     background-clip: text;
   }
   .sidebar-header .subtitle {
-    font-size: 11px;
-    color: var(--text-secondary);
+    font-size: 11px; color: var(--text-secondary);
     letter-spacing: 0.05em;
   }
 
   .sidebar-body {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1; overflow-y: auto;
     padding: 16px 16px 24px;
+    position: relative;
   }
   .sidebar-body::-webkit-scrollbar { width: 8px; }
   .sidebar-body::-webkit-scrollbar-track { background: transparent; }
   .sidebar-body::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
+    background: var(--border); border-radius: 4px;
   }
   .sidebar-body::-webkit-scrollbar-thumb:hover { background: #3a3a52; }
 
   .section-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--text-secondary);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em; color: var(--text-secondary);
     text-transform: uppercase;
     margin: 8px 4px 10px;
   }
 
-  /* カテゴリ行（Step 12で動作実装、ここでは枠だけ） */
+  /* カテゴリ行 */
   .cat-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
   .cat-row {
     display: flex; align-items: center; gap: 10px;
@@ -119,10 +109,8 @@
   .cat-count { font-size: 11px; color: var(--text-secondary); }
 
   .sidebar-footer {
-    padding: 12px 20px;
-    border-top: 1px solid var(--border);
-    font-size: 10px;
-    color: var(--text-secondary);
+    padding: 12px 20px; border-top: 1px solid var(--border);
+    font-size: 10px; color: var(--text-secondary);
     letter-spacing: 0.05em;
   }
   .sidebar-footer .step-badge {
@@ -136,7 +124,107 @@
     margin-right: 8px;
   }
 
-  /* === Leaflet ダークモード タイル反転 === */
+  /* === Default sidebar content & history view: 切替 === */
+  .sb-default { display: block; }
+  .sb-history { display: none; }
+  .sidebar-body.show-history .sb-default { display: none; }
+  .sidebar-body.show-history .sb-history { display: block; }
+
+  /* === History panel === */
+  .hp-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .hp-back {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font: inherit; font-size: 12px; font-weight: 700;
+    padding: 6px 12px; border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .hp-back:hover { background: #20203a; border-color: #3a3a52; }
+  .hp-coords {
+    flex: 1; font-size: 10px; color: var(--text-secondary);
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
+  .hp-title {
+    font-size: 13px; font-weight: 900;
+    margin: 4px 0 14px;
+    color: var(--text-primary);
+  }
+  .hp-title .accent { color: var(--accent); }
+
+  .hp-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .hp-card-year {
+    font-size: 18px; font-weight: 900;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  }
+  .hp-card-cat {
+    display: inline-block;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 6px; border-radius: 3px;
+    color: #0a0a0f;
+    text-transform: uppercase;
+    vertical-align: 2px;
+    margin-left: 6px;
+  }
+  .hp-card-name {
+    font-size: 13px; font-weight: 700;
+    margin-top: 4px;
+  }
+  .hp-card-sublabel {
+    font-size: 11px; color: var(--accent);
+    margin-top: 2px;
+  }
+  .hp-card-desc {
+    color: var(--text-secondary);
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .hp-empty {
+    text-align: center; padding: 32px 12px;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .hp-empty .icon { font-size: 28px; margin-bottom: 6px; opacity: 0.6; }
+
+  /* クリック位置マーカー（パルス） */
+  .click-pulse {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(110, 110, 255, 0.6);
+    animation: click-pulse 1.5s ease-out infinite;
+    border: 2px solid #fff;
+    transform: translate(-50%, -50%);
+  }
+  @keyframes click-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(110, 110, 255, 0.7); }
+    70%  { box-shadow: 0 0 0 18px rgba(110, 110, 255, 0); }
+    100% { box-shadow: 0 0 0 0   rgba(110, 110, 255, 0); }
+  }
+
+  /* === Leaflet ダーク === */
   .leaflet-tile-pane {
     filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.85) saturate(0.7);
   }
@@ -162,29 +250,23 @@
     transition: opacity 0.6s ease, visibility 0.6s ease;
   }
   #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
   .loader-logo {
-    font-size: 44px;
-    font-weight: 900;
+    font-size: 44px; font-weight: 900;
     letter-spacing: 0.06em;
     background: linear-gradient(135deg,
-      var(--war-crimson) 0%,
-      var(--fire-red) 25%,
-      var(--quake-orange) 50%,
-      var(--water-blue) 80%,
+      var(--war-crimson) 0%, var(--fire-red) 25%,
+      var(--quake-orange) 50%, var(--water-blue) 80%,
       var(--accent) 100%);
     background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: logo-shift 4s ease-in-out infinite;
-    margin-bottom: 8px;
-    text-align: center;
+    margin-bottom: 8px; text-align: center;
   }
   .loader-en {
     font-family: 'Zen Kaku Gothic New', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 11px; font-weight: 700;
     letter-spacing: 0.32em;
     color: var(--text-secondary);
     margin-bottom: 36px;
@@ -194,40 +276,30 @@
     0%, 100% { background-position: 0% 50%; }
     50%      { background-position: 100% 50%; }
   }
-
-  /* ローダーバー */
   .loader-bar {
     width: 220px; height: 2px;
     background: var(--border);
     border-radius: 2px;
-    overflow: hidden;
-    position: relative;
+    overflow: hidden; position: relative;
   }
   .loader-bar::after {
-    content: '';
-    position: absolute; top: 0; left: -40%;
+    content: ''; position: absolute; top: 0; left: -40%;
     width: 40%; height: 100%;
     background: linear-gradient(90deg, transparent, var(--fire-red), var(--water-blue), transparent);
     animation: loader-sweep 1.4s ease-in-out infinite;
   }
   @keyframes loader-sweep {
-    0%   { left: -40%; }
-    100% { left: 100%; }
+    0% { left: -40%; } 100% { left: 100%; }
   }
-
   .loader-tagline {
-    margin-top: 24px;
-    font-size: 11px;
+    margin-top: 24px; font-size: 11px;
     color: var(--text-secondary);
     letter-spacing: 0.08em;
   }
   .loader-tagline .dot {
-    display: inline-block;
-    width: 4px; height: 4px;
-    background: var(--accent);
-    border-radius: 50%;
-    margin: 0 6px;
-    vertical-align: middle;
+    display: inline-block; width: 4px; height: 4px;
+    background: var(--accent); border-radius: 50%;
+    margin: 0 6px; vertical-align: middle;
     animation: dot-pulse 1.4s ease-in-out infinite;
   }
   @keyframes dot-pulse {
@@ -235,55 +307,31 @@
     50%      { opacity: 1;   transform: scale(1.2); }
   }
 
-  /* === Leaflet popup ダーク化 === */
-  .leaflet-popup-content-wrapper {
-    background: var(--bg-card) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
+  /* ヒント */
+  .map-hint {
+    position: absolute; bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(18,18,26,0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 11px; color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    z-index: 500;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
-  .leaflet-popup-tip {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-  }
-  .leaflet-popup-content {
-    margin: 12px 16px !important;
-    font-size: 12px;
-    line-height: 1.55;
-  }
-  .leaflet-popup-content .pop-title {
-    font-weight: 900;
-    font-size: 13px;
-    margin-bottom: 4px;
-    display: block;
-  }
-  .leaflet-popup-content .pop-year {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    display: block;
-  }
-  .leaflet-popup-content .pop-desc {
-    color: var(--text-secondary);
-    margin-top: 4px;
-  }
-  .leaflet-popup-content .pop-cat {
+  .map-hint .kbd {
     display: inline-block;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    padding: 2px 6px;
+    padding: 1px 6px; margin: 0 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 3px;
-    margin-right: 6px;
-    text-transform: uppercase;
-    color: #0a0a0f;
+    color: var(--text-primary); font-weight: 700;
+    font-size: 10px;
   }
-  .leaflet-container a.leaflet-popup-close-button {
-    color: var(--text-secondary) !important;
-  }
+  .map-hint.hidden { opacity: 0; }
 </style>
 </head>
 <body>
@@ -304,35 +352,50 @@
     <div class="subtitle">武蔵国 400年の被災史 × 現代ハザード</div>
   </div>
 
-  <div class="sidebar-body">
-    <div class="section-title">カテゴリ</div>
-    <div class="cat-list" id="cat-list">
-      <div class="cat-row"><span class="cat-dot" style="color:var(--war-crimson);   background:var(--war-crimson);"></span>   <span class="cat-label">戦争・内乱</span> <span class="cat-count">—</span></div>
-      <div class="cat-row"><span class="cat-dot" style="color:var(--fire-red);      background:var(--fire-red);"></span>      <span class="cat-label">大火</span>     <span class="cat-count">—</span></div>
-      <div class="cat-row"><span class="cat-dot" style="color:var(--quake-orange);  background:var(--quake-orange);"></span>  <span class="cat-label">地震</span>     <span class="cat-count">—</span></div>
-      <div class="cat-row"><span class="cat-dot" style="color:var(--water-blue);    background:var(--water-blue);"></span>    <span class="cat-label">水害・台風</span> <span class="cat-count">—</span></div>
-      <div class="cat-row"><span class="cat-dot" style="color:var(--hazard-yellow); background:var(--hazard-yellow);"></span> <span class="cat-label">現代ハザード</span> <span class="cat-count">—</span></div>
-      <div class="cat-row"><span class="cat-dot" style="color:var(--price-green);   background:var(--price-green);"></span>   <span class="cat-label">地価</span>     <span class="cat-count">—</span></div>
+  <div class="sidebar-body" id="sidebar-body">
+    <!-- デフォルトビュー -->
+    <div class="sb-default">
+      <div class="section-title">カテゴリ</div>
+      <div class="cat-list" id="cat-list">
+        <div class="cat-row"><span class="cat-dot" style="color:var(--war-crimson);   background:var(--war-crimson);"></span>   <span class="cat-label">戦争・内乱</span> <span class="cat-count">—</span></div>
+        <div class="cat-row"><span class="cat-dot" style="color:var(--fire-red);      background:var(--fire-red);"></span>      <span class="cat-label">大火</span>     <span class="cat-count">—</span></div>
+        <div class="cat-row"><span class="cat-dot" style="color:var(--quake-orange);  background:var(--quake-orange);"></span>  <span class="cat-label">地震</span>     <span class="cat-count">—</span></div>
+        <div class="cat-row"><span class="cat-dot" style="color:var(--water-blue);    background:var(--water-blue);"></span>    <span class="cat-label">水害・台風</span> <span class="cat-count">—</span></div>
+        <div class="cat-row"><span class="cat-dot" style="color:var(--hazard-yellow); background:var(--hazard-yellow);"></span> <span class="cat-label">現代ハザード</span> <span class="cat-count">—</span></div>
+        <div class="cat-row"><span class="cat-dot" style="color:var(--price-green);   background:var(--price-green);"></span>   <span class="cat-label">地価</span>     <span class="cat-count">—</span></div>
+      </div>
+      <div class="section-title">タイムライン</div>
+      <div style="padding: 16px 12px; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 12px; text-align: center;">
+        Step 15 で実装予定
+      </div>
     </div>
 
-    <div class="section-title">タイムライン</div>
-    <div style="padding: 16px 12px; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 12px; text-align: center;">
-      Step 15 で実装予定
+    <!-- 履歴ビュー（クリック後に表示） -->
+    <div class="sb-history" id="history-view">
+      <div class="hp-head">
+        <button class="hp-back" id="hp-back">← 戻る</button>
+        <div class="hp-coords" id="hp-coords"></div>
+      </div>
+      <div class="hp-title" id="hp-title"></div>
+      <div id="hp-results"></div>
     </div>
   </div>
 
   <div class="sidebar-footer">
-    <span class="step-badge">Step 6–9</span>歴史レイヤー（戦争・大火・地震・水害）
+    <span class="step-badge">Step 14</span>クリック→履歴カード
   </div>
 </aside>
 
 <div id="map"></div>
+<div class="map-hint" id="map-hint">
+  地図を <span class="kbd">クリック</span> でその地点の被災履歴を表示
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-// ======================================================
-//   カテゴリ定義
-// ======================================================
+// =====================================================================
+//   CATEGORIES — カテゴリ定義
+// =====================================================================
 const CATEGORIES = {
   war:    { label: '戦争・内乱',  color: '#cc2255' },
   fire:   { label: '大火',        color: '#ff4444' },
@@ -342,270 +405,389 @@ const CATEGORIES = {
   price:  { label: '地価',        color: '#30d98a' }
 };
 
-// ======================================================
-//   レイヤーデータ（Step 6-9 ぶん）
-//   ※ 座標はすべて近似値。正確な被災範囲は資料館 GeoJSON 化が必要。
-// ======================================================
+// =====================================================================
+//   LAYERS_DATA — 被災レイヤー
+//
+//   ★ スキーマ（後で破壊しないこと） ★
+//   {
+//     id:        'unique-string',
+//     cat:       'war' | 'fire' | 'quake' | 'flood' | 'hazard' | 'price',
+//     year:      数値（複数日にまたがる場合は代表年）,
+//     name:      '表示名',
+//     desc:      '説明文',
+//     source:    '出典文字列（誰のどの資料か）',
+//     precision: 'approx' | 'verified',
+//     features:  GeoJSON Feature[]（標準形）
+//   }
+//
+//   features は GeoJSON 標準なので、農研機構/国会図書館/内閣府の
+//   GeoJSON を取得したら、その feature 配列で **丸ごと差し替え** 可能。
+//   renderer / クリック判定はすべて features を参照するため、データ更新が
+//   描画ロジックに影響しない設計。
+//
+//   座標順序は GeoJSON 仕様通り [longitude, latitude]（lat,lng ではない）。
+// =====================================================================
 const LAYERS_DATA = [
-  // ───────────── 戦争・内乱 ─────────────
+  // ───────── 戦争・内乱 ─────────
   {
-    id: 'ueno-1868', cat: 'war', year: 1868, name: '上野戦争（彰義隊の戦い）',
+    id: 'ueno-1868', cat: 'war', year: 1868,
+    name: '上野戦争（彰義隊の戦い）',
     desc: '旧幕府軍・彰義隊と新政府軍が上野寛永寺で交戦。雨の中アームストロング砲が放たれ、わずか1日で彰義隊は壊滅。',
-    type: 'points',
-    data: [
-      { lat: 35.7155, lng: 139.7738, label: '寛永寺（本営）' },
-      { lat: 35.7148, lng: 139.7752, label: '黒門口（激戦地）' },
-      { lat: 35.7128, lng: 139.7706, label: '不忍池畔（包囲戦）' }
+    source: '近似値（HANDOFF.md 同梱）',
+    precision: 'approx',
+    features: [
+      { type:'Feature', properties:{label:'寛永寺（本営）'},      geometry:{type:'Point', coordinates:[139.7738, 35.7155]} },
+      { type:'Feature', properties:{label:'黒門口（激戦地）'},    geometry:{type:'Point', coordinates:[139.7752, 35.7148]} },
+      { type:'Feature', properties:{label:'不忍池畔（包囲戦）'},  geometry:{type:'Point', coordinates:[139.7706, 35.7128]} }
     ]
   },
   {
-    id: 'airraid-1945-03-10', cat: 'war', year: 1945, name: '東京大空襲（3月10日）',
+    id: 'airraid-1945-03-10', cat: 'war', year: 1945,
+    name: '東京大空襲（3月10日）',
     desc: 'B-29 約300機が深川・本所・浅草など下町に焼夷弾を投下。約10万人が死亡、罹災者100万人超。',
-    type: 'polygon',
-    data: [
-      [35.745, 139.785], [35.745, 139.835], [35.730, 139.860],
-      [35.690, 139.860], [35.670, 139.830], [35.680, 139.785]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.785,35.745],[139.835,35.745],[139.860,35.730],[139.860,35.690],
+      [139.830,35.670],[139.785,35.680],[139.785,35.745]
+    ]] } }]
   },
   {
-    id: 'airraid-1945-04-13', cat: 'war', year: 1945, name: '城北大空襲（4月13日）',
+    id: 'airraid-1945-04-13', cat: 'war', year: 1945,
+    name: '城北大空襲（4月13日）',
     desc: '王子・滝野川・荒川区を中心に焼夷弾。軍需工場と住宅密集地が標的に。',
-    type: 'polygon',
-    data: [
-      [35.770, 139.715], [35.785, 139.770], [35.770, 139.815],
-      [35.735, 139.810], [35.730, 139.760], [35.745, 139.715]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.715,35.770],[139.770,35.785],[139.815,35.770],[139.810,35.735],
+      [139.760,35.730],[139.715,35.745],[139.715,35.770]
+    ]] } }]
   },
   {
-    id: 'airraid-1945-05-25', cat: 'war', year: 1945, name: '山の手大空襲（5月25日）',
+    id: 'airraid-1945-05-25', cat: 'war', year: 1945,
+    name: '山の手大空襲（5月25日）',
     desc: '渋谷・新宿・港・世田谷東部の山の手地域を焼き払った最後の大空襲。皇居・赤坂離宮も延焼。',
-    type: 'polygon',
-    data: [
-      [35.690, 139.685], [35.700, 139.745], [35.680, 139.770],
-      [35.640, 139.760], [35.635, 139.700], [35.660, 139.680]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.685,35.690],[139.745,35.700],[139.770,35.680],[139.760,35.640],
+      [139.700,35.635],[139.680,35.660],[139.685,35.690]
+    ]] } }]
   },
   {
-    id: 'airraid-1945-05-29', cat: 'war', year: 1945, name: '横浜大空襲（5月29日）',
+    id: 'airraid-1945-05-29', cat: 'war', year: 1945,
+    name: '横浜大空襲（5月29日）',
     desc: 'B-29 約500機が横浜中心部を焼夷攻撃。市街地の42%が焼失、死者約8,000人。',
-    type: 'polygon',
-    data: [
-      [35.475, 139.620], [35.495, 139.660], [35.465, 139.680],
-      [35.430, 139.665], [35.420, 139.630]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.620,35.475],[139.660,35.495],[139.680,35.465],[139.665,35.430],
+      [139.630,35.420],[139.620,35.475]
+    ]] } }]
   },
 
-  // ───────────── 大火 ─────────────
+  // ───────── 大火 ─────────
   {
-    id: 'meireki-1657', cat: 'fire', year: 1657, name: '明暦の大火（振袖火事）',
+    id: 'meireki-1657', cat: 'fire', year: 1657,
+    name: '明暦の大火（振袖火事）',
     desc: '本郷丸山本妙寺から出火、3日間燃え続け江戸の60%以上が焼失。死者10万人超。江戸城天守も焼け落ち、再建されなかった。',
-    type: 'polygon',
-    data: [
-      [35.720, 139.745], [35.735, 139.770], [35.735, 139.810],
-      [35.715, 139.825], [35.680, 139.820], [35.665, 139.785],
-      [35.670, 139.750]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.745,35.720],[139.770,35.735],[139.810,35.735],[139.825,35.715],
+      [139.820,35.680],[139.785,35.665],[139.750,35.670],[139.745,35.720]
+    ]] } }]
   },
   {
-    id: 'meiwa-1772', cat: 'fire', year: 1772, name: '明和の大火（目黒行人坂火事）',
+    id: 'meiwa-1772', cat: 'fire', year: 1772,
+    name: '明和の大火（目黒行人坂火事）',
     desc: '目黒行人坂大円寺から出火し、北東に延焼。麻布・赤坂・麹町・神田まで焼き、江戸三大大火のひとつ。',
-    type: 'polygon',
-    data: [
-      [35.635, 139.700], [35.665, 139.720], [35.700, 139.745],
-      [35.715, 139.770], [35.695, 139.785], [35.660, 139.770],
-      [35.640, 139.730]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.700,35.635],[139.720,35.665],[139.745,35.700],[139.770,35.715],
+      [139.785,35.695],[139.770,35.660],[139.730,35.640],[139.700,35.635]
+    ]] } }]
   },
   {
-    id: 'bunka-1806', cat: 'fire', year: 1806, name: '文化の大火（丙寅の大火）',
+    id: 'bunka-1806', cat: 'fire', year: 1806,
+    name: '文化の大火（丙寅の大火）',
     desc: '芝車町より出火、南西の風に煽られ京橋・日本橋・神田まで焼亡。死者1,200人超。',
-    type: 'polygon',
-    data: [
-      [35.630, 139.745], [35.655, 139.755], [35.685, 139.770],
-      [35.690, 139.785], [35.670, 139.785], [35.640, 139.765]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.745,35.630],[139.755,35.655],[139.770,35.685],[139.785,35.690],
+      [139.785,35.670],[139.765,35.640],[139.745,35.630]
+    ]] } }]
   },
 
-  // ───────────── 地震 ─────────────
+  // ───────── 地震 ─────────
   {
-    id: 'ansei-1855', cat: 'quake', year: 1855, name: '安政江戸地震',
+    id: 'ansei-1855', cat: 'quake', year: 1855,
+    name: '安政江戸地震',
     desc: 'M7.0 の直下型。本所・深川・浅草など低地で被害集中。死者約7,000〜1万人。鯰絵が大量に出版された地震。',
-    type: 'polygon',
-    data: [
-      [35.690, 139.780], [35.730, 139.790], [35.735, 139.830],
-      [35.720, 139.850], [35.680, 139.840], [35.670, 139.800]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.780,35.690],[139.790,35.730],[139.830,35.735],[139.850,35.720],
+      [139.840,35.680],[139.800,35.670],[139.780,35.690]
+    ]] } }]
   },
   {
-    id: 'kanto-1923', cat: 'quake', year: 1923, name: '関東大震災',
+    id: 'kanto-1923', cat: 'quake', year: 1923,
+    name: '関東大震災',
     desc: 'M7.9。武蔵・相模を中心に死者・行方不明約10万5千人。火災旋風による被害が大半で、本所被服廠跡だけで3万8千人焼死。',
-    type: 'multipolygon',
-    data: [
-      // 東京下町〜山の手
-      [[35.680, 139.700], [35.755, 139.730], [35.770, 139.810],
-       [35.730, 139.860], [35.665, 139.860], [35.640, 139.795],
-       [35.655, 139.720]],
-      // 横浜
-      [[35.500, 139.610], [35.515, 139.660], [35.480, 139.690],
-       [35.425, 139.675], [35.410, 139.625]]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [
+      { type:'Feature', properties:{area:'東京'},   geometry:{ type:'Polygon', coordinates:[[
+        [139.700,35.680],[139.730,35.755],[139.810,35.770],[139.860,35.730],
+        [139.860,35.665],[139.795,35.640],[139.720,35.655],[139.700,35.680]
+      ]] } },
+      { type:'Feature', properties:{area:'横浜'},   geometry:{ type:'Polygon', coordinates:[[
+        [139.610,35.500],[139.660,35.515],[139.690,35.480],[139.675,35.425],
+        [139.625,35.410],[139.610,35.500]
+      ]] } }
     ]
   },
 
-  // ───────────── 水害・台風 ─────────────
+  // ───────── 水害・台風 ─────────
   {
-    id: 'meiji-1910', cat: 'flood', year: 1910, name: '明治43年大水害',
+    id: 'meiji-1910', cat: 'flood', year: 1910,
+    name: '明治43年大水害',
     desc: '梅雨末期の豪雨で利根川・荒川が決壊。東京下町・足立・葛飾・本所深川が水没、罹災者150万人超。',
-    type: 'polygon',
-    data: [
-      [35.755, 139.760], [35.820, 139.785], [35.835, 139.840],
-      [35.780, 139.880], [35.720, 139.860], [35.720, 139.820]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.760,35.755],[139.785,35.820],[139.840,35.835],[139.880,35.780],
+      [139.860,35.720],[139.820,35.720],[139.760,35.755]
+    ]] } }]
   },
   {
-    id: 'taisho-1917', cat: 'flood', year: 1917, name: '大正6年高潮',
+    id: 'taisho-1917', cat: 'flood', year: 1917,
+    name: '大正6年高潮',
     desc: '台風による東京湾高潮。深川・本所・洲崎・浦安が冠水、死者・行方不明1,300人超。隅田川以東が広く水没。',
-    type: 'polygon',
-    data: [
-      [35.620, 139.785], [35.720, 139.790], [35.735, 139.875],
-      [35.665, 139.905], [35.610, 139.850]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.785,35.620],[139.790,35.720],[139.875,35.735],[139.905,35.665],
+      [139.850,35.610],[139.785,35.620]
+    ]] } }]
   },
   {
-    id: 'kathleen-1947', cat: 'flood', year: 1947, name: 'カスリーン台風',
+    id: 'kathleen-1947', cat: 'flood', year: 1947,
+    name: 'カスリーン台風',
     desc: '利根川・荒川が決壊。埼玉から葛飾・江戸川区まで濁流が流れ、死者・行方不明1,900人。利根川東遷後最大の関東水害。',
-    type: 'polygon',
-    data: [
-      [35.760, 139.795], [35.840, 139.810], [35.860, 139.905],
-      [35.785, 139.930], [35.730, 139.895], [35.725, 139.840]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.795,35.760],[139.810,35.840],[139.905,35.860],[139.930,35.785],
+      [139.895,35.730],[139.840,35.725],[139.795,35.760]
+    ]] } }]
   },
   {
-    id: 'kanogawa-1958', cat: 'flood', year: 1958, name: '狩野川台風',
+    id: 'kanogawa-1958', cat: 'flood', year: 1958,
+    name: '狩野川台風',
     desc: '東京で神田川・善福寺川・石神井川など中小河川が氾濫。杉並・中野・板橋・北区で大規模浸水。',
-    type: 'polygon',
-    data: [
-      [35.685, 139.605], [35.745, 139.640], [35.755, 139.720],
-      [35.705, 139.745], [35.665, 139.710], [35.660, 139.650]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.605,35.685],[139.640,35.745],[139.720,35.755],[139.745,35.705],
+      [139.710,35.665],[139.650,35.660],[139.605,35.685]
+    ]] } }]
   },
   {
-    id: 'hagibis-2019', cat: 'flood', year: 2019, name: '令和元年東日本台風（19号）',
+    id: 'hagibis-2019', cat: 'flood', year: 2019,
+    name: '令和元年東日本台風（19号）',
     desc: '多摩川が世田谷・大田・川崎で越水、武蔵小杉・二子玉川が浸水。荒川も水位記録更新、首都圏で死者多数。',
-    type: 'polygon',
-    data: [
-      [35.555, 139.575], [35.625, 139.585], [35.660, 139.680],
-      [35.635, 139.730], [35.580, 139.720], [35.535, 139.665]
-    ]
+    source: '近似値（HANDOFF.md 同梱）', precision: 'approx',
+    features: [{ type:'Feature', properties:{}, geometry:{ type:'Polygon', coordinates:[[
+      [139.575,35.555],[139.585,35.625],[139.680,35.660],[139.730,35.635],
+      [139.720,35.580],[139.665,35.535],[139.575,35.555]
+    ]] } }]
   }
 ];
 
+// =====================================================================
+//   GEOMETRY HELPERS — クリック判定用（point-in-polygon, distance）
+// =====================================================================
+
+/** Ray casting algorithm. ring は [[lng,lat], ...] の閉じたリング */
+function pointInRing(pt, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > pt[1]) !== (yj > pt[1])) &&
+      (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * Layer のいずれかの feature にクリック地点が含まれるか判定。
+ * 含まれる場合、サブラベル（Point feature の場合）も返す。
+ * Point: 500m 以内ならヒット
+ * Polygon / MultiPolygon: 内包判定
+ */
+function hitsLayer(layer, latlng) {
+  const pt = [latlng.lng, latlng.lat];  // [lng, lat]
+  for (const f of layer.features) {
+    const g = f.geometry;
+    if (!g) continue;
+    if (g.type === 'Point') {
+      const [lng, lat] = g.coordinates;
+      const d = latlng.distanceTo(L.latLng(lat, lng));
+      if (d < 500) return { hit: true, sublabel: f.properties && f.properties.label };
+    } else if (g.type === 'Polygon') {
+      for (const ring of g.coordinates) {
+        if (pointInRing(pt, ring)) return { hit: true };
+      }
+    } else if (g.type === 'MultiPolygon') {
+      for (const poly of g.coordinates) {
+        for (const ring of poly) {
+          if (pointInRing(pt, ring)) return { hit: true };
+        }
+      }
+    }
+  }
+  return { hit: false };
+}
+
+// =====================================================================
+//   メイン
+// =====================================================================
 document.addEventListener('DOMContentLoaded', function() {
-  // 初期ビュー用：武蔵国らしい範囲。
-  // ※ maxBounds は外した（パン制限が UX を壊していた）。
-  //   初回表示だけ武蔵国に寄せ、以降は自由にスクロール・ズーム可。
-  const INITIAL_BOUNDS = L.latLngBounds(
-    [35.45, 139.00],  // 南西（多摩〜横浜境）
-    [36.20, 140.10]   // 北東（埼玉北部〜千葉境）
-  );
+  const INITIAL_BOUNDS = L.latLngBounds([35.45, 139.00], [36.20, 140.10]);
 
   const map = L.map('map', {
     zoomControl: false,
-    minZoom: 8,
-    maxZoom: 18
+    minZoom: 8, maxZoom: 18
   });
-
   map.fitBounds(INITIAL_BOUNDS, { padding: [20, 20] });
 
   const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap'
+    maxZoom: 18, attribution: '&copy; OpenStreetMap'
   }).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // ===================================================
-  //   レイヤー描画
-  // ===================================================
-  const layerGroups = {}; // id -> L.LayerGroup
-
-  function popupHtml(layer, sublabel) {
-    const cat = CATEGORIES[layer.cat];
-    return `
-      <span class="pop-cat" style="background:${cat.color};">${cat.label}</span>
-      <span class="pop-year">${layer.year}年</span>
-      <span class="pop-title">${layer.name}</span>
-      ${sublabel ? `<div style="font-size:11px;color:var(--accent);margin-bottom:4px;">${sublabel}</div>` : ''}
-      <div class="pop-desc">${layer.desc}</div>
-    `;
-  }
+  // ===================================================================
+  //   レイヤー描画（GeoJSON 標準 → L.geoJSON）
+  // ===================================================================
+  const layerGroups = {}; // id -> L.GeoJSON
 
   function renderLayer(layer) {
     const color = CATEGORIES[layer.cat].color;
-    const group = L.layerGroup();
-
-    if (layer.type === 'points') {
-      layer.data.forEach(p => {
-        L.circleMarker([p.lat, p.lng], {
-          radius: 8,
-          color: color,
-          fillColor: color,
-          fillOpacity: 0.55,
-          weight: 2,
-          opacity: 0.9
-        })
-        .bindPopup(popupHtml(layer, p.label))
-        .addTo(group);
-      });
-    } else if (layer.type === 'polygon') {
-      L.polygon(layer.data, {
-        color: color,
-        fillColor: color,
-        fillOpacity: 0.22,
-        weight: 1.5,
-        opacity: 0.85
-      })
-      .bindPopup(popupHtml(layer))
-      .addTo(group);
-    } else if (layer.type === 'multipolygon') {
-      layer.data.forEach(poly => {
-        L.polygon(poly, {
-          color: color,
-          fillColor: color,
-          fillOpacity: 0.22,
-          weight: 1.5,
-          opacity: 0.85
-        })
-        .bindPopup(popupHtml(layer))
-        .addTo(group);
-      });
-    }
-
+    const group = L.geoJSON({
+      type: 'FeatureCollection',
+      features: layer.features
+    }, {
+      style: () => ({
+        color, fillColor: color,
+        fillOpacity: 0.22, weight: 1.5, opacity: 0.85
+      }),
+      pointToLayer: (feat, latlng) => L.circleMarker(latlng, {
+        radius: 8, color, fillColor: color,
+        fillOpacity: 0.55, weight: 2, opacity: 0.9
+      }),
+      onEachFeature: (feat, leafletLayer) => {
+        // フィーチャクリックも履歴ビュー起動に統一
+        leafletLayer.on('click', e => {
+          showHistory(e.latlng);
+          L.DomEvent.stopPropagation(e);
+        });
+      }
+    });
     group.addTo(map);
     layerGroups[layer.id] = group;
   }
 
   LAYERS_DATA.forEach(renderLayer);
 
-  // ===================================================
-  //   サイドバー: カテゴリごとのレイヤー数を反映
-  // ===================================================
+  // ===================================================================
+  //   サイドバー: カウント反映
+  // ===================================================================
   const counts = {};
   Object.keys(CATEGORIES).forEach(k => counts[k] = 0);
-  LAYERS_DATA.forEach(l => { counts[l.cat] = (counts[l.cat] || 0) + 1; });
+  LAYERS_DATA.forEach(l => counts[l.cat]++);
   document.querySelectorAll('#cat-list .cat-row').forEach(row => {
     const label = row.querySelector('.cat-label').textContent.trim();
     const key = Object.keys(CATEGORIES).find(k => CATEGORIES[k].label === label);
-    if (key) {
-      row.querySelector('.cat-count').textContent = counts[key] > 0 ? counts[key] : '—';
-    }
+    if (key) row.querySelector('.cat-count').textContent = counts[key] > 0 ? counts[key] : '—';
   });
 
-  // ロード画面のフェードアウト：初回タイル読み込み完了 or 最低 800ms 表示
+  // ===================================================================
+  //   クリック → 履歴カード（Step 14 最重要機能）
+  // ===================================================================
+  const sidebarBody = document.getElementById('sidebar-body');
+  const hpResults   = document.getElementById('hp-results');
+  const hpCoords    = document.getElementById('hp-coords');
+  const hpTitle     = document.getElementById('hp-title');
+  const mapHint     = document.getElementById('map-hint');
+  let clickMarker = null;
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[c]));
+  }
+
+  function renderHistoryCard(layer, sublabel) {
+    const cat = CATEGORIES[layer.cat];
+    return `
+      <div class="hp-card" style="border-left-color: ${cat.color};">
+        <div class="hp-card-year">${layer.year}<span class="hp-card-cat" style="background:${cat.color};">${escapeHtml(cat.label)}</span></div>
+        <div class="hp-card-name">${escapeHtml(layer.name)}</div>
+        ${sublabel ? `<div class="hp-card-sublabel">📍 ${escapeHtml(sublabel)}</div>` : ''}
+        <div class="hp-card-desc">${escapeHtml(layer.desc)}</div>
+      </div>
+    `;
+  }
+
+  function showHistory(latlng) {
+    // 全レイヤーをスキャンし、該当する被災を年代順に
+    const matches = [];
+    LAYERS_DATA.forEach(layer => {
+      const r = hitsLayer(layer, latlng);
+      if (r.hit) matches.push({ layer, sublabel: r.sublabel });
+    });
+    matches.sort((a, b) => a.layer.year - b.layer.year);
+
+    // クリック位置にパルスマーカー
+    if (clickMarker) map.removeLayer(clickMarker);
+    clickMarker = L.marker(latlng, {
+      icon: L.divIcon({
+        className: '',
+        html: '<div class="click-pulse"></div>',
+        iconSize: [0, 0]
+      }),
+      interactive: false
+    }).addTo(map);
+
+    // 座標と件数
+    hpCoords.textContent = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+    if (matches.length === 0) {
+      hpTitle.innerHTML = `この地点では <span class="accent">記録なし</span>`;
+      hpResults.innerHTML = `
+        <div class="hp-empty">
+          <div class="icon">🌿</div>
+          ここでは特に大きな被災記録は見つかりませんでした<br>
+          <span style="font-size:10px;opacity:0.7;">（収録レイヤーの範囲外）</span>
+        </div>`;
+    } else {
+      hpTitle.innerHTML = `この地点の被災履歴 <span class="accent">${matches.length}件</span>`;
+      hpResults.innerHTML = matches.map(m => renderHistoryCard(m.layer, m.sublabel)).join('');
+    }
+
+    sidebarBody.classList.add('show-history');
+    sidebarBody.scrollTop = 0;
+    mapHint.classList.add('hidden');
+  }
+
+  function hideHistory() {
+    sidebarBody.classList.remove('show-history');
+    if (clickMarker) { map.removeLayer(clickMarker); clickMarker = null; }
+    mapHint.classList.remove('hidden');
+  }
+
+  map.on('click', e => showHistory(e.latlng));
+  document.getElementById('hp-back').addEventListener('click', hideHistory);
+
+  // ===================================================================
+  //   ロード画面フェードアウト
+  // ===================================================================
   const loader = document.getElementById('loader');
   const minDelay = new Promise(r => setTimeout(r, 800));
   const tilesReady = new Promise(r => tileLayer.once('load', r));
-  // 安全弁：タイルが遅すぎても 4秒で閉じる
   const safetyTimeout = new Promise(r => setTimeout(r, 4000));
-
   Promise.all([minDelay, Promise.race([tilesReady, safetyTimeout])])
     .then(() => loader.classList.add('hidden'));
 });
