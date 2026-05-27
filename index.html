@@ -794,11 +794,16 @@ function mountAlbumThumbs(scope) {
   const mounts = Array.from((scope || document).querySelectorAll('.thumb-mount[data-thumb-id]:not([data-mounted="1"])'));
   if (!mounts.length) return;
   const cache = window._albumHtmlCache || {};
+  // Look up the prompt in the live prompts[] array so we can read the
+  // layout flag without needing a parallel side-map. Multi-file (folder
+  // layout) prompts can't be served via srcdoc — they need iframe.src
+  // pointing at htmls/<id>/index.html so sibling CSS/JS/assets resolve.
+  const findPrompt = (id) => (typeof prompts !== 'undefined' ? prompts.find(p => p && p.id === id) : null);
   const buildIframe = (mount) => {
     if (mount.dataset.mounted === '1') return;
     mount.dataset.mounted = '1';
     const id = mount.dataset.thumbId;
-    const html = cache[id] || '';
+    const p = findPrompt(id);
     const iframe = document.createElement('iframe');
     // Grid cards rely on the `.thumb` class for the 1280×1280-scaled trick;
     // magazine album cards don't need it (sized by their .album-thumb parent).
@@ -809,7 +814,11 @@ function mountAlbumThumbs(scope) {
     iframe.setAttribute('aria-hidden', 'true');
     iframe.setAttribute('loading', 'lazy');
     iframe.setAttribute('allowfullscreen', '');
-    iframe.srcdoc = html;
+    if (p && p.layout === 'folder') {
+      iframe.src = 'htmls/' + id + '/index.html';
+    } else {
+      iframe.srcdoc = cache[id] || (p && p.html) || '';
+    }
     mount.appendChild(iframe);
   };
 
@@ -1048,7 +1057,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side left">
         <div class="side-label">${leftLabel}</div>
         <div class="preview-wrap">
-          <iframe srcdoc="${escapeAttr(pLeft.html)}" sandbox="allow-scripts allow-same-origin"></iframe>
+          <iframe${promptPreviewAttrs(pLeft)} sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
         <h3>${escapeHtml(pLeft.title)}</h3>
         <div class="meta">by ${escapeHtml(pLeft.authorName)} · ${formatDate(pLeft.date)} · ${escapeHtml(pLeft.model)}</div>
@@ -1057,7 +1066,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side right">
         <div class="side-label">${rightLabel}</div>
         <div class="preview-wrap">
-          <iframe srcdoc="${escapeAttr(pRight.html)}" sandbox="allow-scripts allow-same-origin"></iframe>
+          <iframe${promptPreviewAttrs(pRight)} sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
         <h3>${escapeHtml(pRight.title)}</h3>
         <div class="meta">by ${escapeHtml(pRight.authorName)} · ${formatDate(pRight.date)} · ${escapeHtml(pRight.model)}</div>
@@ -1473,6 +1482,14 @@ async function fetchSeed() {
   if (!tagConfig.aliases || typeof tagConfig.aliases !== 'object') tagConfig.aliases = {};
   const htmlJobs = [];
   for (const p of manifest) {
+    // Folder-layout prompts live at htmls/<id>/index.html and are loaded
+    // by the iframe directly via src= — no need to pre-fetch into p.html.
+    // Same for each of their versions.
+    if (p.layout === 'folder') {
+      p.html = '';
+      if (p.versions) p.versions.forEach(v => { if (v.html === undefined) v.html = ''; });
+      continue;
+    }
     htmlJobs.push(fetch('htmls/' + p.id + '.html').then(r => r.ok ? r.text() : '').then(h => { p.html = h; }));
     if (p.versions) {
       p.versions.forEach((v, i) => {

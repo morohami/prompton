@@ -15,6 +15,49 @@ function thumbUrl(p) {
   return p.thumbVer ? `${p.thumb}?v=${p.thumbVer}` : p.thumb;
 }
 
+// ─── Multi-file prompt support ─────────────────────────────────────────
+// A prompt's HTML can live in one of two layouts:
+//
+//   - "flat"   (default, legacy): htmls/<id>.html holds a single self-
+//              contained HTML file with inline <style> + <script>. We
+//              pre-fetch the content in fetchSeed() and inject via
+//              iframe.srcdoc.
+//
+//   - "folder" (multi-file): htmls/<id>/index.html plus sibling style.css /
+//              app.js / lib/* / assets/* live alongside. We do not pre-
+//              fetch; iframe.src points directly at the index.html so
+//              subresources load through normal relative URLs and the
+//              browser caches each file individually.
+//
+// Past versions follow the same split: htmls/<id>_v<n>.html for flat,
+// htmls/<id>_v<n>/index.html for folder.
+
+// Resolve the path to a prompt's preview HTML. Pass viewing=N to point at
+// version <id>_v<N> instead of the latest top-level file.
+function promptHtmlPath(p, viewing) {
+  if (!p) return '';
+  const suffix = viewing ? '_v' + viewing : '';
+  if (p.layout === 'folder') return `htmls/${p.id}${suffix}/index.html`;
+  return `htmls/${p.id}${suffix}.html`;
+}
+
+// Build the iframe attribute string ('src="..."' or 'srcdoc="..."') for
+// previewing a prompt. The caller drops this into a template literal:
+//   `<iframe class="thumb" ${promptPreviewAttrs(p)} sandbox="" ...></iframe>`
+// Folder prompts use src= so the multi-file page loads normally; flat
+// prompts use srcdoc= with the already-fetched p.html.
+function promptPreviewAttrs(p, viewing) {
+  if (!p) return ' srcdoc=""';
+  if (p.layout === 'folder') return ' src="' + escapeAttr(promptHtmlPath(p, viewing)) + '"';
+  // viewing a past version of a flat prompt: prefer its versions[] entry's html
+  let html = p.html || '';
+  if (viewing && p.versions) {
+    const v = p.versions.find(x => x.v === viewing);
+    if (v && v.html) html = v.html;
+  }
+  return ' srcdoc="' + escapeAttr(html) + '"';
+}
+
 function titleWithEmphasis(title) {
   const words = (title || '').split(' ');
   if (words.length < 2) return escapeHtml(title);
@@ -307,7 +350,7 @@ function renderPlaylistDetail(plId) {
       card.className = 'card';
       const thumbInner = p.thumb
         ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
-        : `<iframe class="thumb" srcdoc="${escapeAttr(p.html || '')}" sandbox="" scrolling="no" tabindex="-1"></iframe>`;
+        : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>`;
       card.innerHTML = `
         <div class="thumb-wrap">${thumbInner}</div>
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
@@ -534,6 +577,9 @@ function renderGallery() {
 
     // Cache HTML strings keyed by prompt id so the IntersectionObserver below
     // can build iframes without hauling them through the DOM as data-attrs.
+    // Folder-layout prompts don't need a cache entry (mountAlbumThumbs reads
+    // p.layout straight off the prompts[] array and points iframe.src
+    // at htmls/<id>/index.html instead of using srcdoc).
     window._albumHtmlCache = window._albumHtmlCache || {};
     publicPrompts.forEach(p => { window._albumHtmlCache[p.id] = p.html || ''; });
 
@@ -629,7 +675,10 @@ function renderGallery() {
     const spotIframe = magazineEl.querySelector('#spotlightIframe');
     if (spotIframe) {
       const p = prompts.find(x => x.id === spotIframe.dataset.promptId);
-      if (p) spotIframe.srcdoc = p.html || '';
+      if (p) {
+        if (p.layout === 'folder') spotIframe.src = 'htmls/' + p.id + '/index.html';
+        else spotIframe.srcdoc = p.html || '';
+      }
     }
 
     // Wire spotlight + cards
@@ -1092,13 +1141,12 @@ function renderDetail(id, viewingVersionNum) {
 
   // Point the live-preview iframe at the real HTML file. Streaming parse is
   // far faster than srcdoc for 70KB+ payloads, and the URL matches the
-  // standalone open link so the browser only fetches once.
+  // standalone open link so the browser only fetches once. Folder-layout
+  // prompts resolve to htmls/<id>/index.html (or _v<n>/index.html for past
+  // versions); flat prompts keep the legacy htmls/<id>.html path.
   const previewIframe = document.getElementById('detailPreviewIframe');
   if (previewIframe) {
-    const previewSrc = isViewingPast
-      ? `htmls/${p.id}_v${viewing}.html`
-      : `htmls/${p.id}.html`;
-    previewIframe.src = previewSrc;
+    previewIframe.src = promptHtmlPath(p, isViewingPast ? viewing : null);
   }
 
   // Wire actions
@@ -1978,7 +2026,7 @@ function renderProfileTab(handle, tab) {
       const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
       card.innerHTML = `
         <div class="thumb-wrap">
-          <iframe class="thumb" srcdoc="${escapeAttr(p.html)}" sandbox="" scrolling="no" tabindex="-1"></iframe>
+          <iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>
         </div>
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
@@ -2015,7 +2063,7 @@ function renderProfileTab(handle, tab) {
       card.className = 'card';
       const thumbInner = p.thumb
         ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
-        : `<iframe class="thumb" srcdoc="${escapeAttr(p.html || '')}" sandbox="" scrolling="no" tabindex="-1"></iframe>`;
+        : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>`;
       card.innerHTML = `
         <div class="thumb-wrap">${thumbInner}</div>
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>

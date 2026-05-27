@@ -1,5 +1,26 @@
 [
   {
+    "id": "_folder_demo",
+    "layout": "folder",
+    "title": "Folder layout demo (multi-file)",
+    "description": "マルチファイル(index.html + style.css + app.js)構造で配信される最初のテストprompt。iframe.src経由でhtmls/_folder_demo/index.htmlが読み込まれ、サイドファイルが相対パスで解決されることを確認するためのデモ。",
+    "systemPrompt": "",
+    "userPrompt": "Demonstrate the new folder-layout prompt scheme: single index.html linking out to sibling style.css and app.js, served from htmls/<id>/.",
+    "context": "Internal infrastructure test. layout: 'folder' flag in manifest tells the bootstrap to skip pre-fetching .html and tells iframe builders to use src= instead of srcdoc=.",
+    "model": "Claude Sonnet 4.5",
+    "license": "CC0 — Public domain",
+    "tags": ["meta", "infra", "multi-file"],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-05-27",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "p1779823200000",
     "title": "藩境界プラグイン — 幕末日本（218藩）",
     "description": "CODH 幕末期近世村領域データセット（CC BY-SA 4.0）から Voronoi 分割→領分で dissolve して生成した、慶応3-4年（1867-68）時点の藩境界 GeoJSON。218藩を内蔵し、4種プリセット（戊辰戦争主要藩・外様大藩・幕府関係領・全藩）、藩名検索、クリックで領域 fitBounds。Leaflet 1.9.4 + 地理院淡色地図。単一 HTML（810KB）に GeoJSON 全文をインライン埋込しているため file:// でもサーバ不要で動く。",

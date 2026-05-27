@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Folder layout demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <div class="kicker">MULTI-FILE</div>
+    <h1>このページは<br>3ファイルで構成されています。</h1>
+    <ul class="files">
+      <li><code>index.html</code> &middot; この文書</li>
+      <li><code>style.css</code> &middot; サイドリンクで読み込み</li>
+      <li><code>app.js</code> &middot; サイドスクリプトで読み込み</li>
+    </ul>
+    <div id="dot" title="JS から動いています"></div>
+    <p class="footnote">monolith ではなく <strong>htmls/&lt;id&gt;/</strong> フォルダから直接サーブされています。</p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
