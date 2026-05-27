@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東京被災マップ — Step 14</title>
+<title>東京被災マップ — Step 12–14</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
@@ -88,25 +88,114 @@
     margin: 8px 4px 10px;
   }
 
-  /* カテゴリ行 */
-  .cat-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
-  .cat-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px;
+  /* カテゴリ行 / アコーディオン / トグル */
+  .cat-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .cat-group {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    overflow: hidden;
+    transition: border-color 0.15s;
   }
-  .cat-row:hover { background: #20203a; border-color: #3a3a52; }
+  .cat-group:hover { border-color: #3a3a52; }
+  .cat-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.2s;
+  }
+  .cat-row:hover { background: #20203a; }
   .cat-dot {
     width: 10px; height: 10px; border-radius: 50%;
     box-shadow: 0 0 8px currentColor;
     flex-shrink: 0;
+    transition: opacity 0.2s, box-shadow 0.2s;
   }
   .cat-label { flex: 1; font-size: 13px; font-weight: 700; }
-  .cat-count { font-size: 11px; color: var(--text-secondary); }
+  .cat-count {
+    font-size: 11px; color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 20px; text-align: right;
+  }
+  .cat-expand {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 22px; height: 22px;
+    color: var(--text-secondary);
+    font-size: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.25s ease, background 0.15s, border-color 0.15s;
+    padding: 0;
+  }
+  .cat-expand:hover { background: #2a2a3e; border-color: #4a4a62; color: var(--text-primary); }
+  .cat-group.expanded .cat-expand { transform: rotate(180deg); }
+
+  /* OFF 状態：カテゴリ全体／個別レイヤー */
+  .cat-row.off .cat-dot,
+  .layer-row.off .layer-dot {
+    opacity: 0.25;
+    box-shadow: none;
+    background: transparent !important;
+    border: 1px solid currentColor;
+  }
+  .cat-row.off .cat-label,
+  .layer-row.off .layer-name {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: rgba(138,136,160,0.4);
+  }
+
+  /* アコーディオン: 子レイヤー */
+  .cat-children {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-top: 0 solid var(--border);
+  }
+  .cat-group.expanded .cat-children {
+    max-height: 600px;
+    border-top: 1px solid var(--border);
+  }
+  .layer-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px 8px 18px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.2s;
+    border-top: 1px solid rgba(42,42,62,0.5);
+  }
+  .layer-row:first-child { border-top: none; }
+  .layer-row:hover { background: #20203a; }
+  .layer-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+  .layer-name { flex: 1; font-weight: 700; }
+  .layer-year {
+    font-size: 10px; color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 「すべて表示/非表示」ヘッダ操作 */
+  .cat-actions {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: -2px 4px 8px;
+  }
+  .cat-actions .bulk {
+    background: transparent; border: none;
+    color: var(--text-secondary);
+    font: inherit; font-size: 10px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    padding: 2px 4px;
+    transition: color 0.15s;
+  }
+  .cat-actions .bulk:hover { color: var(--accent); }
+  .cat-actions .sep { color: var(--border); }
 
   .sidebar-footer {
     padding: 12px 20px; border-top: 1px solid var(--border);
@@ -356,14 +445,15 @@
     <!-- デフォルトビュー -->
     <div class="sb-default">
       <div class="section-title">カテゴリ</div>
-      <div class="cat-list" id="cat-list">
-        <div class="cat-row"><span class="cat-dot" style="color:var(--war-crimson);   background:var(--war-crimson);"></span>   <span class="cat-label">戦争・内乱</span> <span class="cat-count">—</span></div>
-        <div class="cat-row"><span class="cat-dot" style="color:var(--fire-red);      background:var(--fire-red);"></span>      <span class="cat-label">大火</span>     <span class="cat-count">—</span></div>
-        <div class="cat-row"><span class="cat-dot" style="color:var(--quake-orange);  background:var(--quake-orange);"></span>  <span class="cat-label">地震</span>     <span class="cat-count">—</span></div>
-        <div class="cat-row"><span class="cat-dot" style="color:var(--water-blue);    background:var(--water-blue);"></span>    <span class="cat-label">水害・台風</span> <span class="cat-count">—</span></div>
-        <div class="cat-row"><span class="cat-dot" style="color:var(--hazard-yellow); background:var(--hazard-yellow);"></span> <span class="cat-label">現代ハザード</span> <span class="cat-count">—</span></div>
-        <div class="cat-row"><span class="cat-dot" style="color:var(--price-green);   background:var(--price-green);"></span>   <span class="cat-label">地価</span>     <span class="cat-count">—</span></div>
+      <div class="cat-actions">
+        <span style="font-size:10px;color:var(--text-secondary);letter-spacing:0.05em;">行クリック: 表示/非表示 ・ ▾: 一覧</span>
+        <span>
+          <button class="bulk" id="bulk-on">全表示</button>
+          <span class="sep">|</span>
+          <button class="bulk" id="bulk-off">全非表示</button>
+        </span>
       </div>
+      <div class="cat-list" id="cat-list"><!-- JS が描画 --></div>
       <div class="section-title">タイムライン</div>
       <div style="padding: 16px 12px; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 12px; text-align: center;">
         Step 15 で実装予定
@@ -382,7 +472,7 @@
   </div>
 
   <div class="sidebar-footer">
-    <span class="step-badge">Step 14</span>クリック→履歴カード
+    <span class="step-badge">Step 12–14</span>トグル + アコーディオン + 履歴カード
   </div>
 </aside>
 
@@ -596,6 +686,15 @@ const LAYERS_DATA = [
 ];
 
 // =====================================================================
+//   UTILITY
+// =====================================================================
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+
+// =====================================================================
 //   GEOMETRY HELPERS — クリック判定用（point-in-polygon, distance）
 // =====================================================================
 
@@ -679,7 +778,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fillOpacity: 0.55, weight: 2, opacity: 0.9
       }),
       onEachFeature: (feat, leafletLayer) => {
-        // フィーチャクリックも履歴ビュー起動に統一
         leafletLayer.on('click', e => {
           showHistory(e.latlng);
           L.DomEvent.stopPropagation(e);
@@ -693,15 +791,126 @@ document.addEventListener('DOMContentLoaded', function() {
   LAYERS_DATA.forEach(renderLayer);
 
   // ===================================================================
-  //   サイドバー: カウント反映
+  //   表示状態 (Step 12) — カテゴリトグル / 個別レイヤートグル
   // ===================================================================
-  const counts = {};
-  Object.keys(CATEGORIES).forEach(k => counts[k] = 0);
-  LAYERS_DATA.forEach(l => counts[l.cat]++);
-  document.querySelectorAll('#cat-list .cat-row').forEach(row => {
-    const label = row.querySelector('.cat-label').textContent.trim();
-    const key = Object.keys(CATEGORIES).find(k => CATEGORIES[k].label === label);
-    if (key) row.querySelector('.cat-count').textContent = counts[key] > 0 ? counts[key] : '—';
+  const state = {
+    catVisible:   {},  // catKey -> bool (default true)
+    layerVisible: {},  // layer.id -> bool (default true)
+    catExpanded:  {}   // catKey -> bool (default false)
+  };
+  Object.keys(CATEGORIES).forEach(k => state.catVisible[k] = true);
+  LAYERS_DATA.forEach(l => state.layerVisible[l.id] = true);
+
+  /** カテゴリ＆個別レイヤー両方が ON のときだけ描画 */
+  function isLayerActive(layer) {
+    return state.catVisible[layer.cat] && state.layerVisible[layer.id];
+  }
+
+  /** state を反映してマップに add/remove */
+  function syncMap() {
+    LAYERS_DATA.forEach(layer => {
+      const g = layerGroups[layer.id];
+      if (!g) return;
+      if (isLayerActive(layer)) {
+        if (!map.hasLayer(g)) g.addTo(map);
+      } else {
+        if (map.hasLayer(g)) map.removeLayer(g);
+      }
+    });
+  }
+
+  // ===================================================================
+  //   サイドバー: カテゴリ＋アコーディオンを動的生成 (Step 13)
+  // ===================================================================
+  function buildSidebar() {
+    const list = document.getElementById('cat-list');
+    list.innerHTML = '';
+
+    Object.entries(CATEGORIES).forEach(([catKey, cat]) => {
+      const layersInCat = LAYERS_DATA.filter(l => l.cat === catKey);
+      const count = layersInCat.length;
+
+      const group = document.createElement('div');
+      group.className = 'cat-group';
+      group.dataset.cat = catKey;
+
+      const childrenHtml = layersInCat.map(l => `
+        <div class="layer-row" data-layer-id="${l.id}">
+          <span class="layer-dot" style="background:${cat.color};color:${cat.color};"></span>
+          <span class="layer-name">${escapeHtml(l.name)}</span>
+          <span class="layer-year">${l.year}</span>
+        </div>
+      `).join('');
+
+      group.innerHTML = `
+        <div class="cat-row" data-cat="${catKey}">
+          <span class="cat-dot" style="color:${cat.color};background:${cat.color};"></span>
+          <span class="cat-label">${escapeHtml(cat.label)}</span>
+          <span class="cat-count">${count > 0 ? count : '—'}</span>
+          ${count > 0 ? '<button class="cat-expand" title="一覧を開く" aria-label="一覧を開く">▾</button>' : ''}
+        </div>
+        <div class="cat-children">${childrenHtml}</div>
+      `;
+      list.appendChild(group);
+    });
+
+    // --- カテゴリ行クリック：行＝トグル, ▾ボタン＝アコーディオン
+    list.querySelectorAll('.cat-row').forEach(row => {
+      const catKey = row.dataset.cat;
+      row.addEventListener('click', (e) => {
+        // ▾ ボタンならアコーディオン開閉のみ
+        if (e.target.closest('.cat-expand')) {
+          const group = row.parentElement;
+          group.classList.toggle('expanded');
+          state.catExpanded[catKey] = group.classList.contains('expanded');
+          return;
+        }
+        // それ以外は表示トグル
+        state.catVisible[catKey] = !state.catVisible[catKey];
+        applyVisualState();
+        syncMap();
+      });
+    });
+
+    // --- 個別レイヤークリック：そのレイヤーのみトグル
+    list.querySelectorAll('.layer-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = row.dataset.layerId;
+        state.layerVisible[id] = !state.layerVisible[id];
+        applyVisualState();
+        syncMap();
+      });
+    });
+  }
+
+  /** state.catVisible / state.layerVisible を DOM に反映 */
+  function applyVisualState() {
+    document.querySelectorAll('#cat-list .cat-row').forEach(row => {
+      const catKey = row.dataset.cat;
+      row.classList.toggle('off', !state.catVisible[catKey]);
+    });
+    document.querySelectorAll('#cat-list .layer-row').forEach(row => {
+      const id = row.dataset.layerId;
+      const layer = LAYERS_DATA.find(l => l.id === id);
+      const catOff = layer ? !state.catVisible[layer.cat] : false;
+      // 個別 OFF または カテゴリ OFF のどちらかで off
+      row.classList.toggle('off', !state.layerVisible[id] || catOff);
+    });
+  }
+
+  buildSidebar();
+  applyVisualState();
+
+  // 一括トグル
+  document.getElementById('bulk-on').addEventListener('click', () => {
+    Object.keys(state.catVisible).forEach(k => state.catVisible[k] = true);
+    LAYERS_DATA.forEach(l => state.layerVisible[l.id] = true);
+    applyVisualState(); syncMap();
+  });
+  document.getElementById('bulk-off').addEventListener('click', () => {
+    Object.keys(state.catVisible).forEach(k => state.catVisible[k] = false);
+    applyVisualState(); syncMap();
   });
 
   // ===================================================================
@@ -713,12 +922,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const hpTitle     = document.getElementById('hp-title');
   const mapHint     = document.getElementById('map-hint');
   let clickMarker = null;
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-    }[c]));
-  }
 
   function renderHistoryCard(layer, sublabel) {
     const cat = CATEGORIES[layer.cat];
@@ -733,9 +936,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showHistory(latlng) {
-    // 全レイヤーをスキャンし、該当する被災を年代順に
+    // 表示中レイヤーのみスキャン → 年代順
     const matches = [];
     LAYERS_DATA.forEach(layer => {
+      if (!isLayerActive(layer)) return;
       const r = hitsLayer(layer, latlng);
       if (r.hit) matches.push({ layer, sublabel: r.sublabel });
     });
@@ -755,12 +959,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // 座標と件数
     hpCoords.textContent = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
     if (matches.length === 0) {
+      // 何かが非表示なら案内、全表示なら本当に該当なし
+      const anyHidden = LAYERS_DATA.some(l => !isLayerActive(l));
       hpTitle.innerHTML = `この地点では <span class="accent">記録なし</span>`;
       hpResults.innerHTML = `
         <div class="hp-empty">
           <div class="icon">🌿</div>
           ここでは特に大きな被災記録は見つかりませんでした<br>
-          <span style="font-size:10px;opacity:0.7;">（収録レイヤーの範囲外）</span>
+          <span style="font-size:10px;opacity:0.7;">${
+            anyHidden ? '（非表示のカテゴリ／レイヤーに記録がある可能性）' : '（収録レイヤーの範囲外）'
+          }</span>
         </div>`;
     } else {
       hpTitle.innerHTML = `この地点の被災履歴 <span class="accent">${matches.length}件</span>`;
