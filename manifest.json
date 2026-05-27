@@ -9,7 +9,11 @@
     "context": "Internal infrastructure test. layout: 'folder' flag in manifest tells the bootstrap to skip pre-fetching .html and tells iframe builders to use src= instead of srcdoc=.",
     "model": "Claude Sonnet 4.5",
     "license": "CC0 — Public domain",
-    "tags": ["meta", "infra", "multi-file"],
+    "tags": [
+      "meta",
+      "infra",
+      "multi-file"
+    ],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -18,7 +22,9 @@
     "forks": 0,
     "parentId": null,
     "usage": [],
-    "variables": []
+    "variables": [],
+    "thumb": "thumbs/_folder_demo.jpg",
+    "thumbVer": 1779865232664
   },
   {
     "id": "p1779823200000",
