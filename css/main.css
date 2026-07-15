@@ -4073,73 +4073,69 @@
     font-size: 22px;
   }
 
-  /* ─── Stories / drafts bar (shown on every viewport) ─── */
-  .stories-bar {
-    display: flex;
-    gap: 14px;
-    padding: 14px 16px 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+  /* ─── Drafts menu (masthead dropdown; replaced the stories bar) ─── */
+  .nav-drafts {
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
+    white-space: nowrap;
   }
-  .stories-bar::-webkit-scrollbar { display: none; }
-  .stories-bar .story {
-    flex: 0 0 auto;
-    display: flex; flex-direction: column; align-items: center;
-    gap: 4px;
+  .nav-drafts:hover { color: var(--text); border-color: var(--border-strong); }
+  .drafts-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% - 6px);
+    right: 16px;
+    min-width: 240px;
+    max-width: 320px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+    z-index: 120;
+    padding: 6px;
+  }
+  .drafts-menu.open { display: block; }
+  .drafts-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
     background: none;
     border: none;
-    padding: 0;
-    cursor: pointer;
-    scroll-snap-align: start;
-    width: 72px;
-  }
-  .stories-bar .story-ring {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    padding: 2px;
-    background: linear-gradient(135deg, #8C1515, #c9a14a);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  }
-  .stories-bar .story-thumb {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: var(--bg-card);
-    border: 2px solid var(--bg);
-    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
     color: var(--text);
-    font-family: 'Fraunces', serif;
-    font-weight: 700;
-    font-style: italic;
-    font-size: 24px;
+    cursor: pointer;
+  }
+  .drafts-menu-item:hover { background: var(--hover); }
+  .drafts-menu-item.dm-new { color: var(--accent); font-weight: 500; }
+  .drafts-menu-item .dm-title {
     overflow: hidden;
-  }
-  .stories-bar .new-story .story-ring-new {
-    background: var(--bg-2);
-    border: 2px dashed var(--border-strong);
-    padding: 0;
-  }
-  .stories-bar .new-story .story-thumb {
-    border: none;
-    background: transparent;
-    color: var(--accent);
-    font-family: 'DM Sans', sans-serif;
-    font-style: normal;
-    font-size: 32px;
-    font-weight: 400;
-  }
-  .stories-bar .story-label {
-    font-size: 11px;
-    color: var(--text-secondary);
-    max-width: 72px;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center;
+    min-width: 0;
   }
+  .drafts-menu-item .dm-multi {
+    flex: 0 0 auto;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  /* The masthead is the dropdown's positioning context. */
+  .masthead { position: relative; }
   /* Draft modal extras */
   /* HTML / CSS / JS tab bar in the draft editor. A tab whose textarea has
      content gets .has-content — the accent dot — so multi-file drafts are

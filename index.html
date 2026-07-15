@@ -34,15 +34,18 @@
     <a data-nav="profile" data-i18n="nav.profile">Profile</a>
     <a id="themeToggle" class="nav-theme" data-i18n-title="nav.theme" title="Toggle theme" aria-label="Toggle theme">☀</a>
     <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="Settings">⚙</a>
+    <!-- Drafts entry point (replaced the stories bar). A <button>, not <a>,
+         so the mobile-app CSS that hides masthead anchors leaves it alone. -->
+    <button type="button" class="nav-drafts" id="draftsMenuBtn" data-i18n="nav.drafts">下書き</button>
     <button class="btn-upload" data-nav="upload" data-i18n="nav.share">＋ Share a prompton</button>
   </nav>
+  <div class="drafts-menu" id="draftsMenu" aria-hidden="true"></div>
 </header>
 
 <main>
 
 <!-- ════════ GALLERY ════════ -->
 <section class="view active" id="view-gallery">
-  <div id="storiesBar" class="stories-bar"></div>
   <div id="magazineSection"></div>
   <div id="archiveHeader"></div>
 

@@ -6,7 +6,8 @@
     "profile": "プロフィール",
     "share": "＋ promptonをシェア",
     "theme": "ライト/ダークテーマ切替",
-    "settings": "GitHub同期設定"
+    "settings": "GitHub同期設定",
+    "drafts": "下書き"
   },
   "issue": {
     "lede": "毎日使えるAIのレシピブック",
@@ -80,7 +81,8 @@
     "autosaveDirty": "未保存…",
     "autosaveSaved": "保存済",
     "cssPlaceholder": "任意: CSSを貼るとマルチファイル投稿になります（style.css として配信）",
-    "jsPlaceholder": "任意: JavaScriptを貼るとマルチファイル投稿になります（app.js として配信）"
+    "jsPlaceholder": "任意: JavaScriptを貼るとマルチファイル投稿になります（app.js として配信）",
+    "untitled": "無題の下書き"
   },
   "mobile": {
     "feed": "ホーム",

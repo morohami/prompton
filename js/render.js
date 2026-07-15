@@ -65,36 +65,60 @@ function titleWithEmphasis(title) {
   return escapeHtml(words.join(' ')) + ' <em>' + escapeHtml(last) + '</em>';
 }
 
-// ─── Stories bar (mobile-only) — backed by local drafts ───
-// "Show what I'm making" rather than "show what I've uploaded". Drafts are
-// local-only WIP entries; tap → edit, promote → real upload. Renders into
-// #storiesBar; CSS hides it unless body.mobile-app is set.
+// ─── Drafts menu (masthead) — backed by local drafts ───
+// Replaced the Instagram-style stories bar. The 下書き button in the masthead
+// shows a count badge; clicking it opens a dropdown with "+ 新規" and every
+// saved draft. The function keeps its historical name because every draft
+// mutation site (save / publish / delete / autosave-flush) calls it.
 function renderStoriesBar() {
-  const el = document.getElementById('storiesBar');
-  if (!el) return;
+  const btn = document.getElementById('draftsMenuBtn');
+  const menu = document.getElementById('draftsMenu');
+  if (!btn || !menu) return;
+  const count = drafts.length;
+  btn.textContent = t('nav.drafts') + (count ? ' (' + count + ')' : '');
   const sorted = drafts.slice().sort((a, b) =>
     (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || ''));
-  const newBtn = `<button type="button" class="story new-story" data-draft-new="1" title="${escapeAttr(t('drafts.newLabel'))}">
-    <span class="story-ring story-ring-new">
-      <span class="story-thumb">+</span>
-    </span>
-    <span class="story-label">${escapeHtml(t('drafts.newLabel'))}</span>
-  </button>`;
   const items = sorted.map(d => {
-    const initial = (d.title || d.body || '?').trim().charAt(0).toUpperCase() || '?';
-    const labelRaw = (d.title || d.body || '').replace(/\s+/g, ' ').slice(0, 14);
-    return `<button type="button" class="story" data-draft-id="${escapeAttr(d.id)}">
-      <span class="story-ring">
-        <span class="story-thumb">${escapeHtml(initial)}</span>
-      </span>
-      <span class="story-label">${escapeHtml(labelRaw)}</span>
+    const label = ((d.title || d.body || '').replace(/\s+/g, ' ').trim() || t('drafts.untitled')).slice(0, 40);
+    const multi = (d.css && d.css.trim()) || (d.js && d.js.trim());
+    return `<button type="button" class="drafts-menu-item" data-draft-id="${escapeAttr(d.id)}">
+      <span class="dm-title">${escapeHtml(label)}</span>
+      ${multi ? '<span class="dm-multi">3-file</span>' : ''}
     </button>`;
   }).join('');
-  el.innerHTML = newBtn + items;
-  el.querySelectorAll('[data-draft-new]').forEach(b => b.addEventListener('click', () => openDraftEditorModal(null)));
-  el.querySelectorAll('[data-draft-id]').forEach(b =>
-    b.addEventListener('click', () => openDraftEditorModal(b.dataset.draftId)));
+  menu.innerHTML =
+    `<button type="button" class="drafts-menu-item dm-new" data-draft-new="1">＋ ${escapeHtml(t('drafts.newLabel'))}</button>` + items;
+  menu.querySelectorAll('[data-draft-new]').forEach(b => b.addEventListener('click', () => {
+    closeDraftsMenu();
+    openDraftEditorModal(null);
+  }));
+  menu.querySelectorAll('[data-draft-id]').forEach(b =>
+    b.addEventListener('click', () => {
+      closeDraftsMenu();
+      openDraftEditorModal(b.dataset.draftId);
+    }));
 }
+function closeDraftsMenu() {
+  const menu = document.getElementById('draftsMenu');
+  if (menu) { menu.classList.remove('open'); menu.setAttribute('aria-hidden', 'true'); }
+}
+// Toggle + outside-click close. Wired once at load (this file runs before
+// the inline bootstrap, so the masthead markup already exists).
+(() => {
+  const btn = document.getElementById('draftsMenuBtn');
+  const menu = document.getElementById('draftsMenu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = menu.classList.toggle('open');
+    menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) renderStoriesBar(); // refresh list right before showing
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && e.target !== btn) closeDraftsMenu();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDraftsMenu(); });
+})();
 
 // Draft modal — Instagram-style single-step publish. Title + body, then
 // "Post" goes straight to GitHub. Supports three quick-fill paths:

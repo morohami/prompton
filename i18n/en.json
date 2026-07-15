@@ -6,7 +6,8 @@
     "profile": "Profile",
     "share": "＋ Share a prompton",
     "theme": "Toggle light/dark theme",
-    "settings": "GitHub sync settings"
+    "settings": "GitHub sync settings",
+    "drafts": "Drafts"
   },
   "issue": {
     "lede": "The recipe-book for everyday AI",
@@ -80,7 +81,8 @@
     "autosaveDirty": "Unsaved…",
     "autosaveSaved": "Saved",
     "cssPlaceholder": "Optional: paste CSS here to publish as a multi-file prompt (served as style.css)",
-    "jsPlaceholder": "Optional: paste JavaScript here to publish as a multi-file prompt (served as app.js)"
+    "jsPlaceholder": "Optional: paste JavaScript here to publish as a multi-file prompt (served as app.js)",
+    "untitled": "Untitled draft"
   },
   "mobile": {
     "feed": "Feed",
