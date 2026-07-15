@@ -1,5 +1,28 @@
 [
   {
+    "id": "prompton-handoff",
+    "format": "md",
+    "file": "HANDOFF.md",
+    "visibility": "unlisted",
+    "title": "Prompton HANDOFF (dev)",
+    "description": "Prompton本体の開発引き継ぎ文書。リポジトリ直下の HANDOFF.md をそのまま表示（コピーではなく file フィールドで参照しているので常に最新）。次のAIセッションはこれを読んでから作業開始。",
+    "systemPrompt": "",
+    "userPrompt": "",
+    "context": "Living document — updated at the end of each dev session. Served from the repo root via the md prompton `file` field.",
+    "model": "AI",
+    "license": "CC0 — Public domain",
+    "tags": ["meta", "handoff", "dev"],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-07-16",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "_md_demo",
     "format": "md",
     "visibility": "unlisted",

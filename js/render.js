@@ -37,7 +37,7 @@ function thumbUrl(p) {
 function promptHtmlPath(p, viewing) {
   if (!p) return '';
   const suffix = viewing ? '_v' + viewing : '';
-  if (p.format === 'md') return `htmls/${p.id}${suffix}.md`;
+  if (p.format === 'md') return p.file || `htmls/${p.id}${suffix}.md`;
   if (p.layout === 'folder') return `htmls/${p.id}${suffix}/index.html`;
   return `htmls/${p.id}${suffix}.html`;
 }

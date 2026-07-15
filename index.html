@@ -1544,8 +1544,12 @@ async function fetchSeed() {
     // Markdown promptons: fetch the raw .md, keep it verbatim on mdSource
     // (downloads serve it untouched) and put a styled preview wrapper on
     // p.html so every srcdoc preview path renders it readably.
+    // An optional `file` field points at any repo-served path (e.g. the
+    // root HANDOFF.md) so one file can be both a working doc and a
+    // prompton — no drifting copies.
     if (p.format === 'md') {
-      htmlJobs.push(fetch('htmls/' + p.id + '.md').then(r => r.ok ? r.text() : '').then(txt => {
+      const mdPath = p.file || ('htmls/' + p.id + '.md');
+      htmlJobs.push(fetch(mdPath).then(r => r.ok ? r.text() : '').then(txt => {
         p.mdSource = txt;
         p.html = (typeof mdPreviewHtml === 'function') ? mdPreviewHtml(txt) : txt;
       }));
