@@ -119,8 +119,15 @@ function openDraftEditorModal(draftId) {
       <div class="field">
         <input type="text" id="draftTitle" value="${escapeAttr(draft.title || '')}" placeholder="${escapeAttr(t('drafts.titlePlaceholder'))}" maxlength="120" autocomplete="off">
       </div>
+      <div class="draft-tabs" role="tablist">
+        <button type="button" class="draft-tab active" data-tab="body" role="tab">HTML</button>
+        <button type="button" class="draft-tab ${draft.css ? 'has-content' : ''}" data-tab="css" role="tab">CSS</button>
+        <button type="button" class="draft-tab ${draft.js ? 'has-content' : ''}" data-tab="js" role="tab">JS</button>
+      </div>
       <div class="field">
         <textarea id="draftBody" rows="10" placeholder="${escapeAttr(t('drafts.bodyPlaceholder'))}">${escapeHtml(draft.body || '')}</textarea>
+        <textarea id="draftCss" rows="10" style="display:none" placeholder="${escapeAttr(t('drafts.cssPlaceholder'))}">${escapeHtml(draft.css || '')}</textarea>
+        <textarea id="draftJs" rows="10" style="display:none" placeholder="${escapeAttr(t('drafts.jsPlaceholder'))}">${escapeHtml(draft.js || '')}</textarea>
       </div>
       <div class="draft-toolbar">
         <button type="button" class="btn-text" id="draftPasteBtn">${escapeHtml(t('drafts.pasteBtn'))}</button>
@@ -140,6 +147,38 @@ function openDraftEditorModal(draftId) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   document.getElementById('draftCancelBtn').addEventListener('click', () => overlay.remove());
 
+  // ─── HTML / CSS / JS tab switching ──────────────────────────────────────
+  // One textarea per tab; only the active one is visible. A tab whose
+  // textarea has content gets .has-content (small dot) so you can tell a
+  // multi-file draft at a glance without clicking through.
+  const tabAreas = {
+    body: document.getElementById('draftBody'),
+    css: document.getElementById('draftCss'),
+    js: document.getElementById('draftJs')
+  };
+  const readTabs = () => ({
+    body: tabAreas.body.value,
+    css: tabAreas.css.value,
+    js: tabAreas.js.value
+  });
+  overlay.querySelectorAll('.draft-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      overlay.querySelectorAll('.draft-tab').forEach(x => x.classList.remove('active'));
+      tab.classList.add('active');
+      Object.entries(tabAreas).forEach(([key, area]) => {
+        area.style.display = key === tab.dataset.tab ? '' : 'none';
+      });
+      tabAreas[tab.dataset.tab].focus();
+    });
+  });
+  const refreshTabDots = () => {
+    overlay.querySelectorAll('.draft-tab').forEach(tab => {
+      const area = tabAreas[tab.dataset.tab];
+      tab.classList.toggle('has-content', !!(area && area.value.trim()));
+    });
+  };
+  Object.values(tabAreas).forEach(area => area.addEventListener('input', refreshTabDots));
+
   // ─── Auto-save (2-second debounce) ─────────────────────────────────────
   // Persists this draft to drafts[] + localStorage 2s after the last keystroke.
   // - Skips empty drafts (no title and no body) so we don't litter localStorage
@@ -156,14 +195,17 @@ function openDraftEditorModal(draftId) {
   let autosaveTimer = null;
   function scheduleAutosave() {
     const titleNow = document.getElementById('draftTitle').value.trim();
-    const bodyNow = document.getElementById('draftBody').value;
-    if (!titleNow && !bodyNow.trim()) { setAutosaveStatus(''); return; }
+    const t3 = readTabs();
+    const hasAny = titleNow || t3.body.trim() || t3.css.trim() || t3.js.trim();
+    if (!hasAny) { setAutosaveStatus(''); return; }
     setAutosaveStatus('drafts.autosaveDirty');
     if (autosaveTimer) clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(() => {
       autosaveTimer = null;
       draft.title = titleNow;
-      draft.body = bodyNow;
+      draft.body = t3.body;
+      draft.css = t3.css;
+      draft.js = t3.js;
       draft.updatedAt = new Date().toISOString();
       const idx = drafts.findIndex(x => x.id === draft.id);
       if (idx >= 0) drafts[idx] = draft;
@@ -174,7 +216,7 @@ function openDraftEditorModal(draftId) {
     }, 2000);
   }
   document.getElementById('draftTitle').addEventListener('input', scheduleAutosave);
-  document.getElementById('draftBody').addEventListener('input', scheduleAutosave);
+  Object.values(tabAreas).forEach(area => area.addEventListener('input', scheduleAutosave));
   // If the modal closes (overlay click, cancel button, Esc), flush a final save
   // so we never lose the last few keystrokes.
   const flushAndCleanup = () => {
@@ -182,10 +224,12 @@ function openDraftEditorModal(draftId) {
       clearTimeout(autosaveTimer);
       autosaveTimer = null;
       const titleNow = document.getElementById('draftTitle')?.value.trim();
-      const bodyNow = document.getElementById('draftBody')?.value;
-      if (titleNow || (bodyNow && bodyNow.trim())) {
+      const t3 = readTabs();
+      if (titleNow || t3.body.trim() || t3.css.trim() || t3.js.trim()) {
         draft.title = titleNow || '';
-        draft.body = bodyNow || '';
+        draft.body = t3.body;
+        draft.css = t3.css;
+        draft.js = t3.js;
         draft.updatedAt = new Date().toISOString();
         const idx = drafts.findIndex(x => x.id === draft.id);
         if (idx >= 0) drafts[idx] = draft;
@@ -201,17 +245,21 @@ function openDraftEditorModal(draftId) {
   });
   removalObserver.observe(document.body, { childList: true });
 
-  // Claude paste — read clipboard, extract the largest code fence.
+  // Claude paste — read clipboard, route fenced blocks by language into the
+  // three tabs (```css → CSS, ```js → JS, longest html/untagged → HTML).
   document.getElementById('draftPasteBtn').addEventListener('click', async () => {
     let text = '';
     try { text = await navigator.clipboard.readText(); }
     catch (e) { toast(t('drafts.clipboardDenied')); return; }
     if (!text || !text.trim()) { toast(t('drafts.clipboardEmpty')); return; }
-    const { body, title } = extractFromClaudePaste(text);
+    const { body, css, js, title } = extractFromClaudePaste(text);
     const titleInput = document.getElementById('draftTitle');
-    const bodyInput = document.getElementById('draftBody');
     if (!titleInput.value && title) titleInput.value = title;
-    bodyInput.value = body;
+    if (body) tabAreas.body.value = body;
+    if (css) tabAreas.css.value = css;
+    if (js) tabAreas.js.value = js;
+    refreshTabDots();
+    scheduleAutosave();
     toast(t('drafts.pasted'));
   });
 
@@ -238,8 +286,11 @@ function openDraftEditorModal(draftId) {
 
   // Save-only — keep as draft, don't publish.
   document.getElementById('draftSaveBtn').addEventListener('click', () => {
+    const t3 = readTabs();
     draft.title = document.getElementById('draftTitle').value.trim();
-    draft.body = document.getElementById('draftBody').value;
+    draft.body = t3.body;
+    draft.css = t3.css;
+    draft.js = t3.js;
     draft.updatedAt = new Date().toISOString();
     const idx = drafts.findIndex(x => x.id === draft.id);
     if (idx >= 0) drafts[idx] = draft;
@@ -254,13 +305,13 @@ function openDraftEditorModal(draftId) {
   // it's now a real prompt.
   document.getElementById('draftPostBtn').addEventListener('click', async () => {
     const title = document.getElementById('draftTitle').value.trim();
-    const body = document.getElementById('draftBody').value;
+    const t3 = readTabs();
     const btn = document.getElementById('draftPostBtn');
     btn.disabled = true;
     const originalText = btn.textContent;
     btn.textContent = t('drafts.posting');
     try {
-      await publishDraftDirect(title, body);
+      await publishDraftDirect(title, t3.body, t3.css, t3.js);
       // Drop this draft — it's published now.
       drafts = drafts.filter(x => x.id !== draft.id);
       saveDrafts();

@@ -498,13 +498,33 @@ async function fetchFromGitHubUrl(url) {
   throw new Error('Not a recognized GitHub URL (raw / blob / gist).');
 }
 
-// One-shot publish: take a title + body, build a minimal prompt object,
-// push to GitHub, prepend to the local list. No upload-form detour. The
-// caller decides what to do on success/failure.
-async function publishDraftDirect(title, body) {
+// One-shot publish: take a title + body (+ optional sidecar css/js), build a
+// minimal prompt object, push to GitHub, prepend to the local list. No
+// upload-form detour. The caller decides what to do on success/failure.
+//
+// If css or js is non-empty the prompt publishes as layout:"folder" —
+// htmls/<id>/index.html + style.css + app.js — and the HTML gets
+// <link>/<script> references injected if it doesn't already have them.
+async function publishDraftDirect(title, body, css, js) {
   if (!isOwner()) throw new Error('not-owner');
-  const cleanedHtml = (typeof cleanupHtml === 'function' ? cleanupHtml(body || '') : body || '').trim();
+  let cleanedHtml = (typeof cleanupHtml === 'function' ? cleanupHtml(body || '') : body || '').trim();
   if (!cleanedHtml) throw new Error('empty-body');
+  const cssSrc = (css || '').trim();
+  const jsSrc = (js || '').trim();
+  const isFolder = !!(cssSrc || jsSrc);
+  if (isFolder) {
+    // Wire the sidecar files into the HTML unless the author already did.
+    if (cssSrc && cleanedHtml.indexOf('style.css') < 0) {
+      const linkTag = '<link rel="stylesheet" href="style.css">';
+      if (/<\/head>/i.test(cleanedHtml)) cleanedHtml = cleanedHtml.replace(/<\/head>/i, '  ' + linkTag + '\n</head>');
+      else cleanedHtml = linkTag + '\n' + cleanedHtml;
+    }
+    if (jsSrc && cleanedHtml.indexOf('app.js') < 0) {
+      const scriptTag = '<script src="app.js"><\/script>';
+      if (/<\/body>/i.test(cleanedHtml)) cleanedHtml = cleanedHtml.replace(/<\/body>/i, '  ' + scriptTag + '\n</body>');
+      else cleanedHtml = cleanedHtml + '\n' + scriptTag;
+    }
+  }
   const me_h = ownerHandle();
   const prompt = {
     id: 'p' + Date.now(),
@@ -521,23 +541,41 @@ async function publishDraftDirect(title, body) {
     usage: [], variables: [],
     html: cleanedHtml
   };
+  if (isFolder) {
+    prompt.layout = 'folder';
+    prompt.files = {};
+    if (cssSrc) prompt.files.css = cssSrc;
+    if (jsSrc) prompt.files.js = jsSrc;
+  }
   await pushPromptToGitHub(prompt);
+  delete prompt.files; // transient — sidecars live on GitHub now
   prompts.unshift(prompt);
   saveData(prompts);
   return prompt;
 }
 
-// Extract the most useful chunk from a pasted Claude conversation. We look
-// for fenced code blocks; the longest one is almost always the HTML/prompt
-// the user is iterating on. Falls back to the whole paste if no fence.
+// Extract the most useful chunks from a pasted Claude conversation. Fenced
+// code blocks are routed by language tag: ```css → css, ```js/javascript →
+// js, and the longest remaining fence (```html or untagged) → body. When
+// Claude answered with separate HTML/CSS/JS blocks this feeds the 3-tab
+// draft editor directly; a single monolith fence still lands in body.
+// Falls back to the whole paste if no fence at all.
 function extractFromClaudePaste(text) {
-  const fences = [];
-  const re = /```(?:[a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+  const htmlFences = [], cssFences = [], jsFences = [];
+  const re = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
   let m;
-  while ((m = re.exec(text)) !== null) fences.push(m[1]);
-  const body = fences.length
-    ? fences.sort((a, b) => b.length - a.length)[0]
-    : text;
+  while ((m = re.exec(text)) !== null) {
+    const lang = (m[1] || '').toLowerCase();
+    if (lang === 'css') cssFences.push(m[2]);
+    else if (lang === 'js' || lang === 'javascript') jsFences.push(m[2]);
+    else htmlFences.push(m[2]); // html, untagged, or anything else
+  }
+  const longest = (arr) => arr.sort((a, b) => b.length - a.length)[0] || '';
+  const body = htmlFences.length ? longest(htmlFences) : (cssFences.length || jsFences.length ? '' : text);
+  // Multiple same-language fences: join with a separator comment so nothing
+  // is silently dropped (Claude sometimes splits long files).
+  const css = cssFences.join('\n\n/* ── next block ── */\n\n');
+  const js = jsFences.join('\n\n// ── next block ──\n\n');
   // Title guess: first <title>...</title> if HTML, else the first non-empty
   // line of the user's first question outside any fence.
   let title = '';
@@ -548,7 +586,7 @@ function extractFromClaudePaste(text) {
     const firstLine = nonFenceText.split('\n').find(l => l.trim().length > 0) || '';
     title = firstLine.slice(0, 60).trim();
   }
-  return { body: body.trim(), title };
+  return { body: body.trim(), css: css.trim(), js: js.trim(), title };
 }
 
 // ─── Playlists ───

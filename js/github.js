@@ -165,17 +165,41 @@ async function deleteOGPageFromGitHub(prompt) {
 }
 
 async function deletePromptFromGitHub(prompt) {
-  // 1. Delete the HTML file (and any per-version HTMLs) if they exist
-  const htmlPaths = ['htmls/' + prompt.id + '.html'];
-  if (prompt.versions && prompt.versions.length) {
-    prompt.versions.forEach((v, i) => {
-      const vNum = v.v != null ? v.v : (i + 1);
-      htmlPaths.push('htmls/' + prompt.id + '_v' + vNum + '.html');
-    });
-  }
-  for (const path of htmlPaths) {
-    const sha = await ghGetSha(path);
-    if (sha) await ghDeleteFile(path, 'Prompton: delete ' + path, sha);
+  // 1. Delete the HTML file(s). Flat prompts: htmls/<id>.html (+ version
+  //    files). Folder prompts: every file under htmls/<id>/ (+ version
+  //    folders) — git has no directory objects, so we list and delete each.
+  if (prompt.layout === 'folder') {
+    const dirs = ['htmls/' + prompt.id];
+    if (prompt.versions && prompt.versions.length) {
+      prompt.versions.forEach((v, i) => {
+        const vNum = v.v != null ? v.v : (i + 1);
+        dirs.push('htmls/' + prompt.id + '_v' + vNum);
+      });
+    }
+    const cfgDel = getSyncConfig();
+    for (const dir of dirs) {
+      let listing = [];
+      try { listing = await ghFetch('/contents/' + dir + '?ref=' + encodeURIComponent(cfgDel.branch)); }
+      catch (e) { continue; /* folder absent — nothing to delete */ }
+      if (!Array.isArray(listing)) listing = [listing];
+      for (const f of listing) {
+        if (f.type === 'file' && f.sha) {
+          await ghDeleteFile(f.path, 'Prompton: delete ' + f.path, f.sha);
+        }
+      }
+    }
+  } else {
+    const htmlPaths = ['htmls/' + prompt.id + '.html'];
+    if (prompt.versions && prompt.versions.length) {
+      prompt.versions.forEach((v, i) => {
+        const vNum = v.v != null ? v.v : (i + 1);
+        htmlPaths.push('htmls/' + prompt.id + '_v' + vNum + '.html');
+      });
+    }
+    for (const path of htmlPaths) {
+      const sha = await ghGetSha(path);
+      if (sha) await ghDeleteFile(path, 'Prompton: delete ' + path, sha);
+    }
   }
   // Also delete the OG card page if present.
   try { await deleteOGPageFromGitHub(prompt); } catch (e) { /* best effort */ }
@@ -420,6 +444,13 @@ async function pushPlaylistsToGitHub() {
 }
 
 async function pushPromptToGitHub(prompt) {
+  // Folder-layout prompts (multi-file: index.html + style.css + app.js) go
+  // through the bulk-commit path so all files + manifest + OG card land in
+  // ONE commit. prompt.files carries the sidecar sources transiently — it
+  // is never written to the manifest.
+  if (prompt.layout === 'folder') {
+    return pushFolderPromptToGitHub(prompt);
+  }
   // 1. Write the HTML file
   const htmlPath = 'htmls/' + prompt.id + '.html';
   const htmlSha = await ghGetSha(htmlPath);  // null for create, existing sha for update
@@ -451,4 +482,41 @@ async function pushPromptToGitHub(prompt) {
   }
   // Push the OG card page so the prompt has a proper unfurl on LINE/X/Discord.
   try { await pushOGPageToGitHub(prompt); } catch (e) { console.warn('OG page push failed:', e); }
+}
+
+// Folder-layout publish: htmls/<id>/index.html + optional style.css / app.js,
+// plus the manifest update and OG card, all in ONE bulk commit (Git Data API).
+// prompt.files = { css?: string, js?: string } — transient sidecar sources.
+// The manifest entry never contains html or files (both stripped).
+async function pushFolderPromptToGitHub(prompt) {
+  const cfg = getSyncConfig();
+  const cleanedHtml = cleanupHtml(prompt.html);
+  prompt.html = cleanedHtml;
+  const dir = 'htmls/' + prompt.id + '/';
+  const files = [{ path: dir + 'index.html', content: cleanedHtml }];
+  const sidecars = prompt.files || {};
+  if (sidecars.css && sidecars.css.trim()) files.push({ path: dir + 'style.css', content: sidecars.css });
+  if (sidecars.js && sidecars.js.trim()) files.push({ path: dir + 'app.js', content: sidecars.js });
+  // Manifest: read fresh, replace/insert this prompt's meta (sans html/files).
+  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
+  let manifest;
+  try { manifest = JSON.parse(b64ToUtf8(manRaw.content)); }
+  catch (e) { manifest = []; }
+  const meta = JSON.parse(JSON.stringify(prompt));
+  delete meta.html;
+  delete meta.files;
+  if (meta.versions) meta.versions = meta.versions.map(v => { const c = {...v}; delete c.html; return c; });
+  const existingIdx = manifest.findIndex(p => p.id === prompt.id);
+  if (existingIdx >= 0) manifest[existingIdx] = meta;
+  else manifest.unshift(meta);
+  files.push({ path: 'manifest.json', content: JSON.stringify(manifest, null, 2) });
+  files.push({ path: 'p/' + prompt.id + '/index.html', content: generateOGPageHtml(prompt) });
+  await ghBulkCommit(files, 'Prompton: add ' + prompt.id + ' (folder, ' + (files.length - 2) + ' files)');
+  // Keep in-memory seedPrompts in sync (html stays local-only, files dropped).
+  if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+    const copy = JSON.parse(JSON.stringify(meta));
+    const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
+    if (sIdx >= 0) seedPrompts[sIdx] = copy;
+    else seedPrompts.unshift(copy);
+  }
 }

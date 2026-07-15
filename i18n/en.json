@@ -78,7 +78,9 @@
     "clipboardEmpty": "Clipboard is empty.",
     "confirmDelete": "Delete this draft?",
     "autosaveDirty": "Unsaved…",
-    "autosaveSaved": "Saved"
+    "autosaveSaved": "Saved",
+    "cssPlaceholder": "Optional: paste CSS here to publish as a multi-file prompt (served as style.css)",
+    "jsPlaceholder": "Optional: paste JavaScript here to publish as a multi-file prompt (served as app.js)"
   },
   "mobile": {
     "feed": "Feed",

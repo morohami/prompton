@@ -78,7 +78,9 @@
     "clipboardEmpty": "クリップボードが空です。",
     "confirmDelete": "このドラフトを削除しますか？",
     "autosaveDirty": "未保存…",
-    "autosaveSaved": "保存済"
+    "autosaveSaved": "保存済",
+    "cssPlaceholder": "任意: CSSを貼るとマルチファイル投稿になります（style.css として配信）",
+    "jsPlaceholder": "任意: JavaScriptを貼るとマルチファイル投稿になります（app.js として配信）"
   },
   "mobile": {
     "feed": "ホーム",

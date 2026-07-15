@@ -4141,6 +4141,44 @@
     text-align: center;
   }
   /* Draft modal extras */
+  /* HTML / CSS / JS tab bar in the draft editor. A tab whose textarea has
+     content gets .has-content — the accent dot — so multi-file drafts are
+     recognizable without clicking through the tabs. */
+  .draft-tabs {
+    display: flex;
+    gap: 2px;
+    margin: 0 0 -1px;
+  }
+  .draft-tab {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    padding: 7px 16px 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative;
+  }
+  .draft-tab.active {
+    background: var(--bg-2);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .draft-tab.has-content::after {
+    content: '';
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-left: 6px;
+    vertical-align: 2px;
+  }
+  .draft-tabs + .field textarea {
+    border-top-left-radius: 0;
+  }
+
   .draft-toolbar {
     display: flex; gap: 14px;
     padding: 4px 0 12px;
