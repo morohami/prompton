@@ -4179,6 +4179,20 @@
     border-top-left-radius: 0;
   }
 
+  /* Token field: text input masked with -webkit-text-security instead of
+     type=password, so Safari/iOS password-manager overlays never engage.
+     Firefox lacks the property and shows plain text — the 表示 toggle and
+     the fact it's a single-user owner field make that acceptable. */
+  .masked-input-wrap {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .masked-input-wrap input { flex: 1; min-width: 0; }
+  .masked-input { -webkit-text-security: disc; }
+  .masked-input.revealed { -webkit-text-security: none; }
+  #syncPatToggle { flex: 0 0 auto; font-size: 12px; color: var(--ink-soft); }
+
   .draft-toolbar {
     display: flex; gap: 14px;
     padding: 4px 0 12px;

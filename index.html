@@ -219,9 +219,16 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
         <input type="text" name="branch" id="syncBranch" placeholder="main" autocomplete="off" />
       </div>
       <div class="settings-field">
-        <label>Personal Access Token <span class="hint">scope: <code>public_repo</code> (or <code>repo</code> for private). Stored only in your browser.</span></label>
-        <input type="password" name="pat" id="syncPat" placeholder="ghp_..." autocomplete="off" spellcheck="false" />
-        <div class="hint" style="margin-top:6px">Create one at <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=Prompton" target="_blank" rel="noopener">github.com/settings/tokens</a> · only <code>public_repo</code> is needed.</div>
+        <label>Personal Access Token <span class="hint">Fine-grained · Contents: Read and write · this repo only. Stored only in your browser.</span></label>
+        <!-- Deliberately NOT type="password": Safari/iOS treats password inputs
+             as signup fields and covers them with the "strong password" overlay,
+             which blocks typing and pasting entirely. A text input masked via
+             -webkit-text-security dodges every password-manager behavior. -->
+        <div class="masked-input-wrap">
+          <input type="text" name="gh_token" id="syncPat" class="masked-input" placeholder="github_pat_..." autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" />
+          <button type="button" class="btn-text" id="syncPatToggle" aria-label="Show token">表示</button>
+        </div>
+        <div class="hint" style="margin-top:6px">Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> — Repository access: <em>Only select repositories</em> → this repo · Permissions: <em>Contents → Read and write</em>.</div>
       </div>
       <div class="settings-actions">
         <button type="button" id="syncTestBtn" class="btn-secondary">Test connection</button>
@@ -1342,6 +1349,12 @@ document.querySelectorAll('.lang-btn').forEach(b => {
     else if (hash === '#/rankings' || hash.startsWith('#/rankings')) renderRankings(hash.indexOf('forks') >= 0 ? 'forks' : 'downloads');
     else renderGallery();
   });
+});
+// Show/hide the token characters (CSS mask flip, no type= change).
+document.getElementById('syncPatToggle').addEventListener('click', (e) => {
+  const pat = document.getElementById('syncPat');
+  const revealed = pat.classList.toggle('revealed');
+  e.currentTarget.textContent = revealed ? '隠す' : '表示';
 });
 document.getElementById('settingsForm').addEventListener('submit', (e) => {
   e.preventDefault();
