@@ -34,14 +34,14 @@
     "systemPrompt": "",
     "userPrompt": "Demonstrate the new folder-layout prompt scheme: single index.html linking out to sibling style.css and app.js, served from htmls/<id>/.",
     "context": "Internal infrastructure test. layout: 'folder' flag in manifest tells the bootstrap to skip pre-fetching .html and tells iframe builders to use src= instead of srcdoc=.",
-    "model": "Claude Sonnet 4.5",
+    "model": "AI",
     "license": "CC0 — Public domain",
     "tags": [
       "meta",
       "infra",
       "multi-file"
     ],
-    "tag": "other",
+    "tag": "meta",
     "author": "you",
     "authorName": "You",
     "date": "2026-05-27",
@@ -51,7 +51,10 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/_folder_demo.jpg",
-    "thumbVer": 1784132577092
+    "thumbVer": 1784132577092,
+    "reproPrompt": "",
+    "devNotes": "",
+    "visibility": "unlisted"
   },
   {
     "id": "p1779823200000",
