@@ -56,6 +56,7 @@ _Last updated: 2026-07-16. No known open bugs. Working tree clean, local = origi
 
 | Wave | Highlights | Commits |
 |---|---|---|
+| Per-prompton handoffs | Each prompton can carry a "resume here" markdown (user's idea: Prompton itself needs handoffs). Sidecar `htmls/<id>_handoff.md` (flat) / `htmls/<id>/HANDOFF.md` (folder); only `handoffVer` in the manifest; detail page 引き継ぎ section with owner inline editor + 「AI用にコピー」 composing title + live URL + page URL + body for pasting into a fresh AI session. Empty save deletes the sidecar. Delete flow cleans it up. Note: editing a folder-layout handoff re-triggers the thumbnails workflow (harmless; could exclude .md later) | (after `39ee3c4`) |
 | Multi-AI neutral copy | Title/ledes "made with AI", paste button → 会話から貼り付け, model default + picker option "AI" | (after `f667aa0`) |
 | prompton framing | All UI copy: prompt→prompton where it means the work; prompt kept for prompt-text UI | `f667aa0` |
 | Stories bar removed | Drafts moved to masthead 下書き button (count badge) + dropdown: ＋新規 + saved drafts, 3-file chip for multi-file drafts. `renderStoriesBar()` keeps its name but now renders the dropdown | `bcd211e` |
@@ -138,7 +139,8 @@ js/github.js              +pushFolderPromptToGitHub, folder-aware delete
    it as a collapsible "making-of" section on the detail page, with each
    assistant HTML attachment = a version (v1/v2/v3 auto-versioning).
    Design agreed with user: structured turns
-   `{role: user|assistant, text, html?}`.
+   `{role: user|assistant, text, html?}`. The handoff feature (shipped)
+   covers the distilled "resume here" doc; this item is the raw history.
 3. **Cloudflare work version** — private repo + CF Pages + CF Access +
    the already-written `functions/` OAuth backend. Public site stays on
    GitHub Pages. ~half a day. See OAUTH_SETUP.md.

@@ -4175,6 +4175,43 @@
     border-top-left-radius: 0;
   }
 
+  /* ─── Handoff section (detail page) ───
+     The per-prompton "resume here" document. Small tool row above the
+     body; the body reuses .repro-block's <pre> styling. */
+  .handoff-tools {
+    display: flex;
+    gap: 8px;
+    margin: -4px 0 10px;
+  }
+  .handoff-tools button {
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  .handoff-tools button:hover { border-color: var(--border-strong); }
+  #handoffTextarea {
+    width: 100%;
+    min-height: 200px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-2);
+    color: var(--text);
+    resize: vertical;
+  }
+  .handoff-editor-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
   /* Token field: text input masked with -webkit-text-security instead of
      type=password, so Safari/iOS password-manager overlays never engage.
      Firefox lacks the property and shows plain text — the 表示 toggle and

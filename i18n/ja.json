@@ -41,7 +41,12 @@
     "compareOriginal": "⇄ オリジナルと比較",
     "saveVersion": "✎ 新バージョンを保存",
     "edit": "✎ 編集",
-    "delete": "削除"
+    "delete": "削除",
+    "handoffTitle": "引き継ぎ",
+    "handoffCopy": "AI用にコピー",
+    "handoffEmpty": "まだ引き継ぎがありません — 次のAIセッションが続きから作業できるように書いておきましょう。",
+    "handoffSave": "引き継ぎを保存",
+    "handoffSaved": "引き継ぎを保存しました。"
   },
   "profile": {
     "published": "公開",

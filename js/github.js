@@ -196,6 +196,9 @@ async function deletePromptFromGitHub(prompt) {
         htmlPaths.push('htmls/' + prompt.id + '_v' + vNum + '.html');
       });
     }
+    // Handoff sidecar rides along (folder-layout handoffs live inside the
+    // directory and are covered by the enumeration branch above).
+    htmlPaths.push('htmls/' + prompt.id + '_handoff.md');
     for (const path of htmlPaths) {
       const sha = await ghGetSha(path);
       if (sha) await ghDeleteFile(path, 'Prompton: delete ' + path, sha);
@@ -224,6 +227,31 @@ async function deletePromptFromGitHub(prompt) {
     if (sIdx >= 0) seedPrompts.splice(sIdx, 1);
   }
 }
+// ─── Per-prompton handoff document ───
+// A handoff is the "resume here" markdown for iterative AI work: what this
+// prompton is, what's done, what's next. Stored as a sidecar file so the
+// manifest stays lean — only `handoffVer` (a timestamp used for existence
+// checks + cache busting) lives in the manifest entry.
+function handoffPathFor(prompt) {
+  return prompt.layout === 'folder'
+    ? 'htmls/' + prompt.id + '/HANDOFF.md'
+    : 'htmls/' + prompt.id + '_handoff.md';
+}
+async function pushHandoffToGitHub(prompt, text) {
+  const path = handoffPathFor(prompt);
+  const sha = await ghGetSha(path);
+  if (text && text.trim()) {
+    await ghPutFile(path, text, 'Prompton: handoff for ' + prompt.id, sha);
+    prompt.handoffVer = Date.now();
+  } else {
+    // Empty text = remove the handoff entirely.
+    if (sha) await ghDeleteFile(path, 'Prompton: remove handoff for ' + prompt.id, sha);
+    delete prompt.handoffVer;
+  }
+  // Persist handoffVer (or its removal) into the manifest.
+  await updatePromptMetadataOnGitHub(prompt);
+}
+
 // Update only the manifest entry for an existing prompt — HTML files are untouched.
 async function updatePromptMetadataOnGitHub(prompt) {
   const cfg = getSyncConfig();

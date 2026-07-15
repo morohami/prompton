@@ -1092,6 +1092,24 @@ function renderDetail(id, viewingVersionNum) {
           <div class="dev-notes">${escapeHtml(p.devNotes).replace(/\n/g, '<br>')}</div>
         </div>` : ''}
 
+        ${(p.handoffVer || isOwner()) ? `
+        <div class="meta-block" id="handoffBlock">
+          <h2>${escapeHtml(t('detail.handoffTitle'))}</h2>
+          <div class="handoff-tools">
+            <button type="button" id="handoffCopyBtn" style="display:none">⎘ ${escapeHtml(t('detail.handoffCopy'))}</button>
+            ${isOwner() ? `<button type="button" id="handoffEditBtn">✎ ${escapeHtml(t('detail.edit'))}</button>` : ''}
+          </div>
+          <pre class="repro-block" id="handoffBody" style="display:none"></pre>
+          <div class="dev-notes" id="handoffEmpty" style="display:none">${escapeHtml(t('detail.handoffEmpty'))}</div>
+          <div id="handoffEditor" style="display:none">
+            <textarea id="handoffTextarea"></textarea>
+            <div class="handoff-editor-actions">
+              <button type="button" class="btn secondary" id="handoffSaveBtn">${escapeHtml(t('detail.handoffSave'))}</button>
+              <button type="button" class="btn-cancel" id="handoffCancelBtn">${escapeHtml(t('drafts.cancel'))}</button>
+            </div>
+          </div>
+        </div>` : ''}
+
         <div class="meta-block">
           <h2>Tags</h2>
           <div class="tag-list">${normalizeTagList(p.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
@@ -1386,6 +1404,76 @@ function renderDetail(id, viewingVersionNum) {
   const editMetaBtn = document.getElementById('editMetadataBtn');
   if (editMetaBtn) {
     editMetaBtn.addEventListener('click', () => openMetadataEditor(p.id));
+  }
+
+  // ── Handoff — per-prompton "resume here" document ──
+  // Fetched on demand (sidecar file, not in the manifest). Copy composes a
+  // paste-ready context block for a fresh AI session; owners edit inline.
+  const handoffBlock = document.getElementById('handoffBlock');
+  if (handoffBlock) {
+    const hBody = document.getElementById('handoffBody');
+    const hEmpty = document.getElementById('handoffEmpty');
+    const hCopy = document.getElementById('handoffCopyBtn');
+    const hEdit = document.getElementById('handoffEditBtn');
+    const hEditor = document.getElementById('handoffEditor');
+    const hTa = document.getElementById('handoffTextarea');
+    let handoffText = '';
+    const showHandoff = () => {
+      hEditor.style.display = 'none';
+      if (handoffText.trim()) {
+        hBody.textContent = handoffText;
+        hBody.style.display = '';
+        hEmpty.style.display = 'none';
+        if (hCopy) hCopy.style.display = '';
+      } else {
+        hBody.style.display = 'none';
+        hEmpty.style.display = isOwner() ? '' : 'none';
+        if (hCopy) hCopy.style.display = 'none';
+      }
+    };
+    if (p.handoffVer) {
+      fetch(handoffPathFor(p) + '?v=' + p.handoffVer)
+        .then(r => r.ok ? r.text() : '')
+        .then(txt => { handoffText = txt || ''; showHandoff(); })
+        .catch(() => { handoffText = ''; showHandoff(); });
+    } else {
+      showHandoff();
+    }
+    if (hCopy) hCopy.addEventListener('click', (e) => {
+      // Paste-ready resume block: what it is + where it runs + the handoff.
+      const standalone = new URL(promptHtmlPath(p), location.href).href;
+      const composed =
+        '# Handoff: ' + p.title + '\n' +
+        'Live HTML: ' + standalone + '\n' +
+        (typeof shareLinkFor === 'function' ? 'Prompton page: ' + shareLinkFor(p) + '\n' : '') +
+        '\n' + handoffText;
+      copyWithFeedback(composed, e.currentTarget);
+    });
+    if (hEdit) hEdit.addEventListener('click', () => {
+      hTa.value = handoffText;
+      hBody.style.display = 'none';
+      hEmpty.style.display = 'none';
+      hEditor.style.display = '';
+      hTa.focus();
+    });
+    const hCancel = document.getElementById('handoffCancelBtn');
+    if (hCancel) hCancel.addEventListener('click', showHandoff);
+    const hSave = document.getElementById('handoffSaveBtn');
+    if (hSave) hSave.addEventListener('click', async () => {
+      hSave.disabled = true;
+      try {
+        await pushHandoffToGitHub(p, hTa.value);
+        handoffText = hTa.value;
+        saveData(prompts);
+        showHandoff();
+        toast(t('detail.handoffSaved'));
+      } catch (err) {
+        console.warn('Handoff save failed:', err);
+        toast(t('drafts.publishFailed') + ' ' + err.message);
+      } finally {
+        hSave.disabled = false;
+      }
+    });
   }
 
   // Delete prompt (owner only) — removes from GitHub then from local state.
