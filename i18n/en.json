@@ -10,7 +10,7 @@
     "drafts": "Drafts"
   },
   "issue": {
-    "lede": "Live promptons, made with Claude",
+    "lede": "Live promptons, made with AI",
     "count": "promptons in circulation"
   },
   "tagline": {
@@ -57,8 +57,8 @@
     "newTitle": "New post",
     "editTitle": "Edit draft",
     "titlePlaceholder": "Title",
-    "bodyPlaceholder": "Paste HTML, a Claude conversation, or a GitHub URL…",
-    "pasteBtn": "Paste from Claude",
+    "bodyPlaceholder": "Paste HTML, an AI conversation, or a GitHub URL…",
+    "pasteBtn": "Paste conversation",
     "githubBtn": "From GitHub URL",
     "githubPrompt": "Paste a GitHub URL (raw, blob, or gist):",
     "fetching": "Fetching…",

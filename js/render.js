@@ -1650,7 +1650,7 @@ function openVersionEditor(promptId) {
       <div class="field">
         <label>Model</label>
         <select name="model">
-          ${['Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other']
+          ${['AI','Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other']
             .map(m => `<option ${m === baseModel ? 'selected' : ''}>${m}</option>`).join('')}
         </select>
       </div>
@@ -1722,7 +1722,7 @@ function openMetadataEditor(promptId) {
   if (!p) return;
   const mount = document.getElementById('versionEditorMount');
   if (!mount) return;
-  const modelOpts = ['Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other'];
+  const modelOpts = ['AI','Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other'];
   mount.innerHTML = `
     <div class="version-editor" id="metadataEditor">
       <h2>Edit metadata</h2>

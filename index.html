@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Prompton — live promptons, made with Claude</title>
+<title>Prompton — live promptons, made with AI</title>
 <!-- PWA installability: web app manifest + iOS standalone-mode meta. The
      theme-color also tints the mobile browser chrome and the iOS notch area. -->
 <link rel="manifest" href="manifest.webmanifest" />
@@ -147,6 +147,8 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
             <div class="field">
               <label>Model used</label>
               <select name="model">
+                <!-- Neutral first option so no vendor becomes the implicit default. -->
+                <option>AI</option>
                 <option>Claude Opus 4.7</option>
                 <option>Claude Sonnet 4.6</option>
                 <option>GPT-4o</option>
@@ -541,7 +543,7 @@ async function publishDraftDirect(title, body, css, js) {
     title: (title || 'Untitled').trim().slice(0, 120) || 'Untitled',
     description: '',
     systemPrompt: '', userPrompt: '', context: '',
-    model: 'Claude Opus 4.7',
+    model: 'AI',
     license: 'CC0 — Public domain',
     tags: [], tag: 'other',
     author: me_h,

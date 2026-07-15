@@ -10,7 +10,7 @@
     "drafts": "下書き"
   },
   "issue": {
-    "lede": "Claudeと作った、動くprompton集",
+    "lede": "AIと作った、動くprompton集",
     "count": "公開中のprompton"
   },
   "tagline": {
@@ -57,8 +57,8 @@
     "newTitle": "新しい投稿",
     "editTitle": "ドラフト編集",
     "titlePlaceholder": "タイトル",
-    "bodyPlaceholder": "HTML、Claudeの会話、GitHubのURLを貼り付け…",
-    "pasteBtn": "Claudeから貼り付け",
+    "bodyPlaceholder": "HTML、AIの会話、GitHubのURLを貼り付け…",
+    "pasteBtn": "会話から貼り付け",
     "githubBtn": "GitHub URLから",
     "githubPrompt": "GitHubのURLを貼り付け（raw / blob / gist）:",
     "fetching": "取得中…",
