@@ -1,0 +1,248 @@
+{
+    "format":  "xyz-png-256",
+    "generated":  "2026-07-16",
+    "attribution":  "Tokyo Disaster Atlas (approximate extents)",
+    "precision":  "approx",
+    "layers":  [
+                   {
+                       "id":  "ueno-1868",
+                       "name":  "上野戦争（彰義隊の戦い）",
+                       "cat":  "war",
+                       "year":  1868,
+                       "color":  "#cc2255",
+                       "url":  "tiles/saigai/ueno-1868/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.7706,
+                                      35.7128,
+                                      139.7752,
+                                      35.7155
+                                  ]
+                   },
+                   {
+                       "id":  "airraid-1945-03-10",
+                       "name":  "東京大空襲（3月10日）",
+                       "cat":  "war",
+                       "year":  1945,
+                       "color":  "#cc2255",
+                       "url":  "tiles/saigai/airraid-1945-03-10/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.785,
+                                      35.67,
+                                      139.86,
+                                      35.745
+                                  ]
+                   },
+                   {
+                       "id":  "airraid-1945-04-13",
+                       "name":  "城北大空襲（4月13日）",
+                       "cat":  "war",
+                       "year":  1945,
+                       "color":  "#cc2255",
+                       "url":  "tiles/saigai/airraid-1945-04-13/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.715,
+                                      35.73,
+                                      139.815,
+                                      35.785
+                                  ]
+                   },
+                   {
+                       "id":  "airraid-1945-05-25",
+                       "name":  "山の手大空襲（5月25日）",
+                       "cat":  "war",
+                       "year":  1945,
+                       "color":  "#cc2255",
+                       "url":  "tiles/saigai/airraid-1945-05-25/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.68,
+                                      35.635,
+                                      139.77,
+                                      35.7
+                                  ]
+                   },
+                   {
+                       "id":  "airraid-1945-05-29",
+                       "name":  "横浜大空襲（5月29日）",
+                       "cat":  "war",
+                       "year":  1945,
+                       "color":  "#cc2255",
+                       "url":  "tiles/saigai/airraid-1945-05-29/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.62,
+                                      35.42,
+                                      139.68,
+                                      35.495
+                                  ]
+                   },
+                   {
+                       "id":  "meireki-1657",
+                       "name":  "明暦の大火（振袖火事）",
+                       "cat":  "fire",
+                       "year":  1657,
+                       "color":  "#ff4444",
+                       "url":  "tiles/saigai/meireki-1657/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.745,
+                                      35.665,
+                                      139.825,
+                                      35.735
+                                  ]
+                   },
+                   {
+                       "id":  "meiwa-1772",
+                       "name":  "明和の大火（目黒行人坂火事）",
+                       "cat":  "fire",
+                       "year":  1772,
+                       "color":  "#ff4444",
+                       "url":  "tiles/saigai/meiwa-1772/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.7,
+                                      35.635,
+                                      139.785,
+                                      35.715
+                                  ]
+                   },
+                   {
+                       "id":  "bunka-1806",
+                       "name":  "文化の大火（丙寅の大火）",
+                       "cat":  "fire",
+                       "year":  1806,
+                       "color":  "#ff4444",
+                       "url":  "tiles/saigai/bunka-1806/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.745,
+                                      35.63,
+                                      139.785,
+                                      35.69
+                                  ]
+                   },
+                   {
+                       "id":  "ansei-1855",
+                       "name":  "安政江戸地震",
+                       "cat":  "quake",
+                       "year":  1855,
+                       "color":  "#ff8c1a",
+                       "url":  "tiles/saigai/ansei-1855/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.78,
+                                      35.67,
+                                      139.85,
+                                      35.735
+                                  ]
+                   },
+                   {
+                       "id":  "kanto-1923",
+                       "name":  "関東大震災",
+                       "cat":  "quake",
+                       "year":  1923,
+                       "color":  "#ff8c1a",
+                       "url":  "tiles/saigai/kanto-1923/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.61,
+                                      35.41,
+                                      139.86,
+                                      35.77
+                                  ]
+                   },
+                   {
+                       "id":  "meiji-1910",
+                       "name":  "明治43年大水害",
+                       "cat":  "flood",
+                       "year":  1910,
+                       "color":  "#1a9fff",
+                       "url":  "tiles/saigai/meiji-1910/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.76,
+                                      35.72,
+                                      139.88,
+                                      35.835
+                                  ]
+                   },
+                   {
+                       "id":  "taisho-1917",
+                       "name":  "大正6年高潮",
+                       "cat":  "flood",
+                       "year":  1917,
+                       "color":  "#1a9fff",
+                       "url":  "tiles/saigai/taisho-1917/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.785,
+                                      35.61,
+                                      139.905,
+                                      35.735
+                                  ]
+                   },
+                   {
+                       "id":  "kathleen-1947",
+                       "name":  "カスリーン台風",
+                       "cat":  "flood",
+                       "year":  1947,
+                       "color":  "#1a9fff",
+                       "url":  "tiles/saigai/kathleen-1947/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.795,
+                                      35.725,
+                                      139.93,
+                                      35.86
+                                  ]
+                   },
+                   {
+                       "id":  "kanogawa-1958",
+                       "name":  "狩野川台風",
+                       "cat":  "flood",
+                       "year":  1958,
+                       "color":  "#1a9fff",
+                       "url":  "tiles/saigai/kanogawa-1958/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.605,
+                                      35.66,
+                                      139.745,
+                                      35.755
+                                  ]
+                   },
+                   {
+                       "id":  "hagibis-2019",
+                       "name":  "令和元年東日本台風（19号）",
+                       "cat":  "flood",
+                       "year":  2019,
+                       "color":  "#1a9fff",
+                       "url":  "tiles/saigai/hagibis-2019/{z}/{x}/{y}.png",
+                       "minzoom":  8,
+                       "maxzoom":  14,
+                       "bounds":  [
+                                      139.575,
+                                      35.535,
+                                      139.73,
+                                      35.66
+                                  ]
+                   }
+               ]
+}
