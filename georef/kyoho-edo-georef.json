@@ -1,0 +1,59 @@
+{
+  "@context": "http://iiif.io/api/extension/georef/1/context.json",
+  "type": "AnnotationPage",
+  "items": [
+    {
+      "@context": "http://iiif.io/api/extension/georef/1/context.json",
+      "id": "kyoho-edo-ndl-2542719",
+      "type": "Annotation",
+      "motivation": "georeferencing",
+      "target": {
+        "type": "SpecificResource",
+        "source": {
+          "@id": "https://dl.ndl.go.jp/api/iiif/2542719/R0000002",
+          "type": "ImageService2",
+          "height": 11324,
+          "width": 19366
+        },
+        "selector": {
+          "type": "SvgSelector",
+          "value": "<svg width=\"19366\" height=\"11324\"><polygon points=\"300,300 19100,300 19100,11050 300,11050\" /></svg>"
+        }
+      },
+      "body": {
+        "type": "FeatureCollection",
+        "transformation": {
+          "type": "polynomial",
+          "options": { "order": 1 }
+        },
+        "features": [
+          {
+            "type": "Feature",
+            "properties": { "resourceCoords": [10840, 4540], "label": "江戸城 (御城紋章中心)" },
+            "geometry": { "type": "Point", "coordinates": [139.7565, 35.6866] }
+          },
+          {
+            "type": "Feature",
+            "properties": { "resourceCoords": [6736, 9618], "label": "佃島" },
+            "geometry": { "type": "Point", "coordinates": [139.7847, 35.6650] }
+          },
+          {
+            "type": "Feature",
+            "properties": { "resourceCoords": [16950, 5700], "label": "不忍池" },
+            "geometry": { "type": "Point", "coordinates": [139.7666, 35.7121] }
+          },
+          {
+            "type": "Feature",
+            "properties": { "resourceCoords": [17538, 9043], "label": "浅草寺" },
+            "geometry": { "type": "Point", "coordinates": [139.7967, 35.7148] }
+          },
+          {
+            "type": "Feature",
+            "properties": { "resourceCoords": [4509, 5642], "label": "増上寺三解脱門" },
+            "geometry": { "type": "Point", "coordinates": [139.7477, 35.6571] }
+          }
+        ]
+      }
+    }
+  ]
+}
