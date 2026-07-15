@@ -614,7 +614,7 @@ function renderGallery() {
           '<div class="spotlight-gradient"></div>' +
           '<div class="spotlight-grid">' +
             '<div class="spotlight-preview" data-news-go="' + lead.id + '">' +
-              '<iframe id="spotlightIframe" data-prompt-id="' + lead.id + '" sandbox="allow-scripts allow-same-origin"></iframe>' +
+              '<iframe id="spotlightIframe" data-prompt-id="' + lead.id + '" sandbox="allow-scripts"></iframe>' +
             '</div>' +
             '<div class="spotlight-editorial">' +
               '<div class="spotlight-kicker">TODAY\'S LEAD</div>' +
@@ -982,7 +982,11 @@ function renderDetail(id, viewingVersionNum) {
     <div class="detail-grid">
       <div>
         <div class="preview-wrap">
-          <iframe id="detailPreviewIframe" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
+          <!-- No allow-same-origin: prompt HTML runs arbitrary JS; sharing the
+               app origin would let it read localStorage (GitHub PAT). Opaque
+               origin still loads static subresources and GitHub Pages sends
+               ACAO:* so same-host fetch() keeps working too. -->
+          <iframe id="detailPreviewIframe" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
           ${p.thumb ? `<img class="preview-thumb-mobile" src="${escapeAttr(thumbUrl(p))}" alt="">` : ''}
           <div class="preview-overlay">
             <button type="button" id="fullscreenBtn" title="View fullscreen">${escapeHtml(t('detail.fullscreen'))}</button>

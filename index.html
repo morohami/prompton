@@ -93,7 +93,9 @@
         </label>
         <div class="html-preview" id="htmlPreview" style="display:none">
           <div class="preview-label">↑ Live preview · <span id="previewSize"></span></div>
-          <iframe id="previewIframe" sandbox="allow-scripts allow-same-origin"></iframe>
+          <!-- No allow-same-origin: pasted/imported HTML is untrusted and must
+               not share the app origin (localStorage holds the GitHub PAT). -->
+          <iframe id="previewIframe" sandbox="allow-scripts"></iframe>
         </div>
         <!-- Bulk queue: visible only when 2+ files are dropped. -->
         <div id="bulkQueue" class="bulk-queue" style="margin-top:12px;display:none"></div>
@@ -1057,7 +1059,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side left">
         <div class="side-label">${leftLabel}</div>
         <div class="preview-wrap">
-          <iframe${promptPreviewAttrs(pLeft)} sandbox="allow-scripts allow-same-origin"></iframe>
+          <iframe${promptPreviewAttrs(pLeft)} sandbox="allow-scripts"></iframe>
         </div>
         <h3>${escapeHtml(pLeft.title)}</h3>
         <div class="meta">by ${escapeHtml(pLeft.authorName)} · ${formatDate(pLeft.date)} · ${escapeHtml(pLeft.model)}</div>
@@ -1066,7 +1068,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side right">
         <div class="side-label">${rightLabel}</div>
         <div class="preview-wrap">
-          <iframe${promptPreviewAttrs(pRight)} sandbox="allow-scripts allow-same-origin"></iframe>
+          <iframe${promptPreviewAttrs(pRight)} sandbox="allow-scripts"></iframe>
         </div>
         <h3>${escapeHtml(pRight.title)}</h3>
         <div class="meta">by ${escapeHtml(pRight.authorName)} · ${formatDate(pRight.date)} · ${escapeHtml(pRight.model)}</div>
