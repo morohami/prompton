@@ -9,14 +9,13 @@
 <body>
   <main>
     <div class="kicker">MULTI-FILE</div>
-    <h1>このページは<br>3ファイルで構成されています。</h1>
+    <h1>3ファイル構成の<br>promptデモ。</h1>
     <ul class="files">
-      <li><code>index.html</code> &middot; この文書</li>
-      <li><code>style.css</code> &middot; サイドリンクで読み込み</li>
-      <li><code>app.js</code> &middot; サイドスクリプトで読み込み</li>
+      <li><code>index.html</code><span class="check" data-file="html"></span></li>
+      <li><code>style.css</code><span class="check" data-file="css"></span></li>
+      <li><code>app.js</code><span class="check" data-file="js"></span></li>
     </ul>
-    <div id="dot" title="JS から動いています"></div>
-    <p class="footnote">monolith ではなく <strong>htmls/&lt;id&gt;/</strong> フォルダから直接サーブされています。</p>
+    <p class="footnote">monolith ではなく <strong>htmls/&lt;id&gt;/</strong> フォルダから直接サーブされています。相対パスで <code>style.css</code> と <code>app.js</code> を解決。</p>
   </main>
   <script src="app.js"></script>
 </body>

@@ -12,64 +12,118 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 48px 24px;
+  padding: 48px 40px;
 }
 main {
-  max-width: 640px;
+  max-width: 560px;
   width: 100%;
 }
 .kicker {
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 h1 {
-  font-size: clamp(28px, 5.5vw, 44px);
-  line-height: 1.12;
-  margin: 0 0 28px;
+  font-size: clamp(28px, 5.8vw, 46px);
+  line-height: 1.1;
+  margin: 0 0 32px;
   font-weight: 400;
+  letter-spacing: -0.01em;
 }
 .files {
   list-style: none;
-  padding: 18px 22px;
+  padding: 20px 22px;
   margin: 0 0 28px;
   background: #fff;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 14px;
   color: var(--muted);
 }
-.files li + li { margin-top: 8px; }
+.files li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.files li + li { border-top: 1px dashed var(--rule); }
 .files code {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   color: var(--ink);
   background: #f1ede5;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 3px;
   font-size: 13px;
 }
-#dot {
-  width: 64px;
-  height: 64px;
+/* Each check pip lights up as the corresponding file finishes loading.
+   The HTML row's pip is set on/immediate; the CSS row's pip lights the
+   moment this stylesheet parses (a rule targets it); the JS row's pip
+   is set by app.js on load. Screenshots therefore prove all three
+   loaded — no motion required. */
+.check {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
+  border: 1.5px solid var(--rule);
+  position: relative;
+  flex-shrink: 0;
+}
+.check.on {
   background: var(--accent);
-  margin: 32px 0;
-  box-shadow: 0 8px 24px rgba(140, 21, 21, 0.25);
+  border-color: var(--accent);
+}
+.check.on::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+/* This selector never matches unless style.css itself was parsed. If
+   you see the CSS row's pip lit in the thumbnail, the sibling CSS
+   file resolved through the folder URL. */
+.check[data-file="css"] { background: var(--accent); border-color: var(--accent); }
+.check[data-file="css"]::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
 }
 .footnote {
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 13px;
   color: var(--muted);
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.7;
+}
+.footnote code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--ink);
+  background: #f1ede5;
+  padding: 1px 6px;
+  border-radius: 3px;
 }
 .footnote strong {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
   color: var(--ink);
+  background: #f1ede5;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 500;
 }
