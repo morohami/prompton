@@ -10,12 +10,12 @@
     "drafts": "下書き"
   },
   "issue": {
-    "lede": "毎日使えるAIのレシピブック",
-    "count": "公開中のプロンプト"
+    "lede": "Claudeと作った、動くprompton集",
+    "count": "公開中のprompton"
   },
   "tagline": {
-    "main": "<em>実際に</em>使えるプロンプト。",
-    "sub": "全部HTML、全部プロンプト。ギャラリーを見て、フォークして、改良して、シェア。"
+    "main": "<em>実際に</em>動くprompton。",
+    "sub": "全部ブラウザでそのまま動く。見て、フォークして、改良して、投稿。"
   },
   "filter": {
     "all": "すべて",
@@ -24,7 +24,7 @@
     "sortOld": "古い順",
     "sortDl": "ダウンロード数",
     "sortFk": "フォーク数",
-    "searchPlaceholder": "プロンプト・タグ・作者を検索…",
+    "searchPlaceholder": "prompton・タグ・作者を検索…",
     "compare": "比較"
   },
   "detail": {
@@ -50,7 +50,7 @@
     "following": "フォロー中",
     "forks": "フォーク",
     "downloads": "ダウンロード",
-    "favoritesEmpty": "まだお気に入りがありません。プロンプトの♡をタップして保存しましょう。"
+    "favoritesEmpty": "まだお気に入りがありません。promptonの♡をタップして保存しましょう。"
   },
   "drafts": {
     "newLabel": "新規",
@@ -97,9 +97,9 @@
   },
   "playlists": {
     "title": "プレイリスト",
-    "lede": "プロンプトのテーマ別コレクション。作って、追加して、URLでシェア。",
+    "lede": "promptonのテーマ別コレクション。作って、追加して、URLでシェア。",
     "empty": "まだプレイリストがありません — 最初の一つを作りましょう。",
-    "emptyTiles": "空のプレイリストです。プロンプトを開いて ♫ プレイリストボタンから追加してください。",
+    "emptyTiles": "空のプレイリストです。promptonを開いて ♫ プレイリストボタンから追加してください。",
     "new": "新規プレイリスト",
     "newInline": "作成",
     "noneYet": "まだプレイリストがありません。",
@@ -126,6 +126,6 @@
     "signInBtn": "GitHubでサインイン",
     "signOutBtn": "サインアウト",
     "language": "言語",
-    "languageHint": "UI表示の言語設定（プロンプト本文には影響しません）"
+    "languageHint": "UI表示の言語設定（promptonの中身には影響しません）"
   }
 }

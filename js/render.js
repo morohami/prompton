@@ -376,7 +376,7 @@ function renderPlaylists() {
     const count = (pl.promptIds || []).length;
     return `<a class="playlist-tile" data-pl-id="${escapeAttr(pl.id)}" style="background:${escapeAttr(color)}">
       <div class="pl-name">${escapeHtml(pl.name)}</div>
-      <div class="pl-count">${count} ${count === 1 ? 'prompt' : 'prompts'}</div>
+      <div class="pl-count">${count} ${count === 1 ? 'prompton' : 'promptons'}</div>
     </a>`;
   }).join('');
   el.innerHTML = `
@@ -411,7 +411,7 @@ function renderPlaylistDetail(plId) {
   el.innerHTML = `
     <div class="playlist-header" style="border-left:4px solid ${escapeAttr(color)}">
       <h1>${escapeHtml(pl.name)}</h1>
-      <div class="lede">${inPlaylist.length} ${inPlaylist.length === 1 ? 'prompt' : 'prompts'} · ${escapeHtml(t('playlists.by'))} @${escapeHtml(pl.owner)}</div>
+      <div class="lede">${inPlaylist.length} ${inPlaylist.length === 1 ? 'prompton' : 'promptons'} · ${escapeHtml(t('playlists.by'))} @${escapeHtml(pl.owner)}</div>
       ${canEdit ? `<button type="button" class="btn secondary" id="deletePlaylistBtn">${escapeHtml(t('playlists.delete'))}</button>` : ''}
     </div>
     <div class="grid" id="playlistGrid"></div>
@@ -559,11 +559,11 @@ function renderRankings(metric) {
   el.innerHTML = `
     <div class="rankings-wrap">
       <h1><em>${escapeHtml(t('rankings.title'))}</em></h1>
-      <p class="lede">Top prompts by ${metric}. Updated live from the manifest.</p>
+      <p class="lede">Top promptons by ${metric}. Updated live from the manifest.</p>
       <div class="ranking-totals">
         <div><div class="num">${formatNum(totalDl)}</div><div class="lbl">Total downloads</div></div>
         <div><div class="num">${formatNum(totalFk)}</div><div class="lbl">Total forks</div></div>
-        <div><div class="num">${all.length}</div><div class="lbl">Prompts</div></div>
+        <div><div class="num">${all.length}</div><div class="lbl">Promptons</div></div>
       </div>
       <div class="ranking-toggle">
         <button type="button" class="${metric === 'downloads' ? 'active' : ''}" data-rank="downloads">${escapeHtml(t('rankings.downloadsBtn'))}</button>
@@ -592,7 +592,7 @@ function renderRankings(metric) {
               <div class="lbl">${labelOther}</div>
             </div>
           </li>`;
-        }).join('') || '<li class="empty-state">No prompts yet.</li>'}
+        }).join('') || '<li class="empty-state">No promptons yet.</li>'}
       </ol>
     </div>
   `;
@@ -666,7 +666,7 @@ function renderGallery() {
             : '<div class="thumb-mount" data-thumb-id="' + p.id + '"></div>') +
           '<button type="button" class="album-fullscreen" data-fullscreen-id="' + p.id + '" title="View this HTML fullscreen" aria-label="View fullscreen">⛶</button>' +
           '<button type="button" class="fav-btn ' + (isFavorited(p.id) ? 'on' : '') + '" data-fav-id="' + p.id + '" aria-label="Favorite" title="Favorite">' + (isFavorited(p.id) ? '♥' : '♡') + '</button>' +
-          '<div class="album-play" title="Open prompt">▶</div>' +
+          '<div class="album-play" title="Open prompton">▶</div>' +
         '</div>' +
         '<h3 class="album-title">' + escapeHtml(p.title) + '</h3>' +
         '<div class="album-by">' + escapeHtml(p.authorName) + '</div>' +
@@ -681,7 +681,7 @@ function renderGallery() {
     magazineEl.innerHTML =
       '<div class="greeting">' + greeting + ', ' + escapeHtml(youName === 'You' ? 'reader' : youName.split(' ')[0]) + '.</div>' +
       '<div class="greeting-sub">' +
-        (FEATURES.spotlight ? 'Daily edition · Issue ' + getIssueNumber() : 'Your collection · ' + publicPrompts.length + ' prompt' + (publicPrompts.length === 1 ? '' : 's')) +
+        (FEATURES.spotlight ? 'Daily edition · Issue ' + getIssueNumber() : 'Your collection · ' + publicPrompts.length + ' prompton' + (publicPrompts.length === 1 ? '' : 's')) +
       '</div>' +
 
       (FEATURES.spotlight && lead ? (
@@ -697,7 +697,7 @@ function renderGallery() {
               (leadExcerpt ? '<div class="spotlight-excerpt">' + escapeHtml(leadExcerpt) + '</div>' : '') +
               '<div class="spotlight-byline">by <span class="author-link" data-author="' + lead.author + '">' + escapeHtml(lead.authorName) + '</span> · ' + formatNum(lead.downloads) + ' downloads · ' + lead.forks + ' forks</div>' +
               '<div class="spotlight-actions">' +
-                '<button class="btn-play" data-news-go="' + lead.id + '">Open prompt</button>' +
+                '<button class="btn-play" data-news-go="' + lead.id + '">Open prompton</button>' +
                 '<button class="btn-ghost" data-news-fork="' + lead.id + '">⑂ Fork</button>' +
               '</div>' +
             '</div>' +
@@ -797,7 +797,7 @@ function renderGallery() {
     // browsers from spinning up at once.
     mountAlbumThumbs(magazineEl);
 
-    archiveEl.innerHTML = '<div class="archive-header"><h2>All prompts</h2><p>The full library — search, filter, and sort below.</p></div>';
+    archiveEl.innerHTML = '<div class="archive-header"><h2>All promptons</h2><p>The full library — search, filter, and sort below.</p></div>';
   } else {
     magazineEl.innerHTML = '';
     archiveEl.innerHTML = '';
@@ -906,7 +906,7 @@ function renderGallery() {
   // Apply compare-mode class
   grid.classList.toggle('compare-mode', compareMode);
   const _issueCountEl = document.getElementById('issueCount');
-  if (_issueCountEl) _issueCountEl.textContent = `${prompts.length} prompts in circulation`;
+  if (_issueCountEl) _issueCountEl.textContent = `${prompts.length} promptons in circulation`;
   // Lazy-mount the grid's iframe thumbnails — only what enters the viewport.
   mountAlbumThumbs(grid);
   showView('gallery');
@@ -1041,12 +1041,12 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn primary" id="openClaudeTopBtn" title="Opens claude.ai with this prompt pre-filled">${escapeHtml(t('detail.open'))}</button>
         ${isOwner() ? `<button class="btn secondary owner-action" id="editMetadataBtn" title="Edit title / description / tags / license">${escapeHtml(t('detail.edit'))}</button>` : ''}
         ${canSaveNewVersion ? `<button class="btn secondary owner-action" id="saveVersionBtn">${escapeHtml(t('detail.saveVersion'))}</button>` : ''}
-        ${isOwner() ? `<button class="btn danger owner-action" id="deletePromptBtn" title="Delete this prompt and its HTML from GitHub">${escapeHtml(t('detail.delete'))}</button>` : ''}
+        ${isOwner() ? `<button class="btn danger owner-action" id="deletePromptBtn" title="Delete this prompton and its files from GitHub">${escapeHtml(t('detail.delete'))}</button>` : ''}
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">${escapeHtml(t('detail.copy'))}</button>
         <button class="btn secondary" id="downloadBtn">${escapeHtml(t('detail.download'))}</button>
         <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${escapeHtml(isFavorited(p.id) ? t('detail.favorited') : t('detail.favorite'))}</button>
         <button class="btn secondary" id="addToPlaylistBtn" title="Add to playlist">${escapeHtml(t('detail.playlist'))}</button>
-        <button class="btn secondary" id="shareBtn" title="Share this prompt">${escapeHtml(t('detail.share'))}</button>
+        <button class="btn secondary" id="shareBtn" title="Share this prompton">${escapeHtml(t('detail.share'))}</button>
         <button class="btn secondary" id="forkBtn">${escapeHtml(t('detail.fork'))}</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">${escapeHtml(t('detail.compareOriginal'))}</button>` : ''}
       </div>
@@ -1630,7 +1630,7 @@ function openVersionEditor(promptId) {
     <div class="version-editor" id="versionEditor">
       <h2>Save new version (v${nextV})</h2>
       <div class="editor-tagline">Describe what changed and why. Past versions are preserved.</div>
-      ${versionCount >= 8 ? `<div class="editor-warning">Consider starting a fresh prompt — this one's history is getting long (${versionCount} versions).</div>` : ''}
+      ${versionCount >= 8 ? `<div class="editor-warning">Consider starting a fresh prompton — this one's history is getting long (${versionCount} versions).</div>` : ''}
       <div class="field" id="changelogField">
         <label>Changelog <span class="req">*</span> — what changed?</label>
         <textarea name="changelog" placeholder="e.g. Tightened the system prompt. Added a constraint about specificity."></textarea>

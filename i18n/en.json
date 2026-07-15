@@ -10,12 +10,12 @@
     "drafts": "Drafts"
   },
   "issue": {
-    "lede": "The recipe-book for everyday AI",
-    "count": "prompts in circulation"
+    "lede": "Live promptons, made with Claude",
+    "count": "promptons in circulation"
   },
   "tagline": {
-    "main": "Prompts you can <em>actually</em> cook with.",
-    "sub": "Every HTML, every prompt. Browse the gallery, fork, make it better, share."
+    "main": "Promptons that <em>actually</em> run.",
+    "sub": "Everything runs live in the browser. Browse, fork, make it better, post."
   },
   "filter": {
     "all": "All",
@@ -24,7 +24,7 @@
     "sortOld": "Oldest",
     "sortDl": "Most downloaded",
     "sortFk": "Most forked",
-    "searchPlaceholder": "Search prompts, tags, authors…",
+    "searchPlaceholder": "Search promptons, tags, authors…",
     "compare": "Compare"
   },
   "detail": {
@@ -50,7 +50,7 @@
     "following": "Following",
     "forks": "Forks",
     "downloads": "Downloads",
-    "favoritesEmpty": "No favorites yet. Tap ♡ on any prompt to save it here."
+    "favoritesEmpty": "No favorites yet. Tap ♡ on any prompton to save it here."
   },
   "drafts": {
     "newLabel": "New",
@@ -80,8 +80,8 @@
     "confirmDelete": "Delete this draft?",
     "autosaveDirty": "Unsaved…",
     "autosaveSaved": "Saved",
-    "cssPlaceholder": "Optional: paste CSS here to publish as a multi-file prompt (served as style.css)",
-    "jsPlaceholder": "Optional: paste JavaScript here to publish as a multi-file prompt (served as app.js)",
+    "cssPlaceholder": "Optional: paste CSS here to publish as a multi-file prompton (served as style.css)",
+    "jsPlaceholder": "Optional: paste JavaScript here to publish as a multi-file prompton (served as app.js)",
     "untitled": "Untitled draft"
   },
   "mobile": {
@@ -97,9 +97,9 @@
   },
   "playlists": {
     "title": "Playlists",
-    "lede": "Themed collections of prompts. Make one, drop prompts into it, share the URL.",
+    "lede": "Themed collections of promptons. Make one, drop promptons into it, share the URL.",
     "empty": "No playlists yet — make the first one.",
-    "emptyTiles": "Empty playlist. Open a prompt and add it from the ♫ Playlist button.",
+    "emptyTiles": "Empty playlist. Open a prompton and add it from the ♫ Playlist button.",
     "new": "New playlist",
     "newInline": "Create one",
     "noneYet": "No playlists yet.",
@@ -126,6 +126,6 @@
     "signInBtn": "Sign in with GitHub",
     "signOutBtn": "Sign out",
     "language": "Language",
-    "languageHint": "App language — affects UI labels only (prompt content stays unchanged)"
+    "languageHint": "App language — affects UI labels only (prompton content stays unchanged)"
   }
 }

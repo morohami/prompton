@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Prompton — recipes for AI</title>
+<title>Prompton — live promptons, made with Claude</title>
 <!-- PWA installability: web app manifest + iOS standalone-mode meta. The
      theme-color also tints the mobile browser chrome and the iOS notch area. -->
 <link rel="manifest" href="manifest.webmanifest" />
@@ -86,7 +86,7 @@
       <!-- 1. HTML file(s) -->
       <div class="upload-block">
         <label class="upload-label">Your HTML output <span class="req">*</span></label>
-        <p class="upload-help">Drop one file for the full single-prompt flow, or drop multiple to bulk-publish them in a single commit.</p>
+        <p class="upload-help">Drop one file for the full single-prompton flow, or drop multiple to bulk-publish them in a single commit.</p>
         <label class="file-drop large" id="fileDrop">
           <div class="drop-title" id="dropTitle">Drop .html here</div>
           <div class="drop-hint" id="dropHint">
@@ -122,7 +122,7 @@ Generate a weekly meal planner for a {{DIET}} diet."></textarea>
       <!-- 3. Title -->
       <div class="upload-block" id="titleBlock">
         <label class="upload-label">Title <span class="req">*</span></label>
-        <p class="upload-help">A short name for this prompt. Auto-filled when you drop the HTML.</p>
+        <p class="upload-help">A short name for this prompton. Auto-filled when you drop the HTML.</p>
         <input type="text" name="title" id="titleInput" placeholder="e.g. Weekly meal planner with grocery list" />
       </div>
 
@@ -174,7 +174,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
       <div class="submit-row">
         <span class="storage-note">Saved locally · No backend</span>
-        <button type="submit" class="btn primary big">Publish prompt →</button>
+        <button type="submit" class="btn primary big">Publish prompton →</button>
       </div>
     </form>
   </div>
@@ -243,9 +243,9 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
     <div class="tag-curation" id="tagCurationPanel">
       <h2 data-i18n="settings.tagTitle">Tag curation</h2>
-      <p class="lede">Tags come from your prompts. The list below is the union of every tag attached to a prompt, after normalization through the alias map. Add aliases below to fold variants like <code>ai</code> → <code>AI</code> together.</p>
+      <p class="lede">Tags come from your promptons. The list below is the union of every tag attached to a prompton, after normalization through the alias map. Add aliases below to fold variants like <code>ai</code> → <code>AI</code> together.</p>
       <div class="settings-field">
-        <label>Tags in use <span class="hint">Auto-derived from prompts on save — no manual entry</span></label>
+        <label>Tags in use <span class="hint">Auto-derived from promptons on save — no manual entry</span></label>
         <div class="tag-list" id="curatedTagList"></div>
       </div>
       <div class="settings-field">
@@ -266,7 +266,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
     <div class="tag-curation" id="languagePanel">
       <h2 data-i18n="settings.language">Language</h2>
-      <p class="lede" data-i18n="settings.languageHint">App language — affects UI labels only (prompt content stays unchanged)</p>
+      <p class="lede" data-i18n="settings.languageHint">App language — affects UI labels only (prompton content stays unchanged)</p>
       <div class="settings-actions">
         <button type="button" class="btn-secondary lang-btn" data-locale="en">English</button>
         <button type="button" class="btn-secondary lang-btn" data-locale="ja">日本語</button>
