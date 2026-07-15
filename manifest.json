@@ -1,5 +1,27 @@
 [
   {
+    "id": "_md_demo",
+    "format": "md",
+    "visibility": "unlisted",
+    "title": "Markdown prompton demo",
+    "description": "md文書をpromptonとして保管・表示・ダウンロードする仕組みの確認用。unlistedなので一覧には出ない（オーナーのみ表示）。",
+    "systemPrompt": "",
+    "userPrompt": "",
+    "context": "Infrastructure test for format:'md' + visibility:'unlisted'.",
+    "model": "AI",
+    "license": "CC0 — Public domain",
+    "tags": ["meta", "infra", "md"],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-07-16",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "_folder_demo",
     "layout": "folder",
     "title": "Folder layout demo (multi-file)",

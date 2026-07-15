@@ -37,8 +37,36 @@ function thumbUrl(p) {
 function promptHtmlPath(p, viewing) {
   if (!p) return '';
   const suffix = viewing ? '_v' + viewing : '';
+  if (p.format === 'md') return `htmls/${p.id}${suffix}.md`;
   if (p.layout === 'folder') return `htmls/${p.id}${suffix}/index.html`;
   return `htmls/${p.id}${suffix}.html`;
+}
+
+// ─── Markdown promptons ────────────────────────────────────────────────
+// A prompton can be a plain markdown document (format: "md" in the
+// manifest, file at htmls/<id>.md) — handoffs, specs, notes: the same
+// AI-edits-files-on-GitHub workflow as HTML promptons, just .md. For
+// previews we wrap the raw text in a minimal styled page; fetchSeed
+// stores the raw source on p.mdSource (downloads serve that verbatim)
+// and the wrapper on p.html so every existing srcdoc preview path works.
+function mdPreviewHtml(text) {
+  const esc = String(text || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return '<!doctype html><html><head><meta charset="utf-8">'
+    + '<style>body{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;'
+    + 'font-size:13px;line-height:1.65;padding:28px 32px;margin:0;'
+    + 'background:#faf7f2;color:#26221b;white-space:pre-wrap;word-break:break-word}</style>'
+    + '</head><body>' + esc + '</body></html>';
+}
+
+// ─── Visibility ────────────────────────────────────────────────────────
+// visibility: "unlisted" hides a prompton from the gallery, rankings,
+// search and profile lists for visitors. The owner sees everything.
+// NOTE: on a public repo this is link-only obscurity, NOT secrecy — the
+// raw file stays world-readable to anyone who has the URL.
+function isListed(p) {
+  if (!p) return false;
+  if (!p.visibility || p.visibility === 'public') return true;
+  return isOwner();
 }
 
 // Build the iframe attribute string ('src="..."' or 'srcdoc="..."') for
@@ -404,6 +432,7 @@ function renderPlaylistDetail(plId) {
   if (!el) return;
   const inPlaylist = (pl.promptIds || [])
     .map(id => prompts.find(p => p.id === id))
+    .filter(isListed)
     .filter(Boolean);
   const color = pl.color || '#8C1515';
   const me_h = ownerHandle();
@@ -549,7 +578,7 @@ function renderRankings(metric) {
   setRoute('rankings');
   const el = document.getElementById('rankingsContent');
   if (!el) return;
-  const all = prompts.slice();
+  const all = prompts.filter(isListed);
   const sorted = all.sort((a, b) => (b[metric] || 0) - (a[metric] || 0));
   const top = sorted.slice(0, 30);
   const totalDl = all.reduce((s, p) => s + (p.downloads || 0), 0);
@@ -616,8 +645,9 @@ function renderGallery() {
   showView('gallery');
   renderTagChips();
   renderStoriesBar();
-  // All prompts are published once they're in the manifest — no local-only drafts.
-  const publicPrompts = prompts.slice();
+  // Everything in the manifest is published; unlisted entries are hidden
+  // from visitors (the owner sees them with an Unlisted ribbon).
+  const publicPrompts = prompts.filter(isListed);
 
   // ── Spotify-style home (only when not filtering/searching) ──
   const magazineEl = document.getElementById('magazineSection');
@@ -804,7 +834,7 @@ function renderGallery() {
   }
 
   // ── Filtered / sorted list ──
-  let list = prompts.slice();
+  let list = prompts.filter(isListed);
   if (currentFilter !== 'all') {
     list = list.filter(p => {
       if (normalizeTag(p.tag) === currentFilter) return true;
@@ -835,7 +865,10 @@ function renderGallery() {
     const card = document.createElement('div');
     card.className = 'card';
     const ribbonClass = p.forks > 50 ? 'tomato' : '';
-    const ribbonText = p.forks > 50 ? 'Popular' : (p.parentId ? 'Fork' : p.model.split(' ')[0]);
+    // Owner-only visibility marker beats everything else — you need to see
+    // at a glance which of your promptons visitors can't.
+    const ribbonText = p.visibility === 'unlisted' ? 'Unlisted'
+      : (p.forks > 50 ? 'Popular' : (p.parentId ? 'Fork' : (p.format === 'md' ? 'MD' : p.model.split(' ')[0])));
     const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} knobs</span>` : '';
     const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
     const thumbInner = p.thumb
@@ -1243,16 +1276,26 @@ function renderDetail(id, viewingVersionNum) {
   // versions); flat prompts keep the legacy htmls/<id>.html path.
   const previewIframe = document.getElementById('detailPreviewIframe');
   if (previewIframe) {
-    previewIframe.src = promptHtmlPath(p, isViewingPast ? viewing : null);
+    if (p.format === 'md') {
+      // Raw .md via src= would render unstyled plain text; use the
+      // wrapper built at fetch time instead.
+      previewIframe.srcdoc = view.html || p.html || '';
+    } else {
+      previewIframe.src = promptHtmlPath(p, isViewingPast ? viewing : null);
+    }
   }
 
   // Wire actions
   document.getElementById('downloadBtn').addEventListener('click', (e) => {
     const btn = e.currentTarget;
-    const blob = new Blob([view.html], {type: 'text/html'});
+    // md promptons download the raw markdown source, not the preview wrapper.
+    const isMd = p.format === 'md';
+    const blob = isMd
+      ? new Blob([p.mdSource || ''], {type: 'text/markdown'})
+      : new Blob([view.html], {type: 'text/html'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = safeFilename(p);
+    a.href = url; a.download = isMd ? safeFilename(p).replace(/\.html$/, '.md') : safeFilename(p);
     a.click();
     URL.revokeObjectURL(url);
     p.downloads++;
@@ -1845,6 +1888,13 @@ function openMetadataEditor(promptId) {
           ${modelOpts.map(m => `<option ${m === p.model ? 'selected' : ''}>${m}</option>`).join('')}
         </select>
       </div>
+      <div class="field">
+        <label>Visibility <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(unlisted = hidden from gallery/search, but the file stays reachable by direct URL — this repo is public)</span></label>
+        <select name="visibility">
+          <option value="public" ${p.visibility !== 'unlisted' ? 'selected' : ''}>Public</option>
+          <option value="unlisted" ${p.visibility === 'unlisted' ? 'selected' : ''}>Unlisted</option>
+        </select>
+      </div>
       <div class="editor-actions">
         <button type="button" class="btn" id="metadataSaveBtn">Save metadata</button>
         <button type="button" class="btn-cancel" id="metadataCancelBtn">Cancel</button>
@@ -1868,7 +1918,8 @@ function openMetadataEditor(promptId) {
       devNotes: editor.querySelector('[name="devNotes"]').value,
       tags: tags,
       license: editor.querySelector('[name="license"]').value.trim() || p.license,
-      model: editor.querySelector('[name="model"]').value
+      model: editor.querySelector('[name="model"]').value,
+      visibility: editor.querySelector('[name="visibility"]').value
     });
   });
   mount.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1878,7 +1929,7 @@ async function saveMetadata(promptId, fields) {
   const p = prompts.find(x => x.id === promptId);
   if (!p) return;
   // Apply locally first so the UI feels instant; revert on failure.
-  const prev = { title: p.title, description: p.description, reproPrompt: p.reproPrompt, devNotes: p.devNotes, tags: p.tags, license: p.license, model: p.model, tag: p.tag };
+  const prev = { title: p.title, description: p.description, reproPrompt: p.reproPrompt, devNotes: p.devNotes, tags: p.tags, license: p.license, model: p.model, tag: p.tag, visibility: p.visibility };
   p.title = fields.title;
   p.description = fields.description;
   p.reproPrompt = fields.reproPrompt;
@@ -1887,6 +1938,9 @@ async function saveMetadata(promptId, fields) {
   p.tag = fields.tags[0] || p.tag;
   p.license = fields.license;
   p.model = fields.model;
+  // Store visibility sparsely: public = field absent (keeps manifest clean).
+  if (fields.visibility === 'unlisted') p.visibility = 'unlisted';
+  else delete p.visibility;
   saveData(prompts);
   const saveBtn = document.getElementById('metadataSaveBtn');
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Saving…'; }
@@ -2086,7 +2140,7 @@ function renderProfile(handle, tab) {
   if (!profile) return;
   setRoute('profile/' + handle);
   window._currentProfileHandle = handle;
-  const mine = prompts.filter(p => p.author === handle);
+  const mine = prompts.filter(p => p.author === handle && isListed(p));
   const me_h = ownerHandle();
   const isYou = handle === me_h;
   const youFollow = !isYou && isFollowing(me_h, handle);
@@ -2179,7 +2233,7 @@ function renderProfileTab(handle, tab) {
   document.querySelectorAll('.stat-card[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 
   if (tab === 'published') {
-    const mine = prompts.filter(p => p.author === handle);
+    const mine = prompts.filter(p => p.author === handle && isListed(p));
     if (!mine.length) {
       el.innerHTML = '<div class="empty-state">No prompts published yet.</div>';
       return;

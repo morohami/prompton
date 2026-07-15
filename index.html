@@ -749,6 +749,7 @@ function renderSearchSuggest() {
   const q = currentSearch.trim().toLowerCase();
   if (!q) { host.innerHTML = ''; host.classList.remove('open'); searchSuggestIndex = -1; return; }
   const matches = prompts.filter(p => {
+    if (typeof isListed === 'function' && !isListed(p)) return false;
     const haystack = [p.title, p.authorName, p.author, ...(p.tags || []), p.tag]
       .filter(Boolean).join(' ').toLowerCase();
     return haystack.indexOf(q) >= 0;
@@ -1540,6 +1541,16 @@ async function fetchSeed() {
   if (!tagConfig.aliases || typeof tagConfig.aliases !== 'object') tagConfig.aliases = {};
   const htmlJobs = [];
   for (const p of manifest) {
+    // Markdown promptons: fetch the raw .md, keep it verbatim on mdSource
+    // (downloads serve it untouched) and put a styled preview wrapper on
+    // p.html so every srcdoc preview path renders it readably.
+    if (p.format === 'md') {
+      htmlJobs.push(fetch('htmls/' + p.id + '.md').then(r => r.ok ? r.text() : '').then(txt => {
+        p.mdSource = txt;
+        p.html = (typeof mdPreviewHtml === 'function') ? mdPreviewHtml(txt) : txt;
+      }));
+      continue;
+    }
     // Folder-layout prompts live at htmls/<id>/index.html and are loaded
     // by the iframe directly via src= — no need to pre-fetch into p.html.
     // Same for each of their versions.
