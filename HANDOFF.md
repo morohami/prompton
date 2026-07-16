@@ -56,6 +56,9 @@ _Last updated: 2026-07-16. No known open bugs. Working tree clean, local = origi
 
 | Wave | Highlights | Commits |
 |---|---|---|
+| Thumbnail fixes | **`.nojekyll` added — never remove it** (GitHub Pages' default Jekyll build silently drops underscore-prefixed paths; `_folder_demo`/`_md_demo` 404ed on live because of it). Broken-thumb rescue: capture-phase error listener swaps a failed `img.thumb-img` for the live iframe preview (prompt id recovered from the URL). 調整さん pair's jpgs finally generated (a past session had hand-written thumb fields without files). Fourier title cleaned of literal directional entities | `f46f3dc`, `cc9630d` |
+| Prompton on Prompton | `prompton-app` showcase: framed iframe of `../../`, handoff embedded via `handoffFile` (see Showcase section) | `9b69488` |
+| md promptons + visibility | `format:"md"` — .md files as first-class promptons (raw on `p.mdSource`, monospace wrapper on `p.html`, download serves raw .md). Optional `file` field points at any repo path (root HANDOFF.md is served this way — no drifting copies). `visibility:"unlisted"` hides from gallery/rankings/search/profile/playlists for visitors; owner sees all with an Unlisted ribbon; direct URLs still work (public repo = obscurity, not secrecy). Metadata editor gained a Visibility select | `d72b7f9`, `3a37bd7` |
 | Per-prompton handoffs | Each prompton can carry a "resume here" markdown (user's idea: Prompton itself needs handoffs). Sidecar `htmls/<id>_handoff.md` (flat) / `htmls/<id>/HANDOFF.md` (folder); only `handoffVer` in the manifest; detail page 引き継ぎ section with owner inline editor + 「AI用にコピー」 composing title + live URL + page URL + body for pasting into a fresh AI session. Empty save deletes the sidecar. Delete flow cleans it up. Note: editing a folder-layout handoff re-triggers the thumbnails workflow (harmless; could exclude .md later) | (after `39ee3c4`) |
 | Multi-AI neutral copy | Title/ledes "made with AI", paste button → 会話から貼り付け, model default + picker option "AI" | (after `f667aa0`) |
 | prompton framing | All UI copy: prompt→prompton where it means the work; prompt kept for prompt-text UI | `f667aa0` |
@@ -164,6 +167,19 @@ js/github.js              +pushFolderPromptToGitHub, folder-aware delete
 
 ## Operational notes (THIS ENVIRONMENT — read before running commands)
 
+- **`.nojekyll` at repo root is load-bearing.** Without it GitHub Pages
+  runs Jekyll and silently drops every underscore-prefixed path
+  (`htmls/_folder_demo/`, `thumbs/_folder_demo.jpg`, `htmls/_md_demo.md`).
+  Never delete it; prefer non-underscore ids for new promptons anyway.
+- **Thumbnails workflow races**: the workflow rebases before pushing, and
+  a concurrent user push that touches manifest.json or the same thumb
+  makes it fail. Full workflow_dispatch regens (~2 min window) collide
+  easily while the user is actively publishing — prefer targeted regens
+  (touch the specific `htmls/<id>.html`, commit, push) and just re-run
+  on failure; the job is idempotent.
+- The user's other AI sessions push to this repo concurrently (user
+  promptons, metadata edits). Always `pull --rebase --autostash` (the
+  working tree often has their unstaged WIP — leave it alone).
 - **PowerShell is the reliable shell.** In the last session the Bash
   tool's coreutils (`mkdir`, `cat`, `gh`…) intermittently vanished from
   PATH. Use the PowerShell tool for git/gh.
