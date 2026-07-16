@@ -58,6 +58,29 @@ function mdPreviewHtml(text) {
     + '</head><body>' + esc + '</body></html>';
 }
 
+// ─── Broken-thumbnail rescue ───────────────────────────────────────────
+// If a card's <img class="thumb-img"> fails to load (manifest points at a
+// jpg that doesn't exist yet, deploy lag, etc.), swap in the live iframe
+// preview instead of leaving the browser's broken-image icon. The prompt
+// id is recovered from the image URL (thumbs/<id>.jpg), so this one
+// capture-phase listener covers every card-building site at once.
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !img.classList.contains('thumb-img')) return;
+  const m = (img.getAttribute('src') || '').match(/thumbs\/([^/?]+)\.jpg/);
+  const id = m && m[1];
+  const p = (id && typeof prompts !== 'undefined') ? prompts.find(x => x && x.id === id) : null;
+  if (!p) { img.style.display = 'none'; return; }
+  const mount = document.createElement('div');
+  mount.className = 'thumb-mount' + (img.closest('.album-thumb') ? '' : ' card-thumb-mount');
+  mount.dataset.thumbId = id;
+  window._albumHtmlCache = window._albumHtmlCache || {};
+  if (window._albumHtmlCache[id] === undefined) window._albumHtmlCache[id] = p.html || '';
+  const parent = img.parentElement;
+  img.replaceWith(mount);
+  if (typeof mountAlbumThumbs === 'function' && parent) mountAlbumThumbs(parent);
+}, true);
+
 // ─── Visibility ────────────────────────────────────────────────────────
 // visibility: "unlisted" hides a prompton from the gallery, rankings,
 // search and profile lists for visitors. The owner sees everything.
