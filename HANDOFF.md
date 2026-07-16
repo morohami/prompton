@@ -116,6 +116,31 @@ annotations, etc.) — don't be surprised by non-app commits in the log.
   OAuth backend (`functions/`, `OAUTH_SETUP.md`) written but NOT deployed —
   it's the foundation for the Cloudflare work-version plan below.
 
+### Monolith → folder migration (policy + recipe)
+
+Policy is **on-touch**: don't mass-migrate. When an AI session next edits
+a flat monolith prompton, convert it then (the session already holds the
+context). Pilot done: `p1779770067635` (8-bit 調整さん), commit history
+has the exact shape. 被災マップ etc. stay flat until their own sessions
+touch them.
+
+Recipe (assumes one `<style>` and one `<script>` block, verify first):
+1. `htmls/<id>/style.css` ← the inside of `<style>…</style>`
+2. `htmls/<id>/app.js`   ← the inside of `<script>…</script>`
+3. `htmls/<id>/index.html` ← head (+ `<link rel="stylesheet" href="style.css">`)
+   + body markup + `<script src="app.js"></script>`
+4. `git rm htmls/<id>.html` (same commit — no orphan)
+5. Manifest entry: add `"layout": "folder"` and
+   `"fileList": ["index.html","style.css","app.js"]` (fileList powers the
+   download-as-zip; Pages has no directory listing)
+6. Verify standalone (`htmls/<id>/index.html` direct) — CSS colors applied,
+   JS globals alive — then the detail page, then push (thumbnail
+   regenerates automatically).
+
+Folder promptons download as an **uncompressed .zip** built client-side
+(`buildZip` in render.js — store-method, no deps). `publishDraftDirect`
+records fileList automatically for UI-published folder promptons.
+
 ### Showcase piece: Prompton on Prompton
 
 `prompton-app` (public, first in the manifest) is the site itself as a

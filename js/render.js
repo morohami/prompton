@@ -58,6 +58,62 @@ function mdPreviewHtml(text) {
     + '</head><body>' + esc + '</body></html>';
 }
 
+// ─── Minimal ZIP builder (store method, no compression, no deps) ──────
+// Folder promptons are multi-file, so a single-HTML download would be
+// broken. buildZip packs the folder's files into an uncompressed .zip —
+// ~60 lines beats shipping a compression library for 3 text files.
+function crc32(bytes) {
+  let table = crc32._t;
+  if (!table) {
+    table = crc32._t = new Int32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      table[i] = c;
+    }
+  }
+  let crc = -1;
+  for (let i = 0; i < bytes.length; i++) crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xFF];
+  return (crc ^ -1) >>> 0;
+}
+function buildZip(entries) { // entries: [{ name, text }]
+  const enc = new TextEncoder();
+  const num = (n, w) => { const a = new Uint8Array(w); for (let i = 0; i < w; i++) a[i] = (n >>> (8 * i)) & 0xFF; return a; };
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  for (const e of entries) {
+    const nameB = enc.encode(e.name);
+    const data = enc.encode(e.text);
+    const crc = crc32(data);
+    parts.push(
+      num(0x04034b50, 4), num(20, 2), num(0x0800, 2), num(0, 2), // sig, ver, UTF-8 flag, store
+      num(0, 2), num(0, 2),                                       // mod time/date (zeroed)
+      num(crc, 4), num(data.length, 4), num(data.length, 4),
+      num(nameB.length, 2), num(0, 2), nameB, data
+    );
+    central.push({ nameB, crc, size: data.length, offset });
+    offset += 30 + nameB.length + data.length;
+  }
+  const cdStart = offset;
+  for (const c of central) {
+    parts.push(
+      num(0x02014b50, 4), num(20, 2), num(20, 2), num(0x0800, 2), num(0, 2),
+      num(0, 2), num(0, 2),
+      num(c.crc, 4), num(c.size, 4), num(c.size, 4),
+      num(c.nameB.length, 2), num(0, 2), num(0, 2), num(0, 2), num(0, 2),
+      num(0, 4), num(c.offset, 4), c.nameB
+    );
+    offset += 46 + c.nameB.length;
+  }
+  parts.push(
+    num(0x06054b50, 4), num(0, 2), num(0, 2),
+    num(central.length, 2), num(central.length, 2),
+    num(offset - cdStart, 4), num(cdStart, 4), num(0, 2)
+  );
+  return new Blob(parts, { type: 'application/zip' });
+}
+
 // ─── Broken-thumbnail rescue ───────────────────────────────────────────
 // If a card's <img class="thumb-img"> fails to load (manifest points at a
 // jpg that doesn't exist yet, deploy lag, etc.), swap in the live iframe
@@ -1309,16 +1365,29 @@ function renderDetail(id, viewingVersionNum) {
   }
 
   // Wire actions
-  document.getElementById('downloadBtn').addEventListener('click', (e) => {
+  document.getElementById('downloadBtn').addEventListener('click', async (e) => {
     const btn = e.currentTarget;
-    // md promptons download the raw markdown source, not the preview wrapper.
+    // md promptons download the raw markdown source; folder promptons are
+    // multi-file so they download as an uncompressed .zip (fileList from
+    // the manifest names the members); flat stays a single .html.
     const isMd = p.format === 'md';
-    const blob = isMd
-      ? new Blob([p.mdSource || ''], {type: 'text/markdown'})
-      : new Blob([view.html], {type: 'text/html'});
+    let blob, filename;
+    if (isMd) {
+      blob = new Blob([p.mdSource || ''], {type: 'text/markdown'});
+      filename = safeFilename(p).replace(/\.html$/, '.md');
+    } else if (p.layout === 'folder') {
+      const names = (p.fileList && p.fileList.length) ? p.fileList : ['index.html'];
+      const files = await Promise.all(names.map(n =>
+        fetch('htmls/' + p.id + '/' + n).then(r => r.ok ? r.text() : '').then(text => ({ name: n, text }))));
+      blob = buildZip(files.filter(f => f.text));
+      filename = safeFilename(p).replace(/\.html$/, '.zip');
+    } else {
+      blob = new Blob([view.html], {type: 'text/html'});
+      filename = safeFilename(p);
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = isMd ? safeFilename(p).replace(/\.html$/, '.md') : safeFilename(p);
+    a.href = url; a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
     p.downloads++;

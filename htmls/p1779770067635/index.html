@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTL CHOUSEISAN.EXE</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-gameboy">
+
+<header>
+  <div>
+    <div class="logo">INTL <span class="accent">調整さん</span></div>
+    <div class="logo-sub">&gt; PRESS START<span class="blink">_</span></div>
+  </div>
+  <div class="theme-switch" id="themeSwitch">
+    <span class="theme-switch-label">SKIN</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Time Converter -->
+  <div class="conv-strip">
+    <span class="conv-label">TIME WARP</span>
+    <select id="convFrom"></select>
+    <input type="time" id="convTime" value="12:00">
+    <span class="conv-arrow">&rarr;</span>
+    <span class="conv-result" id="convOut">--:--</span>
+    <select id="convTo"></select>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="setup"><span class="num">1.</span>SETUP</div>
+    <div class="tab" data-tab="vote"><span class="num">2.</span>VOTE</div>
+    <div class="tab" data-tab="result"><span class="num">3.</span>BOSS</div>
+  </div>
+
+  <!-- ===== SETUP ===== -->
+  <div class="panel active" id="panel-setup">
+    <div class="section">
+      <div class="sec-label">QUEST NAME</div>
+      <input class="field" id="eventTitle" value="ネパールチームとの打ち合わせ" placeholder="Quest title...">
+    </div>
+    <div class="section">
+      <div class="sec-label">QUEST INFO</div>
+      <textarea class="field" id="orgMessage" placeholder="Agenda, link, dial-in, anything party members need to know..."></textarea>
+    </div>
+    <div class="section">
+      <div class="sec-label">TIME SLOTS</div>
+      <div class="slot-list" id="slotList"></div>
+      <div class="btn-row">
+        <button class="btn-sm" onclick="addSlot()">+ ADD SLOT</button>
+        <button class="btn-sm btn-primary" onclick="switchTab('vote')">NEXT &gt;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VOTE ===== -->
+  <div class="panel" id="panel-vote">
+    <div class="event-header" id="eventHeaderDisplay"></div>
+
+    <div class="vote-form" id="voteForm">
+      <div class="vote-form-header">
+        <span class="vote-form-title" id="voteFormTitle">NEW PLAYER</span>
+        <button class="vote-form-cancel" id="voteFormCancel" onclick="cancelEdit()" style="display:none">CANCEL</button>
+      </div>
+      <div class="vote-name-row">
+        <input class="field" id="voterName" placeholder="Player name">
+      </div>
+      <div class="vote-slot-list" id="voteSlotList"></div>
+      <textarea class="field" id="voterComment" placeholder="Optional message: notes, conditions, etc." style="margin-bottom:1rem"></textarea>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn-sm btn-primary" onclick="submitVote()" id="submitBtn">SUBMIT</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="resp-section-title">PARTY MEMBERS <span class="count" id="respCount">0 PLAYERS</span></div>
+      <div id="respList"></div>
+    </div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div class="panel" id="panel-result">
+    <div class="event-header" id="eventHeaderDisplay2"></div>
+    <div class="section">
+      <div class="sec-label">FINAL ANSWER</div>
+      <div id="finalizeList"></div>
+    </div>
+    <div class="section">
+      <div class="sec-label">VICTORY MESSAGE</div>
+      <div id="shareEmpty" class="empty-state">Pick a winning slot above to unlock the message</div>
+      <div class="share-box" id="shareBox">
+        <button class="copy-btn" onclick="copyShare(this)">COPY</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

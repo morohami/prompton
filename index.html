@@ -558,6 +558,11 @@ async function publishDraftDirect(title, body, css, js) {
     prompt.files = {};
     if (cssSrc) prompt.files.css = cssSrc;
     if (jsSrc) prompt.files.js = jsSrc;
+    // Persistent member list — the detail page's download-as-zip and any
+    // future tooling need to know the folder's contents (Pages has no
+    // directory listing). prompt.files above is transient; this survives
+    // into the manifest.
+    prompt.fileList = ['index.html'].concat(cssSrc ? ['style.css'] : []).concat(jsSrc ? ['app.js'] : []);
   }
   await pushPromptToGitHub(prompt);
   delete prompt.files; // transient — sidecars live on GitHub now
