@@ -233,6 +233,9 @@ async function deletePromptFromGitHub(prompt) {
 // manifest stays lean — only `handoffVer` (a timestamp used for existence
 // checks + cache busting) lives in the manifest entry.
 function handoffPathFor(prompt) {
+  // Optional handoffFile points at any repo-served path (e.g. the root
+  // HANDOFF.md) so one living document can be embedded without a copy.
+  if (prompt.handoffFile) return prompt.handoffFile;
   return prompt.layout === 'folder'
     ? 'htmls/' + prompt.id + '/HANDOFF.md'
     : 'htmls/' + prompt.id + '_handoff.md';

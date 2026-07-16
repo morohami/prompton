@@ -1,5 +1,28 @@
 [
   {
+    "id": "prompton-app",
+    "layout": "folder",
+    "handoffFile": "HANDOFF.md",
+    "handoffVer": 1784178000000,
+    "title": "Prompton",
+    "description": "Prompton自身。額縁の中では ../../ — つまり常に最新の本体がそのまま動いています（コピーではなく参照なので古びない）。開発の引き継ぎ文書（HANDOFF.md）はこのページの「引き継ぎ」欄に内蔵。AIと作った動くprompton集を、AIと作り続けるための作業台ごと1枚の作品として。",
+    "systemPrompt": "",
+    "userPrompt": "AIと作った動く作品（prompton）を保管・閲覧・フォーク・引き継ぎできるギャラリーサイトを作って。GitHub Pages + manifest.json + htmls/ 構成、ビルドなし、素のHTML/CSS/JS。",
+    "context": "Self-hosting showcase: htmls/prompton-app/index.html is a thin framed wrapper whose iframe points at ../../ (the live site). The handoff document is the repo-root HANDOFF.md, referenced via handoffFile so it never drifts.",
+    "model": "AI",
+    "license": "CC0 — Public domain",
+    "tags": ["meta", "self-hosting", "prompton"],
+    "tag": "other",
+    "author": "you",
+    "authorName": "You",
+    "date": "2026-07-16",
+    "downloads": 0,
+    "forks": 0,
+    "parentId": null,
+    "usage": [],
+    "variables": []
+  },
+  {
     "id": "prompton-handoff",
     "format": "md",
     "file": "HANDOFF.md",

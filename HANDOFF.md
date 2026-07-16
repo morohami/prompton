@@ -113,6 +113,18 @@ annotations, etc.) — don't be surprised by non-app commits in the log.
   OAuth backend (`functions/`, `OAUTH_SETUP.md`) written but NOT deployed —
   it's the foundation for the Cloudflare work-version plan below.
 
+### Showcase piece: Prompton on Prompton
+
+`prompton-app` (public, first in the manifest) is the site itself as a
+work: `htmls/prompton-app/index.html` is a thin framed wrapper whose
+iframe points at `../../` — a **reference, not a copy**, so the piece is
+always the latest deployed version. Its 引き継ぎ section embeds the
+repo-root HANDOFF.md via the `handoffFile` manifest field (same
+no-drift referencing as the md prompton `file` field). Owner edits to
+that handoff write through to the root HANDOFF.md — single source of
+truth. Nested self-recursion (the gallery inside the frame contains the
+frame again) is stopped by the browser's same-URL ancestor-frame guard.
+
 ### File layout deltas vs old handoff
 
 ```
