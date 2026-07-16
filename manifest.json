@@ -181,7 +181,11 @@
   {
     "id": "p1779770067635",
     "layout": "folder",
-    "fileList": ["index.html", "style.css", "app.js"],
+    "fileList": [
+      "index.html",
+      "style.css",
+      "app.js"
+    ],
     "title": "International 調整さん — 8-bit Edition",
     "description": "タイムゾーンを越えた日程調整ツールの 8-bit レトロゲーム版。13TZ対応の即時コンバーター (JST/NPT/IST/UTC/EST/CST/PST/CET/SGT/KST/AEST/GST/GMT) + 1分刻みの Apple iOS式時間ピッカー + ○△× 投票 + 回答編集 + 主催者による日程確定 → 確定通知メッセージ自動生成 (TZ自動変換付き) + 6種テーマ切替 (Game Boy / Mario / Zelda / Pokemon / Space / Tetris)。海外パートナーとのミーティング設定向け。姉妹版に elegant edition (p1779770067636) あり。",
     "systemPrompt": "",
@@ -207,7 +211,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779770067635.jpg",
-    "thumbVer": 1784195848424
+    "thumbVer": 1784222130618
   },
   {
     "id": "p1779770067636",
