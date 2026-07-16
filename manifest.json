@@ -11,7 +11,11 @@
     "context": "Self-hosting showcase: htmls/prompton-app/index.html is a thin framed wrapper whose iframe points at ../../ (the live site). The handoff document is the repo-root HANDOFF.md, referenced via handoffFile so it never drifts.",
     "model": "AI",
     "license": "CC0 — Public domain",
-    "tags": ["meta", "self-hosting", "prompton"],
+    "tags": [
+      "meta",
+      "self-hosting",
+      "prompton"
+    ],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -20,7 +24,9 @@
     "forks": 0,
     "parentId": null,
     "usage": [],
-    "variables": []
+    "variables": [],
+    "thumb": "thumbs/prompton-app.jpg",
+    "thumbVer": 1784190725058
   },
   {
     "id": "prompton-handoff",
