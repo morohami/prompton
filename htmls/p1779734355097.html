@@ -74,17 +74,22 @@
     margin-top: 7px; text-transform: uppercase; font-weight: 300;
   }
 
+  /* === Mobile hamburger (デスクトップでは非表示) === */
+  .hamburger-btn, .mobile-menu { display: none; }
+
   /* === Search + Locate (top-right) === */
   .search-bar {
     position: absolute; top: 16px; right: 16px; z-index: 1000;
     display: flex; gap: 8px; align-items: stretch;
   }
+  /* Google Maps 風のまる枠ピル (PC/モバイル共通) */
   .search-input-wrap {
     position: relative;
     background: rgba(15, 17, 22, 0.92);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-    border-right: 3px solid var(--gold);
+    border: 1px solid var(--line);
+    border-radius: 22px;
     display: flex; align-items: stretch;
   }
   .search-input {
@@ -105,18 +110,19 @@
     background: rgba(15, 17, 22, 0.92);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-    border: none; border-right: 3px solid var(--vermillion);
+    border: 1px solid var(--line);
+    border-radius: 22px;
     color: var(--cream); cursor: pointer;
-    padding: 0 14px;
+    padding: 0;
+    width: 44px;
     font-size: 16px;
     transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
     min-width: 44px;
   }
-  .icon-btn:hover { color: var(--vermillion); }
+  .icon-btn:hover { color: var(--vermillion); border-color: var(--vermillion); }
   .icon-btn:disabled { opacity: 0.55; cursor: wait; }
-  .search-submit { border-right-color: var(--gold); }
-  .search-submit:hover { color: var(--gold); }
+  .search-submit:hover { color: var(--gold); border-color: var(--gold); }
   .icon-btn.locating { color: var(--vermillion); animation: pulse 1s infinite; }
   .icon-btn.shared { color: var(--neon-pink); animation: pulse 0.4s ease; }
 
@@ -395,8 +401,9 @@
   .tour-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
 
   @media (max-width: 720px) {
-    .popover { width: calc(100vw - 16px); right: 8px; top: calc(8px + 44px + 8px); }
-    .popover-arrow { right: 16px; }
+    /* モバイルはパネル上に全幅で開く (top を上書きしない — 基底の bottom 基準を維持) */
+    .popover { width: auto; left: 8px; right: 8px; }
+    .popover-body { max-height: 50vh; overflow-y: auto; }
   }
 
   /* v3: 浮世絵ピン (ティアドロップ風) */
@@ -1270,7 +1277,8 @@
   .mes-panel {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    max-height: 78vh;
+    /* 固定高: フィルター切替で行数が減っても枠が縮まないように */
+    height: 74vh;
     background: rgba(15, 17, 22, 0.98);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-top: 2px solid var(--vermillion);
@@ -1431,29 +1439,110 @@
     }
     .panel-toggle { width: 72px; height: 30px; font-size: 14px; }
 
-    /* === Brand + Search === */
-    .brand { padding: 8px 12px 6px; top: 8px; left: 8px; border-left-width: 2px; }
-    .brand h1 { font-size: 14px; letter-spacing: 0.05em; }
-    .brand .en { font-size: 8px; margin-top: 4px; }
-    .search-bar { top: 8px; right: 8px; left: auto; gap: 6px; }
-    .search-input { width: 140px; padding: 10px 10px 10px 30px; font-size: 12px; }
-    .search-input-wrap::before { left: 8px; font-size: 13px; }
-    .icon-btn { min-width: 40px; padding: 0 10px; font-size: 14px; }
+    /* === Brand → ハンバーガー ===
+       モバイルはブランド窓を出さず、左上に☰メニュー (地図情報を格納) */
+    .brand { display: none; }
+    .hamburger-btn {
+      display: flex; align-items: center; justify-content: center;
+      position: absolute; top: 8px; left: 8px; z-index: 1000;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(15, 17, 22, 0.92);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      color: var(--cream);
+      font-size: 17px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+    .hamburger-btn:active { border-color: var(--vermillion); color: var(--vermillion); }
+    .mobile-menu {
+      display: none;
+      position: absolute; top: 58px; left: 8px; z-index: 1400;
+      min-width: 236px;
+      background: rgba(15, 17, 22, 0.96);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-left: 3px solid var(--vermillion);
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.5);
+      padding: 6px 0;
+    }
+    .mobile-menu.show { display: block; animation: pop-in 0.18s ease-out; }
+    .mm-title {
+      font-family: "Shippori Mincho B1", serif;
+      font-size: 12px; color: var(--cream-dim); letter-spacing: 0.12em;
+      padding: 8px 16px 7px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 4px;
+    }
+    .mm-item {
+      display: block; width: 100%;
+      padding: 12px 16px;
+      background: transparent; border: none;
+      color: var(--cream);
+      font-family: "Shippori Mincho B1", serif;
+      font-size: 13px; text-align: left; letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+    .mm-item:active { background: rgba(197, 79, 62, 0.18); }
+
+    /* === Search: 横長ピル (まる枠自体は共通CSSの .search-input-wrap) === */
+    .search-bar { top: 8px; left: 60px; right: 8px; gap: 6px; }
+    .search-input-wrap { flex: 1; min-width: 0; }
+    /* font-size 16px 未満だと iOS がフォーカス時に画面ごとズームするので 16px 固定 */
+    .search-input { width: 100%; padding: 10px 16px 10px 36px; font-size: 16px; }
+    .search-input-wrap::before { left: 14px; font-size: 13px; }
+    /* 検索実行はキーボードの Enter (enterkeyhint=search)。⌕ ボタンは畳んで幅を稼ぐ */
+    .search-submit { display: none; }
     .search-results { min-width: 0; width: calc(100vw - 16px); right: 0; max-width: none; }
-    .leaflet-control-zoom { margin-top: 68px !important; }
-    /* 法的帰属表示はモバイルでも維持し、パネルの上へ逃がす。 */
-    .leaflet-bottom.leaflet-right { bottom: 224px; }
+
+    /* === 現在地: Google Maps と同じ右下のフローティング丸ボタン。
+       パネル高 (--attr-clear) に追従して帰属表示の上に浮く === */
+    #locateBtn {
+      position: fixed;
+      right: 12px;
+      bottom: calc(var(--attr-clear, 16px) + 42px);
+      width: 48px; height: 48px;
+      min-width: 0; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: rgba(15, 17, 22, 0.92);
+      border: 1px solid var(--line);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      transition: bottom 0.2s;
+    }
+    /* ピンチズームがあるので +/− ボタンは畳む */
+    .leaflet-control-zoom { display: none !important; }
+    /* 法的帰属表示: パネルの実高に JS が追従させる (--attr-clear)。
+       折り畳み時に地図中央へ浮くのを防ぐ */
+    .leaflet-bottom { bottom: var(--attr-clear, 8px) !important; transition: bottom 0.2s; }
+    /* 通常は「© 出典」チップに折り畳み、タップで全文展開 (再タップで戻る)。
+       全文は ☰メニュー → 地図情報 でも常時確認できる */
     .leaflet-control-attribution {
       display: block !important;
-      max-width: calc(100vw - 16px);
-      font-size: 8px; line-height: 1.25;
-      white-space: normal;
-      background: rgba(255,255,255,0.82) !important;
+      max-width: 88px;
+      font-size: 8px; line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      border-radius: 10px 0 0 0;
+      cursor: pointer;
+      background: rgba(255,255,255,0.75) !important;
     }
-    .bounds-hint { top: 64px; font-size: 11px; padding: 7px 12px; }
+    .leaflet-control-attribution.attr-open {
+      max-width: calc(100vw - 16px);
+      white-space: normal;
+      overflow: visible; text-overflow: clip;
+    }
+    .bounds-hint { top: 60px; font-size: 11px; padding: 7px 12px; }
 
-    /* === Era info === */
-    .era-info { gap: 8px; margin-bottom: 8px; padding-bottom: 8px; }
+    /* ガイドツアーカード: 検索ピルの下に置き、地図が見える高さへ圧縮 */
+    .tour-overlay { top: 58px; }
+    .to-step { max-height: 26vh; font-size: 11px; }
+
+    /* === Era info ===
+       展開時は「時代を選択」トリガーが同じ情報を表示するので重複を隠す。
+       折り畳み時はトリガーが消えるため era-info を出す (既存ルールが !important で復活) */
+    .panel:not(.collapsed) .era-info { display: none; }
     .era-year { font-size: 18px; min-width: 50px; }
     .era-label { font-size: 14px; }
 
@@ -1506,17 +1595,30 @@
     /* 折り畳み中は trigger ボタンも隠す */
     .panel.collapsed .mobile-era-trigger { display: none !important; }
 
-    /* === Controls === */
-    .controls-row { gap: 8px; flex-wrap: wrap; }
-    .slider-wrap { flex: 1 1 100%; }
+    /* === Controls ===
+       1行目: 透過ラベル + スライダー + %
+       2行目: 全ボタンを等幅アイコンで1列に (ラベル文字は隠してアイコンだけ)
+       📐詳細図は「時代を選ぶ」シートの詳細図カテゴリと重複、ⓘはハンバーガーへ移動 */
+    #detailBtn, .info-btn { display: none; }
+    .controls-row { gap: 6px 8px; flex-wrap: wrap; }
     .ctrl-label { min-width: 28px; font-size: 11px; }
-    .compare-btn { padding: 10px 14px; }
+    .slider-wrap { flex: 1 1 calc(100% - 40px); }
+    .controls-row .btn-label { display: none; }
+    .panel-icon-btn,
+    .info-btn,
+    .compare-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 0;
+      font-size: 15px;
+      text-align: center;
+    }
     .slider-end { display: none !important; } /* compare 中も A/B はバーで分かる */
   }
   @media (max-width: 380px) {
-    .search-input { width: 110px; }
     .icon-btn { min-width: 36px; padding: 0 8px; }
-    .brand h1 { font-size: 13px; }
+    .brand h1 { font-size: 12px; }
+    .search-bar { left: 124px; }
   }
 </style>
 </head>
@@ -1529,12 +1631,19 @@
   <div class="en">Tokyo · Through Time</div>
 </div>
 
+<!-- モバイル専用: 左上ハンバーガー (ブランド窓の代わり)。地図情報などを格納 -->
+<button class="hamburger-btn" id="menuBtn" aria-label="メニュー" type="button">☰</button>
+<div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+  <div class="mm-title">東京 今昔マップ</div>
+  <button class="mm-item" id="menuInfoBtn" type="button">ⓘ 地図情報・出典・利用条件</button>
+</div>
+
 <div class="search-bar">
   <div class="search-input-wrap">
-    <input type="text" class="search-input" id="searchInput" placeholder="住所・駅・地名を検索" />
+    <input type="text" class="search-input" id="searchInput" placeholder="住所・駅・地名を検索" enterkeyhint="search" />
   </div>
   <button class="icon-btn search-submit" id="searchBtn" type="button" title="検索" aria-label="検索">⌕</button>
-  <button class="icon-btn" id="locateBtn" title="現在地を表示">📍</button>
+  <button class="icon-btn" id="locateBtn" title="現在地を表示"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 1.5 V4.5 M12 19.5 V22.5 M1.5 12 H4.5 M19.5 12 H22.5" stroke="currentColor" stroke-width="1.8"/></svg></button>
   <div class="search-results" id="searchResults">
     <div id="searchResultsContent" role="status" aria-live="polite"></div>
     <div class="search-attribution">検索データ © OpenStreetMap contributors / 国土地理院 住所検索API</div>
@@ -1706,10 +1815,10 @@
     </div>
     <button class="panel-icon-btn" id="themeBtn" title="ベース地図（最新） (T キー)">🗺️</button>
     <button class="panel-icon-btn" id="terrainBtn" title="地形レイヤー (陰影起伏・治水地形)"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M2.5 19 L9 7 L12.8 13.4 L15.3 9.6 L21.5 19 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path d="M7.2 10.3 L9 7 L10.8 10.1" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" opacity="0.65"/></svg></button>
-    <button class="panel-icon-btn" id="detailBtn" title="詳細地図 (東京都1:3,000地形図)">📐</button>
+    <button class="panel-icon-btn" id="detailBtn" title="詳細図 (東京都1:3,000地形図)">📐</button>
     <button class="panel-icon-btn" id="ukiyoeBtn" title="浮世絵ピン ON/OFF (広重・名所江戸百景)">🖼</button>
     <button class="panel-icon-btn" id="tourBtn" title="ガイドツアー">📖</button>
-    <button class="info-btn" id="infoBtn" type="button" title="地図提供元・出典・利用条件">ⓘ 情報</button>
+    <button class="info-btn" id="infoBtn" type="button" title="地図提供元・出典・利用条件">ⓘ<span class="btn-label"> 情報</span></button>
     <button class="compare-btn" id="compareBtn" title="2つの時代を選んで重ねる">⇆ 比較</button>
   </div>
 
@@ -1734,7 +1843,7 @@
   <!-- 詳細地図 ポップオーバー (📐 ボタンに anchor) -->
   <div class="popover" id="detailPopover" aria-hidden="true">
     <div class="popover-arrow"></div>
-    <div class="popover-title">詳細地図 — 東京都1:3,000地形図</div>
+    <div class="popover-title">詳細図 — 東京都1:3,000地形図</div>
     <div class="popover-body">
       <div id="detailMapsList"></div>
       <div class="popover-help">1952–69年の8世代。23区中心・拡大時のみ描画。選ぶと表示中の時代と入れ替わります。</div>
@@ -1758,7 +1867,7 @@
       <button class="mes-chip is-active" data-filter="all" type="button">すべて</button>
       <button class="mes-chip" data-filter="old" type="button">古地図</button>
       <button class="mes-chip" data-filter="aerial" type="button">航空写真</button>
-      <button class="mes-chip" data-filter="topo" type="button">地形図</button>
+      <button class="mes-chip" data-filter="topo" type="button">詳細図</button>
     </div>
     <div class="mes-body" id="mobileEraSheetBody"></div>
   </div>
@@ -2492,10 +2601,12 @@ function renderControls() {
     slider.value = Math.round(opacity * 100);
     val.textContent = slider.value + '%';
   }
-  // 比較モード時はボタンに「解除」ラベル
+  // 比較モード時はボタンに「解除」ラベル (モバイルはラベル非表示でアイコンのみ)
   const btn = document.getElementById('compareBtn');
   btn.classList.toggle('active', mode === 'compare');
-  btn.textContent = mode === 'compare' ? '✕ 比較を解除' : '⇆ 比較';
+  btn.innerHTML = mode === 'compare'
+    ? '✕<span class="btn-label"> 比較を解除</span>'
+    : '⇆<span class="btn-label"> 比較</span>';
 }
 
 function renderUI() {
@@ -2508,6 +2619,8 @@ function renderUI() {
   if (mobileEraSheet && mobileEraSheet.classList.contains('show')) {
     renderMobileSheet();
   }
+  // パネル高が変わる操作 (比較バー出現など) に帰属表示の位置を追従
+  updateAttrClearance();
 }
 
 // ============================================================
@@ -2957,11 +3070,22 @@ function exitTour() {
 // ツアーの視界決定: できるだけ広く見せつつ、時代レイヤーの範囲外
 // (ベース地図の素肌) が画面に入らないズーム・中心を計算する。
 // ズームの上下は「レイヤーで画面を満たすための調整」以上のことはしない。
+// 絵図の実描画範囲が宣言 bounds より狭い era の補正値。
+// タイルの端は透明な余白で、宣言 bounds ぎりぎりまで絵があるとは限らない
+// (正保図は東端が斜めに切れており宣言より約 2km 狭い)。目視で採寸した値
+const TOUR_ART_BOUNDS = {
+  edo_early: [[35.645, 139.690], [35.742, 139.774]],
+  // NDL スキャンの東端にカラーチャート (色見本帯) が写り込んでいるため東を詰める
+  kyoho:     [[35.643, 139.712], [35.718, 139.792]],
+};
+
 function tourStepView(s, era) {
   let zoom = s.zoom;
   let center = L.latLng(s.lat, s.lng);
   if (era && era.bounds) {
-    const b = L.latLngBounds(era.bounds);
+    // 歴史絵図は宣言 bounds の内側でも絵の端が透明でベースが透ける。
+    // 実描画範囲 (補正があればそれ) をさらに 10% 内側に縮めた安全枠で計算
+    const b = L.latLngBounds(TOUR_ART_BOUNDS[era.id] || era.bounds).pad(-0.10);
     // 画面全体がレイヤー範囲に収まる最小ズーム。これ未満だとベースが見える
     const minInside = map.getBoundsZoom(b, true);
     zoom = Math.max(s.zoom, minInside);
@@ -3072,7 +3196,7 @@ const mobileEraSheetBackdrop = document.getElementById('mobileEraSheetBackdrop')
 const MES_CATS = [
   { id: 'old', label: '古地図・絵図・旧版地形図' },
   { id: 'aerial', label: '航空写真' },
-  { id: 'topo', label: '1:3,000 地形図' },
+  { id: 'topo', label: '詳細図 — 東京都1:3,000地形図' },
 ];
 const MES_FILTER_KEY = 'edo-konjaku-v2-mes-filter';
 let mesFilter = 'all';
@@ -3176,9 +3300,24 @@ function updateMobileEraTriggerText() {
 const PANEL_COLLAPSED_KEY = 'edo-konjaku-v2-panel-collapsed';
 const panelEl = document.getElementById('panel');
 const panelToggle = document.getElementById('panelToggle');
+// モバイル: Leaflet 帰属表示をパネル上端のすぐ上に追従させる。
+// 固定 px だと折り畳み/比較モードで高さが変わった際に地図中央へ浮いてしまう。
+function updateAttrClearance() {
+  const root = document.documentElement;
+  if (!window.matchMedia('(max-width: 720px)').matches ||
+      document.body.classList.contains('panel-minimized')) {
+    root.style.removeProperty('--attr-clear');
+    return;
+  }
+  const r = panelEl.getBoundingClientRect();
+  if (!r.height) { root.style.removeProperty('--attr-clear'); return; }
+  root.style.setProperty('--attr-clear', Math.max(8, window.innerHeight - r.top + 6) + 'px');
+}
+
 function setPanelCollapsed(collapsed) {
   panelEl.classList.toggle('collapsed', collapsed);
   try { localStorage.setItem(PANEL_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (_) {}
+  updateAttrClearance();
 }
 function togglePanel() {
   setPanelCollapsed(!panelEl.classList.contains('collapsed'));
@@ -3198,6 +3337,7 @@ function setPanelMinimized(minimized) {
   document.body.classList.toggle('panel-minimized', minimized);
   try { localStorage.setItem(PANEL_MINIMIZED_KEY, minimized ? '1' : '0'); } catch (_) {}
   if (minimized) updateMiniPillText();
+  updateAttrClearance();
 }
 function updateMiniPillText() {
   if (mode === 'compare') {
@@ -3529,6 +3669,24 @@ document.getElementById('infoBtn').addEventListener('click', () => {
   closeAllPopovers();
   toggleInfo(true);
 });
+
+// モバイル: ハンバーガーメニュー (ⓘ地図情報の格納先)
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+menuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeAllPopovers();
+  mobileMenu.classList.toggle('show');
+});
+document.getElementById('menuInfoBtn').addEventListener('click', () => {
+  mobileMenu.classList.remove('show');
+  toggleInfo(true);
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#mobileMenu') && !e.target.closest('#menuBtn')) {
+    mobileMenu.classList.remove('show');
+  }
+});
 document.getElementById('infoClose').addEventListener('click', () => toggleInfo(false));
 document.getElementById('infoBackdrop').addEventListener('click', () => toggleInfo(false));
 
@@ -3813,6 +3971,14 @@ function showHint(msg, dur = 0) {
 renderTicks();
 buildDetailMapsList();
 
+// 帰属表示のスリム化: 「Leaflet |」プレフィックスを外し (Leaflet は表記義務なし)、
+// モバイルではタップで折り畳み⇔全文展開を切り替える
+map.attributionControl.setPrefix('');
+document.addEventListener('click', (e) => {
+  const attr = e.target.closest('.leaflet-control-attribution');
+  if (attr && !e.target.closest('a')) attr.classList.toggle('attr-open');
+});
+
 // ウィンドウリサイズ追従。Leaflet 標準の resize 処理はデバウンスされるため、
 // リサイズ直後に内部サイズが古いまま描画され、現在地ピン・検索マーカー等が
 // 一瞬ずれて見える。ResizeObserver で即時 invalidateSize して追従させる。
@@ -3824,7 +3990,9 @@ if (typeof ResizeObserver !== 'undefined') {
 // デスクトップ⇔モバイル境界 (720px) をまたいだときの UI 再センタリング
 window.addEventListener('resize', () => {
   scrollActiveTickIntoView();
+  updateAttrClearance();
 });
+updateAttrClearance();
 // URL ハッシュに状態があればそこから復元、なければ江戸末期スタート
 const restored = restoreFromHash();
 if (!restored || !eraA) {
