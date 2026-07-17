@@ -1,0 +1,3822 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+<meta name="x-apple-disable-message-reformatting" />
+
+<meta name="theme-color" content="#0f1116" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="今昔マップ" />
+<meta name="application-name" content="東京今昔マップ" />
+<meta name="description" content="江戸から現代までの東京を、古地図・空中写真・地形図で重ね見ぶれする今昔マップ" />
+
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%230f1116'/><circle cx='90' cy='90' r='62' fill='none' stroke='%23c54f3e' stroke-width='6'/><text x='90' y='112' text-anchor='middle' font-family='serif' font-size='90' fill='%23e8e3d6'>今</text></svg>" />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230f1116'/><text x='16' y='24' text-anchor='middle' font-family='serif' font-size='22' fill='%23c54f3e'>今</text></svg>" />
+
+<link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"東京 今昔マップ","short_name":"今昔マップ","start_url":".","display":"standalone","background_color":"%230f1116","theme_color":"%230f1116","orientation":"any","description":"江戸から現代までの東京を、古地図・空中写真・地形図で重ね見ぶれする今昔マップ","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 512 512%27><rect width=%27512%27 height=%27512%27 fill=%27%230f1116%27/><circle cx=%27256%27 cy=%27256%27 r=%27180%27 fill=%27none%27 stroke=%27%23c54f3e%27 stroke-width=%2718%27/><text x=%27256%27 y=%27320%27 text-anchor=%27middle%27 font-family=%27serif%27 font-size=%27260%27 fill=%27%23e8e3d6%27>今</text></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}' />
+
+<title>東京 今昔マップ ２ — Tokyo Through Time</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1a1d24;
+    --ink-soft: #232730;
+    --ink-deep: #0f1116;
+    --cream: #e8e3d6;
+    --cream-dim: #a8a397;
+    --vermillion: #c54f3e;
+    --vermillion-glow: rgba(197, 79, 62, 0.25);
+    --gold: #c8a96a;
+    --silver: #b8b8b8;
+    --moss: #7a9a4f;
+    --line: #3a3d44;
+    /* v2: A/B 選択中のネオンピンク強調 */
+    --neon-pink: #ff2e9a;
+    --neon-pink-soft: rgba(255, 46, 154, 0.55);
+    --neon-pink-glow: rgba(255, 46, 154, 0.35);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%; overflow: hidden;
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--ink); color: var(--cream);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #map { position: absolute; inset: 0; background: #efeae0; z-index: 1; }
+
+  /* 古地図オーバーレイのフェード */
+  .era-overlay { transition: opacity 0.3s ease; }
+
+  /* === Brand === */
+  .brand {
+    position: absolute; top: 16px; left: 16px; z-index: 1000;
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    padding: 13px 20px 11px;
+    border-left: 3px solid var(--vermillion);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+  .brand h1 {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 19px; font-weight: 500; letter-spacing: 0.08em;
+    color: var(--cream); line-height: 1;
+  }
+  .brand .en {
+    font-size: 9px; color: var(--cream-dim); letter-spacing: 0.22em;
+    margin-top: 7px; text-transform: uppercase; font-weight: 300;
+  }
+
+  /* === Search + Locate (top-right) === */
+  .search-bar {
+    position: absolute; top: 16px; right: 16px; z-index: 1000;
+    display: flex; gap: 8px; align-items: stretch;
+  }
+  .search-input-wrap {
+    position: relative;
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    border-right: 3px solid var(--gold);
+    display: flex; align-items: stretch;
+  }
+  .search-input {
+    background: transparent; border: none; outline: none;
+    color: var(--cream);
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: 13px; letter-spacing: 0.02em;
+    padding: 11px 12px 11px 38px;
+    width: 240px;
+  }
+  .search-input::placeholder { color: var(--cream-dim); }
+  .search-input-wrap::before {
+    content: '🔍';
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; opacity: 0.7;
+  }
+  .icon-btn {
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    border: none; border-right: 3px solid var(--vermillion);
+    color: var(--cream); cursor: pointer;
+    padding: 0 14px;
+    font-size: 16px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    min-width: 44px;
+  }
+  .icon-btn:hover { color: var(--vermillion); }
+  .icon-btn:disabled { opacity: 0.55; cursor: wait; }
+  .search-submit { border-right-color: var(--gold); }
+  .search-submit:hover { color: var(--gold); }
+  .icon-btn.locating { color: var(--vermillion); animation: pulse 1s infinite; }
+  .icon-btn.shared { color: var(--neon-pink); animation: pulse 0.4s ease; }
+
+  /* v2.1: 共有完了トースト */
+  .toast {
+    position: fixed;
+    bottom: 50%; left: 50%;
+    transform: translate(-50%, 50%) translateY(20px);
+    background: rgba(15, 17, 22, 0.95);
+    backdrop-filter: blur(14px);
+    color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    padding: 12px 22px;
+    border-left: 3px solid var(--neon-pink);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 24px var(--neon-pink-glow);
+    z-index: 3000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    white-space: nowrap;
+    max-width: 90vw;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, 50%) translateY(0);
+  }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  .search-results {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: rgba(15, 17, 22, 0.96);
+    backdrop-filter: blur(14px);
+    min-width: 320px; max-width: 420px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    border-right: 3px solid var(--gold);
+    max-height: 60vh; overflow-y: auto;
+    display: none;
+  }
+  .search-results.show { display: block; }
+  .search-item {
+    padding: 10px 14px; cursor: pointer;
+    font-size: 12px; color: var(--cream);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.15s;
+  }
+  .search-item:last-child { border-bottom: none; }
+  .search-item:hover { background: rgba(197, 79, 62, 0.18); }
+  .search-item .title { font-weight: 500; }
+  .search-item .sub { font-size: 10px; color: var(--cream-dim); margin-top: 2px; }
+  .search-item.empty { color: var(--cream-dim); cursor: default; }
+  .search-item.empty:hover { background: transparent; }
+  .search-attribution {
+    padding: 7px 14px 8px;
+    border-top: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+
+  /* === Bottom panel === */
+  .panel {
+    position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 1000;
+    background: rgba(15, 17, 22, 0.94);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 14px 24px 16px;
+    border-top: 2px solid var(--vermillion);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+    max-width: 1100px; margin: 0 auto;
+    transition: padding 0.3s ease;
+  }
+
+  /* === パネル開閉 トグル === */
+  .panel-toggle {
+    position: absolute;
+    top: -26px; left: 50%; transform: translateX(-50%);
+    width: 64px; height: 26px;
+    background: rgba(15, 17, 22, 0.94);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: none;
+    border-top: 2px solid var(--vermillion);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    color: var(--cream);
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 -6px 18px rgba(0,0,0,0.3);
+    transition: color 0.2s, background 0.2s;
+  }
+  .panel-toggle:hover { color: var(--vermillion); }
+  .panel-toggle .chev {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .panel.collapsed .panel-toggle .chev { transform: rotate(180deg); }
+
+  /* v2.1: 全画面化 (パネル全体を隠す) ボタン */
+  .panel-minimize {
+    position: absolute;
+    top: -26px; left: calc(50% + 38px);
+    width: 32px; height: 26px;
+    background: rgba(15, 17, 22, 0.94);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: none;
+    border-top: 2px solid var(--gold);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    color: var(--cream);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 -6px 18px rgba(0,0,0,0.3);
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .panel-minimize:hover { color: var(--gold); }
+
+  /* v2.1: 全画面 (パネル非表示) モード: body にクラスを付与 */
+  body.panel-minimized .panel { display: none !important; }
+  body.panel-minimized .mini-pill { display: inline-flex; }
+
+  .mini-pill {
+    display: none;
+    position: absolute;
+    bottom: 14px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(15, 17, 22, 0.92);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: none;
+    border-left: 3px solid var(--vermillion);
+    color: var(--cream);
+    cursor: pointer;
+    padding: 9px 14px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.45);
+    align-items: center; gap: 10px;
+    max-width: calc(100vw - 32px);
+    transition: background 0.15s;
+  }
+  .mini-pill:hover { background: rgba(15, 17, 22, 0.98); }
+  .mini-pill .mp-text {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 60vw;
+  }
+  .mini-pill .mp-restore {
+    color: var(--cream-dim); font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* v3.1: テーマ / レイヤー ポップオーバー (下 pane の上に展開) */
+  .popover {
+    position: absolute;
+    bottom: calc(100% + 8px);  /* JS で controls-row のボタンに合わせて anchor */
+    right: 16px;
+    z-index: 1500;
+    width: 280px;
+    background: rgba(15, 17, 22, 0.96);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-left: 3px solid var(--gold);
+    box-shadow: 0 -10px 36px rgba(0,0,0,0.5);
+    padding: 14px 16px;
+    display: none;
+  }
+  .popover.show { display: block; animation: pop-in 0.18s ease-out; }
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* 下から上に展開するので arrow は下向き */
+  .popover-arrow {
+    position: absolute;
+    bottom: -6px; right: 24px;
+    width: 12px; height: 12px;
+    background: rgba(15, 17, 22, 0.96);
+    transform: rotate(45deg);
+    border-right: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+    border-top: none;
+  }
+  .popover-help {
+    font-size: 10px;
+    color: var(--cream-dim);
+    line-height: 1.55;
+    padding: 8px 4px 0;
+    border-top: 1px dashed var(--line);
+    margin-top: 4px;
+  }
+  .popover-help b { color: var(--gold); font-weight: 500; }
+  .popover-title {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px;
+    color: var(--cream-dim);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .theme-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 8px;
+    cursor: pointer;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px;
+    color: var(--cream);
+    transition: background 0.12s;
+  }
+  .theme-option:hover { background: rgba(197, 79, 62, 0.14); }
+  .theme-option.active { background: rgba(200, 169, 106, 0.18); }
+  .theme-swatch {
+    width: 22px; height: 22px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+    background-size: cover;
+  }
+  .theme-swatch.pale  { background: linear-gradient(135deg, #f5f1e8, #e0d7c0); }
+  .theme-swatch.std   { background: linear-gradient(135deg, #cce6ff, #a8d5a8); }
+  .theme-swatch.photo { background: linear-gradient(135deg, #4a6a4a, #2d4a2d); }
+
+  .layer-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 4px;
+    cursor: pointer;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px;
+    color: var(--cream);
+    user-select: none;
+  }
+  .layer-toggle input { cursor: pointer; }
+  .layer-toggle:hover { color: var(--gold); }
+  .popover-divider { height: 1px; background: var(--line); margin: 10px 0; }
+
+  /* 詳細地図 (1:3,000地形図) — タイムラインから退避した8世代 (📐 ポップオーバー内) */
+  .dm-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px;
+    margin: 1px 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: "Shippori Mincho B1", serif;
+    color: var(--cream);
+    border-left: 2px solid transparent;
+    transition: all 0.12s;
+  }
+  .dm-row:hover { background: rgba(197, 79, 62, 0.14); }
+  .dm-row.active {
+    border-left-color: var(--vermillion);
+    background: rgba(200, 169, 106, 0.18);
+  }
+  .dm-row .dm-year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--gold);
+    min-width: 64px;
+  }
+  .tour-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 9px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tour-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
+
+  @media (max-width: 720px) {
+    .popover { width: calc(100vw - 16px); right: 8px; top: calc(8px + 44px + 8px); }
+    .popover-arrow { right: 16px; }
+  }
+
+  /* v3: 浮世絵ピン (ティアドロップ風) */
+  .ukiyoe-marker { background: transparent; border: none; }
+  .um-inner {
+    width: 34px; height: 34px;
+    background: var(--cream);
+    border: 2px solid var(--vermillion);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4), 0 0 0 3px rgba(255, 46, 154, 0.18);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .ukiyoe-marker:hover .um-inner {
+    transform: scale(1.15);
+    box-shadow: 0 5px 14px rgba(0,0,0,0.5), 0 0 0 6px rgba(255, 46, 154, 0.3);
+  }
+
+  /* オーバーレイ tooltip 共通 */
+  .leaflet-tooltip.overlay-tooltip {
+    background: rgba(15, 17, 22, 0.95) !important;
+    color: var(--cream) !important;
+    border: none !important;
+    border-left: 2px solid var(--gold) !important;
+    font-family: "Shippori Mincho B1", serif !important;
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4) !important;
+  }
+  .leaflet-tooltip.overlay-tooltip::before { display: none !important; }
+
+  /* v3: POI モーダル (古/今写真 縦割りスライダー) */
+  .poi-modal {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 2700;
+  }
+  .poi-modal.show { display: block; }
+  .pm-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.7);
+    animation: mes-fade-in 0.18s ease-out;
+  }
+  .pm-panel {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(640px, calc(100vw - 24px));
+    background: rgba(15, 17, 22, 0.98);
+    backdrop-filter: blur(20px);
+    border-left: 3px solid var(--neon-pink);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.6), 0 0 30px var(--neon-pink-glow);
+    animation: so-pop 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+    max-height: calc(100vh - 32px);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .pm-header {
+    padding: 12px 16px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .pm-title {
+    flex: 1;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 16px;
+    color: var(--cream);
+    letter-spacing: 0.1em;
+  }
+  .pm-close {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-size: 13px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .pm-close:hover { color: var(--vermillion); border-color: var(--vermillion); }
+
+  .pm-images {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #000;
+    overflow: hidden;
+    user-select: none;
+    cursor: ew-resize;
+  }
+  .pm-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  /* clip-path で旧画像を可変表示 (JS が更新) */
+  .pm-old-clip { display: contents; }
+  .pm-img-old {
+    clip-path: inset(0 50% 0 0);
+    transition: none;
+  }
+  .pm-divider {
+    position: absolute; top: 0; bottom: 0;
+    left: 50%;
+    width: 3px;
+    background: var(--neon-pink);
+    box-shadow: 0 0 16px var(--neon-pink-glow);
+    transform: translateX(-50%);
+    cursor: ew-resize;
+    z-index: 2;
+  }
+  .pm-divider-handle {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 38px; height: 38px;
+    background: var(--neon-pink);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 14px; font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+    cursor: ew-resize;
+  }
+  .pm-label {
+    position: absolute;
+    bottom: 10px;
+    padding: 4px 10px;
+    background: rgba(15, 17, 22, 0.85);
+    color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .pm-old-label { left: 10px; border-left: 2px solid var(--gold); }
+  .pm-new-label { right: 10px; border-right: 2px solid var(--cream); }
+  .pm-desc {
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--cream);
+    line-height: 1.55;
+    border-top: 1px solid var(--line);
+    background: rgba(0,0,0,0.3);
+  }
+  @media (max-width: 720px) {
+    .pm-panel { width: calc(100vw - 16px); }
+    .pm-images { aspect-ratio: 1 / 1; }
+  }
+
+  /* v3: ガイドツアー オーバーレイ (画面上部にステップカード) */
+  .tour-overlay {
+    display: none;
+    position: fixed;
+    top: 16px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 1600;
+    width: min(420px, calc(100vw - 24px));
+    pointer-events: none;
+  }
+  .tour-overlay.show { display: block; }
+  .to-panel {
+    background: rgba(15, 17, 22, 0.96);
+    backdrop-filter: blur(16px);
+    border-left: 3px solid var(--vermillion);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    pointer-events: auto;
+    animation: pop-in 0.2s ease-out;
+  }
+  .to-header {
+    padding: 10px 14px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .to-title {
+    flex: 1;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 13px;
+    color: var(--cream);
+    letter-spacing: 0.08em;
+  }
+  .to-close {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--cream-dim); font-size: 12px; padding: 3px 8px;
+    cursor: pointer;
+  }
+  .to-step {
+    padding: 12px 14px;
+    color: var(--cream);
+    font-size: 12px;
+    line-height: 1.6;
+    min-height: 60px;
+    max-height: min(46vh, 340px);
+    overflow-y: auto;
+  }
+  .to-step h4 {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  /* 東京興亡史ツアー: 本文とは分離した史実メモ・留意点・出典 (折り畳み) */
+  .to-step .to-notes {
+    margin-top: 9px;
+    border-top: 1px dashed var(--line);
+    padding-top: 7px;
+  }
+  .to-step .to-notes summary {
+    cursor: pointer;
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 0.06em;
+    user-select: none;
+  }
+  .to-step .to-notes summary:hover { color: var(--vermillion); }
+  .to-step .to-notes p {
+    font-size: 10px;
+    color: var(--cream-dim);
+    line-height: 1.65;
+    margin-top: 6px;
+  }
+  .to-step .to-notes .to-fact::before { content: "史実: "; color: var(--moss); }
+  .to-step .to-notes .to-unc::before  { content: "留意: "; color: var(--gold); }
+  .to-step .to-notes .to-era-note::before { content: "地図: "; color: var(--silver); }
+  .to-step .to-notes a { color: var(--silver); text-decoration: underline; text-underline-offset: 2px; }
+  .to-step .to-notes a:hover { color: var(--vermillion); }
+  .to-controls {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--line);
+  }
+  .to-controls button {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .to-controls button:hover:not(:disabled) { border-color: var(--vermillion); color: var(--vermillion); }
+  .to-controls button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .to-progress {
+    flex: 1; text-align: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; color: var(--cream-dim);
+  }
+
+  /* ツアー選択モーダル */
+  .tour-picker { display: none; position: fixed; inset: 0; z-index: 2600; }
+  .tour-picker.show { display: block; }
+  .tp-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); animation: mes-fade-in 0.18s; }
+  .tp-panel {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, calc(100vw - 24px));
+    background: rgba(15, 17, 22, 0.97);
+    border-left: 3px solid var(--gold);
+    box-shadow: 0 16px 60px rgba(0,0,0,0.6);
+    animation: so-pop 0.2s;
+  }
+  .tp-header { padding: 12px 16px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+  .tp-title { flex: 1; font-family: "Shippori Mincho B1", serif; font-size: 14px; color: var(--cream); letter-spacing: 0.1em; }
+  .tp-close { background: transparent; border: 1px solid var(--line); color: var(--cream-dim); padding: 4px 10px; cursor: pointer; }
+  .tp-body { padding: 8px 0 12px; }
+  .tp-tour {
+    padding: 14px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(58, 61, 68, 0.4);
+    transition: background 0.15s;
+  }
+  .tp-tour:hover { background: rgba(197, 79, 62, 0.14); }
+  .tp-tour-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .tp-icon { font-size: 22px; flex-shrink: 0; }
+  .tp-tour-titles { flex: 1; min-width: 0; }
+  .tp-tour h4 { font-family: "Shippori Mincho B1", serif; font-size: 14px; color: var(--cream); font-weight: 500; line-height: 1.2; }
+  .tp-tour-theme {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--gold);
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+  .tp-tour-count {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--cream-dim);
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .tp-tour p  { font-size: 11px; color: var(--cream-dim); line-height: 1.55; }
+
+  /* v2.1: キーボードショートカット一覧モーダル */
+  .shortcuts-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 2500;
+  }
+  .shortcuts-overlay.show { display: block; }
+  .so-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.55);
+    animation: mes-fade-in 0.18s ease-out;
+  }
+  .so-panel {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, calc(100vw - 32px));
+    background: rgba(15, 17, 22, 0.97);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-left: 3px solid var(--gold);
+    box-shadow: 0 16px 60px rgba(0,0,0,0.6), 0 0 40px rgba(200, 169, 106, 0.15);
+    animation: so-pop 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+  }
+  @keyframes so-pop {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+  .so-header {
+    padding: 14px 18px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .so-title {
+    flex: 1;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 15px;
+    color: var(--cream);
+    letter-spacing: 0.1em;
+  }
+  .so-close {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-size: 13px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .so-close:hover { color: var(--vermillion); border-color: var(--vermillion); }
+  .so-body { padding: 14px 18px 16px; }
+  .so-row {
+    display: flex; align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--cream);
+  }
+  .so-row kbd {
+    display: inline-block;
+    min-width: 28px;
+    padding: 3px 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--cream);
+    background: rgba(58, 61, 68, 0.6);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .so-desc {
+    flex: 1;
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: 12px;
+    color: var(--cream);
+  }
+  .so-divider {
+    height: 1px; background: var(--line); margin: 8px 0;
+  }
+  .info-panel { width: min(640px, calc(100vw - 32px)); }
+  .info-body { max-height: min(70vh, 620px); overflow-y: auto; }
+  .info-provider { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .info-provider:first-child { padding-top: 0; }
+  .info-provider h3 {
+    margin: 0 0 5px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 14px; font-weight: 500; color: var(--cream);
+  }
+  .info-provider p, .info-legal {
+    margin: 3px 0; font-size: 11px; line-height: 1.6; color: var(--cream-dim);
+  }
+  .info-provider a { color: var(--gold); text-decoration: none; }
+  .info-provider a:hover { text-decoration: underline; }
+  .info-legal { margin-top: 12px; opacity: 0.75; }
+  /* モバイル時はショートカットは ESC のみ意味があるので "?" の説明文を少し変える */
+  @media (max-width: 720px) {
+    .so-panel { width: calc(100vw - 24px); }
+  }
+
+  /* 折り畳み時: era-info だけ残し、tracks と controls を隠す */
+  .panel.collapsed { padding: 10px 24px 10px; }
+  .panel.collapsed .tracks-wrap,
+  .panel.collapsed .controls-row,
+  .panel.collapsed .compare-bar { display: none !important; }
+  .panel.collapsed .era-info {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .panel.collapsed .era-info.hide { display: flex !important; }
+  /* 折り畳み比較中: era-info の代わりに簡易表示 */
+  .panel.collapsed.compare-mode .compact-compare { display: flex; }
+  .compact-compare {
+    display: none;
+    align-items: center; gap: 10px;
+    font-size: 12px; color: var(--cream);
+    flex-wrap: wrap;
+  }
+  .compact-compare .pill {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; letter-spacing: 0.04em;
+  }
+  .compact-compare .pill.a { background: var(--cream); color: var(--ink); }
+  .compact-compare .pill.b { background: var(--gold); color: var(--ink); }
+  /* v2: 埋まっている側のピルをネオンピンクで強調 */
+  .compact-compare .pill.filled {
+    box-shadow: 0 0 0 1px var(--neon-pink), 0 0 12px var(--neon-pink-glow);
+  }
+  .compact-compare .lbl {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; color: var(--cream);
+  }
+  .compact-compare .sep { color: var(--cream-dim); }
+  /* 比較中は折り畳み時に通常の era-info を隠す */
+  .panel.collapsed.compare-mode .era-info { display: none !important; }
+
+  /* === Era info (above timeline) === */
+  .era-info {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .era-year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 22px; color: var(--vermillion);
+    letter-spacing: 0.04em; font-weight: 500;
+    min-width: 70px;
+  }
+  .era-label {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 16px; color: var(--cream);
+    letter-spacing: 0.06em;
+    min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* === 比較バー (比較モード時のみ表示) === */
+  .compare-bar {
+    display: none;
+    align-items: stretch; gap: 8px;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .compare-bar.show { display: flex; }
+  .era-info.hide { display: none; }
+  .slot {
+    flex: 1; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    background: rgba(15, 17, 22, 0.4);
+    transition: all 0.2s;
+    position: relative;
+    min-width: 0;
+  }
+  .slot:hover { border-color: var(--cream-dim); background: rgba(15, 17, 22, 0.6); }
+  .slot.active-slot {
+    outline: 2px solid var(--vermillion);
+    outline-offset: 2px;
+  }
+  .slot.active-slot::after {
+    content: '選択中';
+    margin-left: auto;
+    font-size: 9px;
+    color: var(--vermillion);
+    white-space: nowrap;
+  }
+  .slot.slot-a { border-left: 3px solid var(--cream); }
+  .slot.slot-b { border-left: 3px solid var(--gold); }
+  /* v2: A/B が埋まっているスロットをネオンピンクで強調 */
+  .slot:not(.empty) {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 0 1px var(--neon-pink-soft), 0 0 18px var(--neon-pink-glow);
+    background: rgba(255, 46, 154, 0.06);
+    animation: neon-pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes neon-pulse {
+    0%, 100% { box-shadow: 0 0 0 1px var(--neon-pink-soft), 0 0 18px var(--neon-pink-glow); }
+    50%      { box-shadow: 0 0 0 1px var(--neon-pink), 0 0 28px var(--neon-pink-soft); }
+  }
+  .slot-pill {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 9px;
+    flex-shrink: 0; letter-spacing: 0.04em;
+  }
+  .slot-a .slot-pill { background: var(--cream); color: var(--ink); }
+  .slot-b .slot-pill { background: var(--gold); color: var(--ink); }
+  .slot-name {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 13px; color: var(--cream);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  .slot.empty .slot-name { color: var(--cream-dim); font-style: italic; }
+  .slot .active-tag {
+    margin-left: auto;
+    font-size: 9px; color: var(--vermillion);
+    letter-spacing: 0.1em;
+    border: 1px solid var(--vermillion);
+    padding: 3px 7px;
+    flex-shrink: 0;
+    animation: pulse-soft 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-soft { 50% { opacity: 0.5; } }
+  .swap-btn {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--cream-dim); cursor: pointer;
+    padding: 0 12px; font-size: 16px;
+    transition: all 0.3s;
+    flex-shrink: 0; min-width: 40px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .swap-btn:hover {
+    border-color: var(--gold); color: var(--gold);
+    transform: rotate(180deg);
+  }
+
+  /* === Map selector: aerial and paper rails === */
+  .tracks-wrap {
+    position: relative;
+    margin-bottom: 12px;
+    user-select: none; -webkit-user-select: none;
+  }
+  .track {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+  }
+  .track-label {
+    flex: 0 0 70px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--cream-dim);
+    padding: 0 8px;
+  }
+  .track-ticks {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 4px 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+  .track-ticks::-webkit-scrollbar { height: 3px; }
+  .track-ticks::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .track-divider {
+    height: 3px;
+    margin: 2px 0;
+    background: var(--vermillion);
+    box-shadow: 0 0 12px rgba(197, 79, 62, 0.5);
+  }
+  .tick {
+    position: relative;
+    transform: none;
+    flex: 0 0 auto;
+    height: 30px;
+    padding: 0 9px;
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: rgba(255,255,255,0.025);
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s;
+    z-index: 2;
+  }
+  .tick .year { font-size: 10px; }
+  .tick:hover { transform: none; }
+  .tick.active, .tick.select-a, .tick.select-b { border-color: var(--vermillion); }
+  .tick.select-a { border-color: var(--cream); }
+  .tick.select-b { border-color: var(--gold); }
+  .tick .dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--ink-soft);
+    border: 1.5px solid var(--cream-dim);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tick.cat-old .dot      { border-color: var(--gold);   background: rgba(200, 169, 106, 0.3); }
+  .tick.cat-aerial .dot   { border-color: var(--silver); background: rgba(184, 184, 184, 0.3); }
+  .tick.cat-topo .dot     { border-color: var(--gold);   background: rgba(200, 169, 106, 0.3); }
+  .tick .year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; color: var(--cream-dim);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .tick:hover { transform: none; }
+  .tick:hover .dot { transform: none; }
+  /* 単一モード = アクティブ (朱) */
+  .tick.active .dot {
+    width: 15px; height: 15px;
+    background: var(--vermillion); border-color: var(--vermillion);
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+  }
+  .tick.active .year { color: var(--vermillion); font-weight: 500; }
+  /* 比較モード = A (cream) / B (gold) */
+  .tick.select-a .dot {
+    width: 15px; height: 15px;
+    background: var(--cream); border-color: var(--cream);
+    box-shadow: 0 0 0 4px rgba(232, 227, 214, 0.25);
+  }
+  .tick.select-a .year { color: var(--cream); font-weight: 500; }
+  .tick.select-a::after {
+    content: 'A'; position: absolute; top: -2px; left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; color: var(--cream); letter-spacing: 0.04em;
+  }
+  .tick.select-b .dot {
+    width: 15px; height: 15px;
+    background: var(--gold); border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(200, 169, 106, 0.3);
+  }
+  .tick.select-b .year { color: var(--gold); font-weight: 500; }
+  .tick.select-b::after {
+    content: 'B'; position: absolute; top: -2px; left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px; color: var(--gold); letter-spacing: 0.04em;
+  }
+  .paper-track .tick.select-a::after,
+  .paper-track .tick.select-b::after {
+    top: auto; bottom: -2px; transform: translateX(-50%) translateY(100%);
+  }
+  /* 比較モード時、未選択ティックがやや浮き上がる */
+  .tracks-wrap.compare .tick:not(.select-a):not(.select-b) .dot {
+    box-shadow: 0 0 0 3px rgba(197, 79, 62, 0.12);
+  }
+  .tick .tooltip {
+    position: absolute; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 17, 22, 0.96);
+    backdrop-filter: blur(8px);
+    padding: 5px 10px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px; letter-spacing: 0.05em;
+    color: var(--cream); white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s;
+    border-left: 2px solid var(--gold);
+    z-index: 10;
+  }
+  .aerial-track .tick .tooltip { bottom: 100%; margin-bottom: 4px; }
+  .paper-track .tick .tooltip  { top: 100%; margin-top: 4px; }
+  .tick:hover .tooltip { opacity: 0; }
+
+  /* === Bottom controls row === */
+  .controls-row {
+    display: flex; gap: 16px; align-items: center;
+  }
+  .slider-wrap { flex: 1; display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .slider {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 2px; background: var(--line); outline: none;
+    cursor: pointer; min-width: 80px;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--vermillion); cursor: pointer;
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+    transition: transform 0.15s;
+  }
+  .slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .slider::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--vermillion); cursor: pointer; border: none;
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+  }
+  .slider-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--cream); min-width: 42px;
+    text-align: right;
+  }
+  .ctrl-label {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.12em; color: var(--cream-dim);
+    flex-shrink: 0; min-width: 32px;
+  }
+  .compare-btn {
+    padding: 8px 16px;
+    background: transparent; border: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .compare-btn:hover { border-color: var(--vermillion); color: var(--vermillion); }
+  .compare-btn.active {
+    background: var(--vermillion); border-color: var(--vermillion);
+    color: var(--cream);
+    box-shadow: 0 0 0 4px var(--vermillion-glow);
+  }
+  /* v3.1: 下paneのアイコンボタン (テーマ/レイヤー) */
+  .panel-icon-btn {
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    min-width: 40px;
+    line-height: 1;
+  }
+  .panel-icon-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .panel-icon-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(200, 169, 106, 0.12); }
+  /* SVG アイコン (地形など) は絵文字とベースラインを揃える */
+  .panel-icon-btn svg { display: block; margin: -1px auto; }
+
+  .info-btn {
+    padding: 8px 12px;
+    background: transparent; border: 1px solid var(--line);
+    color: var(--cream-dim); font-size: 11px;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .info-btn:hover { border-color: var(--gold); color: var(--gold); }
+  /* A/B のスライダー両端ラベルは v2 で削除 (slot bar と tick 色で既に識別可) */
+  .slider-end { display: none !important; }
+
+  /* === Locate marker === */
+  .locate-marker {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--vermillion);
+    border: 2px solid var(--cream);
+    box-shadow: 0 0 0 6px var(--vermillion-glow), 0 4px 12px rgba(0,0,0,0.4);
+  }
+  /* === Search-result marker === */
+  .search-marker {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--gold);
+    border: 3px solid var(--cream);
+    box-shadow: 0 0 0 4px rgba(200, 169, 106, 0.45), 0 4px 12px rgba(0,0,0,0.5);
+    animation: pulse-ring 1.6s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0   rgba(200, 169, 106, 0.7), 0 4px 12px rgba(0,0,0,0.5); }
+    70%  { box-shadow: 0 0 0 14px rgba(200, 169, 106, 0),   0 4px 12px rgba(0,0,0,0.5); }
+    100% { box-shadow: 0 0 0 0   rgba(200, 169, 106, 0),   0 4px 12px rgba(0,0,0,0.5); }
+  }
+  .leaflet-tooltip.search-tooltip {
+    background: rgba(15, 17, 22, 0.95) !important;
+    color: var(--cream) !important;
+    border: none !important;
+    border-left: 2px solid var(--gold) !important;
+    font-family: "Shippori Mincho B1", serif !important;
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+    border-radius: 0 !important;
+  }
+  .leaflet-tooltip.search-tooltip::before { display: none !important; }
+
+  /* === Leaflet overrides === */
+  .leaflet-control-attribution {
+    background: rgba(15, 17, 22, 0.88) !important;
+    color: var(--cream-dim) !important;
+    font-size: 10px !important; padding: 4px 10px !important;
+    border: none !important;
+    max-width: 60vw;
+  }
+  .leaflet-control-attribution a { color: var(--gold) !important; }
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+    margin-top: 100px !important;
+  }
+  .leaflet-control-zoom a {
+    background: rgba(15, 17, 22, 0.92) !important;
+    color: var(--cream) !important;
+    border-color: var(--line) !important;
+    backdrop-filter: blur(8px);
+  }
+  .leaflet-control-zoom a:hover {
+    background: var(--vermillion) !important;
+    color: var(--cream) !important;
+  }
+
+  /* === Hint === */
+  .hint {
+    position: absolute; bottom: 220px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 13px; letter-spacing: 0.08em;
+    background: rgba(15, 17, 22, 0.92);
+    padding: 10px 20px; backdrop-filter: blur(8px);
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.4s;
+    border-left: 2px solid var(--gold);
+    text-align: center; max-width: 480px;
+  }
+  .hint.show { opacity: 1; }
+
+  /* === Out-of-bounds hint (when current view has no data on active era) ===
+     v2: search-bar (top:16px + ~44px = 60px) と brand (top:16px + ~60px = 76px) の
+     両方を確実に避けるため top:96px に降ろす。左右マージンも明示。 */
+  .bounds-hint {
+    position: absolute;
+    top: 96px;
+    left: 50%; transform: translateX(-50%);
+    z-index: 999;  /* search-results (1000) より下に置き、検索中は隠れる */
+    background: rgba(197, 79, 62, 0.95);
+    color: var(--cream);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 12px; letter-spacing: 0.06em;
+    padding: 9px 16px;
+    border-left: 3px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: none;
+    max-width: calc(100vw - 32px);
+    text-align: center;
+    line-height: 1.4;
+  }
+  .bounds-hint.show { display: block; }
+  .bounds-hint .center-btn {
+    display: inline-block; margin-left: 8px;
+    padding: 2px 9px;
+    background: var(--cream); color: var(--ink);
+    border: none; cursor: pointer;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px; font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .bounds-hint .center-btn:hover { opacity: 0.85; }
+
+  /* === v2 Mobile era picker (trigger button + bottom sheet) ===
+     デフォルトは非表示。モバイル時のみ表示してタイムラインを置き換える */
+  .mobile-era-trigger { display: none; }
+
+  .mobile-era-sheet {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 2000;
+  }
+  .mobile-era-sheet.show { display: block; }
+  .mes-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    animation: mes-fade-in 0.2s ease-out;
+  }
+  .mes-panel {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    max-height: 78vh;
+    background: rgba(15, 17, 22, 0.98);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 2px solid var(--vermillion);
+    box-shadow: 0 -16px 50px rgba(0, 0, 0, 0.6);
+    display: flex; flex-direction: column;
+    animation: mes-slide-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes mes-slide-up { from { transform: translateY(100%);} to { transform: translateY(0);} }
+  @keyframes mes-fade-in  { from { opacity: 0;} to { opacity: 1;} }
+  .mes-handle {
+    width: 40px; height: 4px;
+    background: var(--cream-dim);
+    border-radius: 2px;
+    margin: 10px auto 6px;
+    opacity: 0.4;
+  }
+  .mes-header {
+    padding: 4px 18px 12px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .mes-title {
+    flex: 1;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 16px;
+    color: var(--cream);
+    letter-spacing: 0.08em;
+  }
+  .mes-close {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-size: 14px;
+    padding: 5px 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mes-close:hover, .mes-close:active {
+    color: var(--vermillion); border-color: var(--vermillion);
+  }
+  /* v2.1: カテゴリフィルターチップ */
+  .mes-filters {
+    display: flex; gap: 6px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mes-filters::-webkit-scrollbar { display: none; }
+  .mes-chip {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--cream-dim);
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 7px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .mes-chip:hover, .mes-chip:active { color: var(--cream); border-color: var(--cream-dim); }
+  .mes-chip.is-active {
+    background: var(--vermillion);
+    border-color: var(--vermillion);
+    color: var(--cream);
+    box-shadow: 0 0 12px var(--vermillion-glow);
+  }
+  .mes-body {
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 0 calc(env(safe-area-inset-bottom, 8px) + 14px);
+  }
+  .mes-section { padding: 10px 0 4px; }
+  .mes-section-title {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 6px 18px;
+  }
+  .mes-row {
+    display: flex; align-items: center;
+    padding: 11px 18px;
+    cursor: pointer;
+    gap: 14px;
+    border-bottom: 1px solid rgba(58, 61, 68, 0.4);
+    transition: background 0.12s;
+  }
+  .mes-row:active { background: rgba(197, 79, 62, 0.18); }
+  .mes-row.is-active { background: rgba(197, 79, 62, 0.18); border-left: 3px solid var(--vermillion); padding-left: 15px; }
+  /* v2: A/B 選択中の行はネオンピンクで強調 (左枠は A=cream / B=gold で識別) */
+  .mes-row.is-a {
+    background: rgba(255, 46, 154, 0.10);
+    border-left: 3px solid var(--cream);
+    padding-left: 15px;
+    box-shadow: inset 0 0 0 1px var(--neon-pink-soft), 0 0 16px var(--neon-pink-glow);
+  }
+  .mes-row.is-b {
+    background: rgba(255, 46, 154, 0.10);
+    border-left: 3px solid var(--gold);
+    padding-left: 15px;
+    box-shadow: inset 0 0 0 1px var(--neon-pink-soft), 0 0 16px var(--neon-pink-glow);
+  }
+  .mes-row .dot {
+    width: 13px; height: 13px; border-radius: 50%;
+    flex-shrink: 0;
+    border: 1.5px solid var(--cream-dim);
+    background: var(--ink-soft);
+  }
+  .mes-row.cat-old    .dot { border-color: var(--gold);   background: rgba(200, 169, 106, 0.3); }
+  .mes-row.cat-aerial .dot { border-color: var(--silver); background: rgba(184, 184, 184, 0.3); }
+  .mes-row.cat-topo   .dot { border-color: var(--gold);   background: rgba(200, 169, 106, 0.3); }
+  .mes-row .year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--cream);
+    min-width: 48px;
+    font-weight: 500;
+  }
+  .mes-row .label-wrap { flex: 1; min-width: 0; }
+  .mes-row .label {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 13px;
+    color: var(--cream);
+    line-height: 1.2;
+  }
+  .mes-row .sub {
+    font-size: 10px;
+    color: var(--cream-dim);
+    margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mes-row .tag {
+    font-size: 10px;
+    font-family: "JetBrains Mono", monospace;
+    padding: 3px 8px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .mes-row .tag.active-tag { background: var(--vermillion); color: var(--cream); }
+  .mes-row .tag.a-tag      { background: var(--cream); color: var(--ink); }
+  .mes-row .tag.b-tag      { background: var(--gold); color: var(--ink); }
+
+  /* === Mobile === */
+  @media (max-width: 720px) {
+    .panel {
+      padding: 10px 12px 12px;
+      bottom: 8px; left: 8px; right: 8px;
+      /* v2: max-height + overflow-y を撤去。これが panel-toggle (top:-26px) を
+         切り取って「トグルが出ない」原因だった。代わりに collapse 機能で縦圧縮する */
+      overflow: visible;
+    }
+    .panel-toggle { width: 72px; height: 30px; font-size: 14px; }
+
+    /* === Brand + Search === */
+    .brand { padding: 8px 12px 6px; top: 8px; left: 8px; border-left-width: 2px; }
+    .brand h1 { font-size: 14px; letter-spacing: 0.05em; }
+    .brand .en { font-size: 8px; margin-top: 4px; }
+    .search-bar { top: 8px; right: 8px; left: auto; gap: 6px; }
+    .search-input { width: 140px; padding: 10px 10px 10px 30px; font-size: 12px; }
+    .search-input-wrap::before { left: 8px; font-size: 13px; }
+    .icon-btn { min-width: 40px; padding: 0 10px; font-size: 14px; }
+    .search-results { min-width: 0; width: calc(100vw - 16px); right: 0; max-width: none; }
+    .leaflet-control-zoom { margin-top: 68px !important; }
+    /* 法的帰属表示はモバイルでも維持し、パネルの上へ逃がす。 */
+    .leaflet-bottom.leaflet-right { bottom: 224px; }
+    .leaflet-control-attribution {
+      display: block !important;
+      max-width: calc(100vw - 16px);
+      font-size: 8px; line-height: 1.25;
+      white-space: normal;
+      background: rgba(255,255,255,0.82) !important;
+    }
+    .bounds-hint { top: 64px; font-size: 11px; padding: 7px 12px; }
+
+    /* === Era info === */
+    .era-info { gap: 8px; margin-bottom: 8px; padding-bottom: 8px; }
+    .era-year { font-size: 18px; min-width: 50px; }
+    .era-label { font-size: 14px; }
+
+    /* === Compare bar: stack vertically + ultra-compact on mobile === */
+    .compare-bar.show { flex-direction: column; gap: 4px; }
+    .slot { padding: 6px 10px; gap: 8px; }
+    .slot-pill { font-size: 9px; padding: 2px 7px; }
+    .slot-name { font-size: 11px; }
+    .swap-btn {
+      align-self: stretch; padding: 2px 8px;
+      transform: none; /* モバイルは横方向のままで縦並びの間に挟む */
+      height: 22px; min-width: 0;
+      border-color: var(--line);
+    }
+    .swap-btn:hover { transform: none; }
+
+    /* v2: モバイルでは横タイムラインを完全に非表示にし、
+       ボトムシート式の縦リストで年代選択を行う (密集衝突を根本回避) */
+    .tracks-wrap { display: none !important; }
+
+    .mobile-era-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      background: rgba(15, 17, 22, 0.5);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--vermillion);
+      color: var(--cream);
+      font-family: "Shippori Mincho B1", serif;
+      font-size: 13px;
+      padding: 11px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-align: left;
+      letter-spacing: 0.04em;
+      transition: background 0.15s;
+    }
+    .mobile-era-trigger:active { background: rgba(197, 79, 62, 0.18); }
+    .mobile-era-trigger .met-icon { font-size: 16px; flex-shrink: 0; }
+    .mobile-era-trigger .met-text {
+      flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .mobile-era-trigger .met-arrow {
+      color: var(--cream-dim);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    /* 折り畳み中は trigger ボタンも隠す */
+    .panel.collapsed .mobile-era-trigger { display: none !important; }
+
+    /* === Controls === */
+    .controls-row { gap: 8px; flex-wrap: wrap; }
+    .slider-wrap { flex: 1 1 100%; }
+    .ctrl-label { min-width: 28px; font-size: 11px; }
+    .compare-btn { padding: 10px 14px; }
+    .slider-end { display: none !important; } /* compare 中も A/B はバーで分かる */
+  }
+  @media (max-width: 380px) {
+    .search-input { width: 110px; }
+    .icon-btn { min-width: 36px; padding: 0 8px; }
+    .brand h1 { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="brand">
+  <h1>東京 今昔マップ</h1>
+  <div class="en">Tokyo · Through Time</div>
+</div>
+
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <input type="text" class="search-input" id="searchInput" placeholder="住所・駅・地名を検索" />
+  </div>
+  <button class="icon-btn search-submit" id="searchBtn" type="button" title="検索" aria-label="検索">⌕</button>
+  <button class="icon-btn" id="locateBtn" title="現在地を表示">📍</button>
+  <div class="search-results" id="searchResults">
+    <div id="searchResultsContent" role="status" aria-live="polite"></div>
+    <div class="search-attribution">検索データ © OpenStreetMap contributors / 国土地理院 住所検索API</div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<button class="mini-pill" id="miniPill" type="button" title="パネルを戻す">
+  <span class="mp-text" id="miniPillText">時代を選択</span>
+  <span class="mp-restore">⤴</span>
+</button>
+
+<div class="poi-modal" id="poiModal" aria-hidden="true">
+  <div class="pm-backdrop" id="poiBackdrop"></div>
+  <div class="pm-panel">
+    <div class="pm-header">
+      <div class="pm-title" id="poiTitle"></div>
+      <button class="pm-close" id="poiClose" type="button" aria-label="閉じる">✕</button>
+    </div>
+    <div class="pm-images" id="poiImages">
+      <img class="pm-img pm-img-modern" id="poiModernImg" alt="現代" />
+      <div class="pm-old-clip" id="poiOldClip">
+        <img class="pm-img pm-img-old" id="poiOldImg" alt="昔" />
+      </div>
+      <div class="pm-divider" id="poiDivider">
+        <div class="pm-divider-handle">⇆</div>
+      </div>
+      <div class="pm-label pm-old-label" id="poiOldLabel"></div>
+      <div class="pm-label pm-new-label" id="poiNewLabel"></div>
+    </div>
+    <div class="pm-desc" id="poiDesc"></div>
+  </div>
+</div>
+
+<div class="tour-overlay" id="tourOverlay" aria-hidden="true">
+  <div class="to-panel">
+    <div class="to-header">
+      <div class="to-title" id="tourTitle"></div>
+      <button class="to-close" id="tourClose" type="button">✕</button>
+    </div>
+    <div class="to-step" id="tourStep"></div>
+    <div class="to-controls">
+      <button id="tourPrev" type="button">◀ 前</button>
+      <div class="to-progress" id="tourProgress"></div>
+      <button id="tourNext" type="button">次 ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="tour-picker" id="tourPicker" aria-hidden="true">
+  <div class="tp-backdrop" id="tourPickerBackdrop"></div>
+  <div class="tp-panel">
+    <div class="tp-header">
+      <div class="tp-title">ガイドツアーを選ぶ</div>
+      <button class="tp-close" id="tourPickerClose" type="button">✕</button>
+    </div>
+    <div class="tp-body" id="tourPickerBody"></div>
+  </div>
+</div>
+
+<div class="shortcuts-overlay" id="shortcutsOverlay" aria-hidden="true">
+  <div class="so-backdrop" id="shortcutsBackdrop"></div>
+  <div class="so-panel">
+    <div class="so-header">
+      <div class="so-title">キーボードショートカット</div>
+      <button class="so-close" id="shortcutsClose" type="button" aria-label="閉じる">✕</button>
+    </div>
+    <div class="so-body">
+      <div class="so-row"><kbd>←</kbd> <kbd>→</kbd><span class="so-desc">前後の時代に切り替え</span></div>
+      <div class="so-row"><kbd>H</kbd><span class="so-desc">パネルを開閉</span></div>
+      <div class="so-row"><kbd>T</kbd><span class="so-desc">ベース地図（最新）を順送り</span></div>
+      <div class="so-row"><kbd>?</kbd><span class="so-desc">このヘルプを開閉</span></div>
+      <div class="so-row"><kbd>Esc</kbd><span class="so-desc">開いているものを順に閉じる</span></div>
+      <div class="so-divider"></div>
+      <div class="so-row"><span class="so-desc" style="opacity:0.6">マウス: ティックをクリックして時代選択 / 比較ボタンで2つ重ねる</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="shortcuts-overlay" id="infoOverlay" aria-hidden="true">
+  <div class="so-backdrop" id="infoBackdrop"></div>
+  <div class="so-panel info-panel" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="so-header">
+      <div class="so-title" id="infoTitle">地図情報</div>
+      <button class="so-close" id="infoClose" type="button" aria-label="閉じる">✕</button>
+    </div>
+    <div class="so-body info-body">
+      <section class="info-provider">
+        <h3>国土地理院</h3>
+        <p>最新のベース地図、年代別空中写真、年度別空中写真を使用しています。</p>
+        <p><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">地理院タイル一覧</a> · <a href="https://maps.gsi.go.jp/help/termsofuse.html" target="_blank" rel="noopener noreferrer">利用規約</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>ツナガルマップ（東京古地図展）</h3>
+        <p>江戸期から昭和期までの東京古地図タイルを使用しています。利用条件は提供元の案内に従います。</p>
+        <p><a href="https://www.tsunagaru-map.com/pf-tokyo/map.html" target="_blank" rel="noopener noreferrer">提供元ページ</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>今昔マップ on the web（谷謙二研究室）</h3>
+        <p>首都圏の旧版地形図を使用しています。「今昔マップ on the web」のクレジット表示が必要です。</p>
+        <p><a href="https://ktgis.net/kjmapw/tilemapservice.html" target="_blank" rel="noopener noreferrer">タイルサービスと利用条件</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>全国Q地図</h3>
+        <p>東京都作成の1:3,000地形図を使用しています。期間ごとに収録図郭が異なり、未収録部分は透明になります。</p>
+        <p><a href="https://qchizu.jp/tokyo-topographic-map/" target="_blank" rel="noopener noreferrer">東京都1:3,000地形図の解説</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>国立国会図書館デジタルコレクション</h3>
+        <p>享保年間の江戸絵図（PDM）を公式IIIF画像から取得し、独自のジオリファレンスで表示しています。</p>
+        <p><a href="https://dl.ndl.go.jp/pid/2542719" target="_blank" rel="noopener noreferrer">原資料</a> · <a href="https://dl.ndl.go.jp/ja/help_iiif" target="_blank" rel="noopener noreferrer">IIIF APIの利用</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>OpenStreetMap / Nominatim</h3>
+        <p>住所・駅・地名検索にNominatimを使用しています。</p>
+        <p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></p>
+      </section>
+      <p class="info-legal">地図上のLeafletクレジットは、表示中のレイヤーに応じた法的帰属表示です。</p>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="panel">
+  <button class="panel-toggle" id="panelToggle" title="パネルを開閉 (H キー)" aria-label="パネル開閉">
+    <span class="chev">▼</span>
+  </button>
+  <button class="panel-minimize" id="panelMinimize" title="全画面表示 (パネルを隠す)" aria-label="全画面表示">
+    ⤓
+  </button>
+  <div class="era-info" id="eraInfo">
+    <div class="era-year" id="eraYear">—</div>
+    <div class="era-label" id="eraLabel">読み込み中…</div>
+  </div>
+  <div class="compact-compare" id="compactCompare"></div>
+  <div class="compare-bar" id="compareBar"></div>
+
+  <button class="mobile-era-trigger" id="mobileEraTrigger" type="button">
+    <span class="met-icon">📜</span>
+    <span class="met-text" id="mobileEraTriggerText">時代を選択</span>
+    <span class="met-arrow">▾</span>
+  </button>
+
+  <div class="tracks-wrap" id="tracksWrap">
+    <div class="track aerial-track">
+      <div class="track-label">航空写真</div>
+      <div class="track-ticks" id="aerialTicks"></div>
+    </div>
+    <div class="track-divider"></div>
+    <div class="track paper-track">
+      <div class="track-label">紙地図</div>
+      <div class="track-ticks" id="paperTicks"></div>
+    </div>
+  </div>
+  <div class="controls-row" id="controlsRow">
+    <span class="ctrl-label" id="opacityLabel">透過</span>
+    <div class="slider-wrap">
+      <input type="range" min="0" max="100" value="100" class="slider" id="opacitySlider" />
+      <div class="slider-val" id="opacityVal">100%</div>
+    </div>
+    <button class="panel-icon-btn" id="themeBtn" title="ベース地図（最新） (T キー)">🗺️</button>
+    <button class="panel-icon-btn" id="terrainBtn" title="地形レイヤー (陰影起伏・治水地形)"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M2.5 19 L9 7 L12.8 13.4 L15.3 9.6 L21.5 19 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path d="M7.2 10.3 L9 7 L10.8 10.1" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" opacity="0.65"/></svg></button>
+    <button class="panel-icon-btn" id="detailBtn" title="詳細地図 (東京都1:3,000地形図)">📐</button>
+    <button class="panel-icon-btn" id="ukiyoeBtn" title="浮世絵ピン ON/OFF (広重・名所江戸百景)">🖼</button>
+    <button class="panel-icon-btn" id="tourBtn" title="ガイドツアー">📖</button>
+    <button class="info-btn" id="infoBtn" type="button" title="地図提供元・出典・利用条件">ⓘ 情報</button>
+    <button class="compare-btn" id="compareBtn" title="2つの時代を選んで重ねる">⇆ 比較</button>
+  </div>
+
+  <div class="popover" id="themePopover" aria-hidden="true">
+    <div class="popover-arrow"></div>
+    <div class="popover-title">ベース地図（最新）</div>
+    <div class="popover-body" id="themePopoverBody"></div>
+  </div>
+
+  <div class="popover" id="terrainPopover" aria-hidden="true">
+    <div class="popover-arrow"></div>
+    <div class="popover-title">地形レイヤー</div>
+    <div class="popover-body">
+      <label class="layer-toggle"><input type="checkbox" id="layerHillshade" /> <span>⛰ 陰影起伏図 (地形の凹凸)</span></label>
+      <label class="layer-toggle"><input type="checkbox" id="layerChisui" /> <span>💧 治水地形分類図 (旧河道・埋立地)</span></label>
+      <div class="popover-help">どの時代の地図にも半透明で重なります。地形と埋立の歴史を重ねて読むためのレイヤーです。</div>
+    </div>
+  </div>
+
+  <div class="popover" id="detailPopover" aria-hidden="true">
+    <div class="popover-arrow"></div>
+    <div class="popover-title">詳細地図 — 東京都1:3,000地形図</div>
+    <div class="popover-body">
+      <div id="detailMapsList"></div>
+      <div class="popover-help">1952–69年の8世代。23区中心・拡大時のみ描画。選ぶと表示中の時代と入れ替わります。</div>
+    </div>
+  </div>
+</div>
+
+<div class="hint" id="hint"></div>
+<div class="bounds-hint" id="boundsHint"></div>
+
+<div class="mobile-era-sheet" id="mobileEraSheet" aria-hidden="true">
+  <div class="mes-backdrop" id="mobileEraSheetBackdrop"></div>
+  <div class="mes-panel">
+    <div class="mes-handle"></div>
+    <div class="mes-header">
+      <div class="mes-title">時代を選ぶ</div>
+      <button class="mes-close" id="mobileEraSheetClose" aria-label="閉じる" type="button">✕</button>
+    </div>
+    <div class="mes-filters" id="mobileEraSheetFilters">
+      <button class="mes-chip is-active" data-filter="all" type="button">すべて</button>
+      <button class="mes-chip" data-filter="old" type="button">古地図</button>
+      <button class="mes-chip" data-filter="aerial" type="button">航空写真</button>
+      <button class="mes-chip" data-filter="topo" type="button">地形図</button>
+    </div>
+    <div class="mes-body" id="mobileEraSheetBody"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+
+// ============================================================
+// 時代カタログ — 年代昇順に並べる
+// cat: 'old' (絵図・旧版地図) | 'aerial' (空中写真) | 'topo' (地形図) | 'modern' (現代地図)
+// bounds: [[南緯, 西経], [北緯, 東経]] (該当エリアのみタイル取得 → エリア外は淡色が透ける)
+// ============================================================
+const GSI_SOURCE_URL = 'https://maps.gsi.go.jp/development/ichiran.html';
+const TSUNAGARU_SOURCE_URL = 'https://www.tsunagaru-map.com/pf-tokyo/map.html';
+const KONJAKU_SOURCE_URL = 'https://ktgis.net/kjmapw/tilemapservice.html';
+const GSI = `<a href="${GSI_SOURCE_URL}" target="_blank" rel="noopener noreferrer">地理院タイル</a>`;
+const TSUNAGARU_ATTR = `<a href="${TSUNAGARU_SOURCE_URL}" target="_blank" rel="noopener noreferrer">ツナガルマップ (東京古地図展)</a>`;
+const KONJAKU_ATTR = `<a href="${KONJAKU_SOURCE_URL}" target="_blank" rel="noopener noreferrer">今昔マップ on the web</a>`;
+
+const ERAS = [
+  // 古地図 (ツナガルマップ経由)
+  { id: 'edo_pre',   year: 1600, label: '江戸以前', sub: '想像図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map1/{z}/{x}/{y}.png',
+    bounds: [[35.556, 139.656], [35.794, 139.885]], min: 11, max: 17,
+    attr: 'ユニバーサルデザイン総合研究所 / ' + TSUNAGARU_ATTR },
+  { id: 'edo_early', year: 1644, label: '江戸初期', sub: '正保年中江戸絵図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/tokyo-edo1644/{z}/{x}/{y}.png',
+    bounds: [[35.634, 139.677], [35.750, 139.804]], min: 11, max: 17,
+    attr: '国立公文書館デジタルアーカイブ / ' + TSUNAGARU_ATTR },
+  // 享保江戸図 — NDL原画像を既存の測地基準点でアフィン補正して表示
+  // 1644-1860 の 216 年ギャップを埋める中間時代。絵図ゆえ場所により数百 m の歪みあり
+  { id: 'kyoho',     year: 1720, label: '享保年間', sub: '江戸絵図 (伊賀屋・中型図)', cat: 'old',
+    affineImage: 'https://dl.ndl.go.jp/api/iiif/2542719/R0000002/full/full/0/default.jpg', resourceSize: [19366, 11324],
+    gcps: [
+      [10840, 4540, 35.6866, 139.7565], [6736, 9618, 35.6650, 139.7847],
+      [16950, 5700, 35.7121, 139.7666], [17538, 9043, 35.7148, 139.7967],
+      [4509, 5642, 35.6571, 139.7477]
+    ],
+    bounds: [[35.6358, 139.7038], [35.7250, 139.8135]], min: 11, max: 17,
+    attr: '<a href="https://dl.ndl.go.jp/pid/2542719" target="_blank">国立国会図書館デジタルコレクション</a> (PDM)' },
+  { id: 'edo_late',  year: 1860, label: '江戸末期', sub: '江戸図 萬延', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/tokyo-edo1860/{z}/{x}/{y}.png',
+    bounds: [[35.608, 139.681], [35.753, 139.845]], min: 11, max: 17,
+    attr: '国際日本文化研究センター / ' + TSUNAGARU_ATTR },
+  { id: 'meiji',     year: 1880, label: '明治初期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map4/{z}/{x}/{y}.png',
+    bounds: [[35.570, 139.616], [35.769, 139.816]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+  { id: 'taisho',    year: 1920, label: '大正後期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map5/{z}/{x}/{y}.png',
+    bounds: [[35.603, 139.700], [35.770, 139.799]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+  { id: 'showa_pre', year: 1930, label: '昭和初期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map6/{z}/{x}/{y}.png',
+    bounds: [[35.604, 139.700], [35.770, 139.799]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+
+  // 年代別空中写真 (GSI)
+  { id: 'aerial_1936', year: 1939, label: '空中写真', sub: '1936–1942年頃撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_riku10/{z}/{x}/{y}.png',
+    bounds: [[35.48, 139.52], [35.85, 139.95]], min: 13, max: 18, attr: GSI },
+  { id: 'aerial_1945', year: 1948, label: '空中写真', sub: '1945–1950年撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_USA10/{z}/{x}/{y}.png',
+    min: 8, max: 17, attr: GSI },
+
+  // 昭和中期 旧版地図 (ツナガルマップ)
+  { id: 'showa_mid', year: 1955, label: '昭和中期', sub: '旧版地形図', cat: 'old',
+    url: 'https://www.web-museum.jp/maps/map7/{z}/{x}/{y}.png',
+    bounds: [[35.603, 139.699], [35.770, 139.800]], min: 11, max: 17,
+    attr: '国土地理院 旧版地図 / ' + TSUNAGARU_ATTR },
+
+  // 今昔マップ on the web（首都圏旧版地形図、南西起点のTMSタイル）
+  { id: 'konjaku_1896', year: 1902, label: '今昔 明治', sub: '旧版地形図 (1896–1909)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/2man/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1917', year: 1920, label: '今昔 大正', sub: '旧版地形図 (1917–1924)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/00/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1927', year: 1933, label: '今昔 昭和初期', sub: '旧版地形図 (1927–1939)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/01/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1944', year: 1949, label: '今昔 戦中戦後', sub: '旧版地形図 (1944–1954)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/02/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1965', year: 1967, label: '今昔 高度成長', sub: '旧版地形図 (1965–1968)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/03/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1975', year: 1977, label: '今昔 1970年代', sub: '旧版地形図 (1975–1978)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/04/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1983', year: 1985, label: '今昔 1980年代', sub: '旧版地形図 (1983–1987)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/05/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1992', year: 1994, label: '今昔 1990年代', sub: '旧版地形図 (1992–1995)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/06/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+  { id: 'konjaku_1998', year: 2002, label: '今昔 2000年前後', sub: '旧版地形図 (1998–2005)', cat: 'old',
+    url: 'https://ktgis.net/kjmapw/kjtilemap/tokyo50/07/{z}/{x}/{y}.png', tms: true, min: 8, max: 15, attr: KONJAKU_ATTR },
+
+  // 全国Q地図「東京都1:3,000地形図」公式8期間
+  { id: 'topo_1', year: 1952, label: '昭和27–33年', sub: '東京都1:3,000地形図', tickLabel: '昭和27–33年', cat: 'topo', topoNN: '01',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/01/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+  { id: 'topo_2', year: 1959, label: '昭和34年', sub: '東京都1:3,000地形図', tickLabel: '昭和34年', cat: 'topo', topoNN: '02',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/02/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  // 1961-69 空中写真
+  { id: 'aerial_1961', year: 1965, label: '空中写真', sub: '1961–1969年撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/ort_old10/{z}/{x}/{y}.png',
+    min: 8, max: 17, attr: GSI },
+
+  { id: 'topo_3', year: 1961, label: '昭和36年', sub: '東京都1:3,000地形図', tickLabel: '昭和36年', cat: 'topo', topoNN: '03',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/03/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+  { id: 'topo_4', year: 1963, label: '昭和38年', sub: '東京都1:3,000地形図', tickLabel: '昭和38年', cat: 'topo', topoNN: '04',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/04/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+  { id: 'topo_5', year: 1965, label: '昭和40年', sub: '東京都1:3,000地形図', tickLabel: '昭和40年', cat: 'topo', topoNN: '05',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/05/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  // 1974-90 空中写真
+  { id: 'aerial_1974', year: 1976, label: '空中写真', sub: '1974–1978年撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo1/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+
+  { id: 'topo_6', year: 1967, label: '昭和42年', sub: '東京都1:3,000地形図', tickLabel: '昭和42年', cat: 'topo', topoNN: '06',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/06/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  { id: 'aerial_1979', year: 1981, label: '空中写真', sub: '1979–1983年撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo2/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+
+  { id: 'topo_7', year: 1968, label: '昭和43年', sub: '東京都1:3,000地形図', tickLabel: '昭和43年', cat: 'topo', topoNN: '07',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/07/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  { id: 'aerial_1984', year: 1985, label: '空中写真', sub: '1984–1986年撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo3/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+  { id: 'aerial_1987', year: 1988, label: '空中写真', sub: '1987–1990年撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/gazo4/{z}/{x}/{y}.jpg', min: 10, max: 17, attr: GSI },
+
+  // 年度別空中写真（2007年以降）のうち、東京都心で実タイルを確認できた年度
+  { id: 'aerial_2009', year: 2009, label: '年度別空中写真', sub: '2009年度撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2009/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+  { id: 'aerial_2014', year: 2014, label: '年度別空中写真', sub: '2014年度撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2014/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+  { id: 'aerial_2017', year: 2017, label: '年度別空中写真', sub: '2017年度撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2017/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+  { id: 'aerial_2019', year: 2019, label: '年度別空中写真', sub: '2019年度撮影', cat: 'aerial',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/nendophoto2019/{z}/{x}/{y}.png', min: 14, max: 18, attr: GSI },
+
+  { id: 'topo_8', year: 1969, label: '昭和44年', sub: '東京都1:3,000地形図', tickLabel: '昭和44年', cat: 'topo', topoNN: '08',
+    url: 'https://qchizu2.xsrv.jp/mapdata/t13001/08/{z}/{x}/{y}.png', bounds: [[35.45, 138.85], [35.92, 139.95]], min: 13, max: 18, attr: '全国Q地図（東京都1:3,000地形図）' },
+
+  // 現代地図 (淡色) — 重ね合わせ非表示モード
+  { id: 'modern', year: 2026, label: '現代', sub: '淡色地図 (オーバーレイなし)', cat: 'modern',
+    url: null, attr: GSI },
+];
+
+// 公式公開情報に照らした表示用メタデータ。
+const eraMeta = (dateRange, sourceType = '実測資料', note = '') => ({ dateRange, sourceType, note });
+const ERA_METADATA = {
+  edo_pre: eraMeta('1600', '復元図', '想像図（推定を含む）。'),
+  edo_early: eraMeta('1644–1648（正保年間）', '実測資料', '正保年中江戸絵図。'),
+  kyoho: eraMeta('1720', '実測資料', 'IIIF画像を独自ジオリファレンスで表示。'),
+  edo_late: eraMeta('1860', '実測資料', '江戸図 萬延。'),
+  meiji: eraMeta('1880', '実測資料', '旧版地形図。'),
+  taisho: eraMeta('1920', '実測資料', '旧版地形図。'),
+  showa_pre: eraMeta('1930', '実測資料', '旧版地形図。'),
+  aerial_1936: eraMeta('1936–1942年頃'),
+  aerial_1945: eraMeta('1945–1950年'),
+  showa_mid: eraMeta('1955', '実測資料', '旧版地形図。'),
+  konjaku_1896: eraMeta('1896–1909'),
+  konjaku_1917: eraMeta('1917–1924'),
+  konjaku_1927: eraMeta('1927–1939'),
+  konjaku_1944: eraMeta('1944–1954'),
+  konjaku_1965: eraMeta('1965–1968'),
+  konjaku_1975: eraMeta('1975–1978'),
+  konjaku_1983: eraMeta('1983–1987'),
+  konjaku_1992: eraMeta('1992–1995'),
+  konjaku_1998: eraMeta('1998–2005'),
+  topo_1: eraMeta('1952–1958'),
+  topo_2: eraMeta('1959'),
+  aerial_1961: eraMeta('1961–1969'),
+  topo_3: eraMeta('1961'),
+  topo_4: eraMeta('1963'),
+  topo_5: eraMeta('1965'),
+  aerial_1974: eraMeta('1974–1978'),
+  topo_6: eraMeta('1967'),
+  aerial_1979: eraMeta('1979–1983'),
+  topo_7: eraMeta('1968'),
+  aerial_1984: eraMeta('1984–1986'),
+  aerial_1987: eraMeta('1987–1990'),
+  aerial_2009: eraMeta('2009年度'),
+  aerial_2014: eraMeta('2014年度'),
+  aerial_2017: eraMeta('2017年度'),
+  aerial_2019: eraMeta('2019年度'),
+  topo_8: eraMeta('1969'),
+  modern: eraMeta('現代'),
+};
+ERAS.forEach(era => Object.assign(era, ERA_METADATA[era.id] || eraMeta(String(era.year), '推定')));
+
+function eraDisplayDate(era) { return era && era.dateRange ? era.dateRange : String(era.year); }
+function eraTickDate(era) {
+  const range = (era.dateRange || '').replace(/（[^）]*）/g, '');
+  const match = range.match(/^(\d{4})–(\d{4})(?:年)?(頃)?$/);
+  if (match) return `${match[1]}–${match[2].slice(2)}`;
+  return (range || String(era.year))
+    .replace(/年度/g, '')
+    .replace(/頃/g, '')
+    .replace(/（萬延元）/g, '');
+}
+function eraAttribution(era) {
+  return era && era.attr ? era.attr : '';
+}
+
+function findEra(id) { return ERAS.find(e => e.id === id); }
+
+// ============================================================
+// マップ初期化
+// ============================================================
+const KANTO_BOUNDS = L.latLngBounds([34.5, 138.0], [37.0, 141.5]);
+
+const map = L.map('map', {
+  center: [35.6814, 139.7660], // 東京駅
+  zoom: 15, minZoom: 8, maxZoom: 19,
+  maxBounds: KANTO_BOUNDS,
+  maxBoundsViscosity: 0.4,
+  zoomAnimation: true,
+  fadeAnimation: true,
+  wheelPxPerZoomLevel: 120,
+  wheelDebounceTime: 40,
+});
+
+// ベース地図（最新）
+map.createPane('basePane');
+map.getPane('basePane').style.zIndex = 100;  // tilePane (200) より下
+
+const BASE_THEMES = {
+  pale:  { label: 'デフォルト', url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', filter: '' },
+  std:   { label: 'カラー',     url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', filter: '' },
+  photo: { label: '航空写真',   url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', filter: '' },
+};
+const BASE_THEME_KEY = 'edo-konjaku-v3-base-theme';
+let currentBaseTheme = 'pale';
+try { currentBaseTheme = localStorage.getItem(BASE_THEME_KEY) || 'pale'; } catch (_) {}
+if (!BASE_THEMES[currentBaseTheme]) currentBaseTheme = 'pale';
+
+let baseLayer = null;
+function applyBaseTheme(themeId) {
+  const t = BASE_THEMES[themeId] || BASE_THEMES.pale;
+  if (baseLayer) { map.removeLayer(baseLayer); baseLayer = null; }
+  baseLayer = L.tileLayer(t.url, {
+    attribution: GSI,
+    maxZoom: 19,
+    pane: 'basePane',
+  }).addTo(map);
+  // CSS filter は pane に直接適用
+  map.getPane('basePane').style.filter = t.filter || '';
+  currentBaseTheme = themeId;
+  try { localStorage.setItem(BASE_THEME_KEY, themeId); } catch (_) {}
+}
+applyBaseTheme(currentBaseTheme);
+
+// ============================================================
+// 状態
+// ============================================================
+let mode = 'single';        // 'single' | 'compare'
+let eraA = null, eraB = null;
+let layerA = null, layerB = null;
+let attrA = null, attrB = null;
+let opacity = 1.0;          // v2: 単一モード初期値を100%に変更。
+                            // 旧 0.85 だと下の淡色現代地図が透けて「比較してるように見える」と指摘された
+let blendAB = 0.5;          // 比較モード: B のオーバーレイ強度 (A は土台で常時100%)
+let activeSlot = 'a';       // 比較モード: 次のティック選択がどちらのスロットに入るか
+
+// ============================================================
+// 軸 (年→%, ピースワイズ)
+// 1600-1860: 0-30% (260年で30%)
+// 1860-1950: 30-55% (90年で25%)
+// 1950-2030: 55-100% (80年で45%)
+// ============================================================
+function yearToX(year) {
+  if (year < 1860) return ((year - 1600) / 260) * 30;
+  if (year < 1950) return 30 + ((year - 1860) / 90) * 25;
+  return 55 + ((year - 1950) / 80) * 45;
+}
+
+// ============================================================
+// レイヤー生成
+// ============================================================
+// 3元連立一次方程式を解き、画像座標→画面座標のアフィン変換を求める。
+function solve3(matrix, values) {
+  const rows = matrix.map((row, i) => [...row, values[i]]);
+  for (let col = 0; col < 3; col += 1) {
+    let pivot = col;
+    for (let row = col + 1; row < 3; row += 1) {
+      if (Math.abs(rows[row][col]) > Math.abs(rows[pivot][col])) pivot = row;
+    }
+    [rows[col], rows[pivot]] = [rows[pivot], rows[col]];
+    const divisor = rows[col][col];
+    if (Math.abs(divisor) < 1e-12) return null;
+    for (let j = col; j < 4; j += 1) rows[col][j] /= divisor;
+    for (let row = 0; row < 3; row += 1) {
+      if (row === col) continue;
+      const factor = rows[row][col];
+      for (let j = col; j < 4; j += 1) rows[row][j] -= factor * rows[col][j];
+    }
+  }
+  return rows.map(row => row[3]);
+}
+
+function fitAffine(gcps, targets, component) {
+  const normal = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  const rhs = [0, 0, 0];
+  gcps.forEach((gcp, index) => {
+    const row = [gcp[0], gcp[1], 1];
+    const value = targets[index][component];
+    for (let i = 0; i < 3; i += 1) {
+      rhs[i] += row[i] * value;
+      for (let j = 0; j < 3; j += 1) normal[i][j] += row[i] * row[j];
+    }
+  });
+  return solve3(normal, rhs);
+}
+
+const AffineImageLayer = L.Layer.extend({
+  options: { opacity: 1, pane: 'overlayPane' },
+  initialize(url, gcps, resourceSize, options) {
+    this._url = url;
+    this._gcps = gcps;
+    this._resourceSize = resourceSize;
+    L.setOptions(this, options);
+  },
+  onAdd(map) {
+    this._map = map;
+    this._canvas = L.DomUtil.create('canvas', 'leaflet-affine-image-layer');
+    this._canvas.style.pointerEvents = 'none';
+    this._canvas.style.opacity = this.options.opacity;
+    this._canvas.style.zIndex = this.options.zIndex || 1;
+    this.getPane().appendChild(this._canvas);
+    this._image = new Image();
+    this._image.onload = () => this._update();
+    this._image.src = this._url;
+    this._update();
+  },
+  onRemove() {
+    if (this._canvas) this._canvas.remove();
+    this._canvas = null;
+    this._map = null;
+  },
+  getEvents() {
+    return { move: this._update, zoom: this._update, viewreset: this._update, resize: this._update };
+  },
+  getAttribution() { return this.options.attribution; },
+  setOpacity(opacity) {
+    this.options.opacity = opacity;
+    if (this._canvas) this._canvas.style.opacity = opacity;
+    return this;
+  },
+  setZIndex(zIndex) {
+    this.options.zIndex = zIndex;
+    if (this._canvas) this._canvas.style.zIndex = zIndex;
+    return this;
+  },
+  _update() {
+    if (!this._map || !this._canvas || !this._image || !this._image.complete || !this._image.naturalWidth) return;
+    const size = this._map.getSize();
+    const origin = this._map.containerPointToLayerPoint([0, 0]);
+    const ratio = window.devicePixelRatio || 1;
+    L.DomUtil.setPosition(this._canvas, origin);
+    this._canvas.style.width = `${size.x}px`;
+    this._canvas.style.height = `${size.y}px`;
+    this._canvas.width = Math.round(size.x * ratio);
+    this._canvas.height = Math.round(size.y * ratio);
+    const targets = this._gcps.map(gcp => {
+      const point = this._map.latLngToContainerPoint([gcp[2], gcp[3]]);
+      return [point.x, point.y];
+    });
+    const horizontal = fitAffine(this._gcps, targets, 0);
+    const vertical = fitAffine(this._gcps, targets, 1);
+    if (!horizontal || !vertical) return;
+    const context = this._canvas.getContext('2d');
+    context.setTransform(
+      horizontal[0] * ratio, vertical[0] * ratio,
+      horizontal[1] * ratio, vertical[1] * ratio,
+      horizontal[2] * ratio, vertical[2] * ratio
+    );
+    context.imageSmoothingEnabled = true;
+    context.drawImage(this._image, 0, 0, this._resourceSize[0], this._resourceSize[1]);
+  }
+});
+
+// era が表示可能か (通常タイル or ローカル補正画像)
+function eraHasLayer(era) {
+  return !!(era && (era.url || era.affineImage));
+}
+
+function makeLayer(era) {
+  let layer;
+  if (era.affineImage) {
+    layer = new AffineImageLayer(era.affineImage, era.gcps, era.resourceSize, {
+      attribution: eraAttribution(era), opacity: 0,
+    });
+  } else {
+    layer = L.tileLayer(era.url, {
+      minZoom: era.min, maxZoom: 19, maxNativeZoom: era.max,
+      tms: !!era.tms,
+      bounds: era.bounds ? L.latLngBounds(era.bounds) : null,
+      attribution: eraAttribution(era),
+      opacity: 0,
+      className: 'era-overlay',
+    });
+    if (era.cat === 'topo') {
+      let loadedTiles = 0;
+      let failedTiles = 0;
+      let noDataTimer = null;
+      layer.on('loading', () => {
+        loadedTiles = 0;
+        failedTiles = 0;
+        clearTimeout(noDataTimer);
+      });
+      layer.on('tileload', () => { loadedTiles += 1; });
+      layer.on('tileerror', () => {
+        failedTiles += 1;
+        clearTimeout(noDataTimer);
+        noDataTimer = setTimeout(() => {
+          if (map.hasLayer(layer) && failedTiles > 0) {
+            const message = loadedTiles === 0
+              ? `この場所には「${eraDisplayDate(era)} 東京都1:3,000地形図」の図郭がありません`
+              : `「${eraDisplayDate(era)} 東京都1:3,000地形図」の白地部分は、この期間の図郭がありません`;
+            showHint(message, 4800);
+          }
+        }, 500);
+      });
+    }
+  }
+  // 比較モードの「同一レイヤーか」判定用キー (tileLayer の _url と揃える)
+  if (!layer._eraKey) layer._eraKey = era.url || era.affineImage;
+  return layer;
+}
+
+function removeOverlay(slot) {
+  if (slot === 'a' && layerA) {
+    const old = layerA, oldAttr = attrA;
+    old.setOpacity(0);
+    setTimeout(() => {
+      map.removeLayer(old);
+      if (oldAttr) map.attributionControl.removeAttribution(oldAttr);
+    }, 320);
+    layerA = null; attrA = null;
+  } else if (slot === 'b' && layerB) {
+    const old = layerB, oldAttr = attrB;
+    old.setOpacity(0);
+    setTimeout(() => {
+      map.removeLayer(old);
+      if (oldAttr) map.attributionControl.removeAttribution(oldAttr);
+    }, 320);
+    layerB = null; attrB = null;
+  }
+}
+
+// v2.1: A の bounds 外を半透明マスクで覆う (比較モード時のみ)
+// → A のカバー範囲が一目で分かる。bounds 未定義 era (空中写真など) はマスクなし
+let boundsMaskLayer = null;
+function updateBoundsMask() {
+  if (boundsMaskLayer) {
+    map.removeLayer(boundsMaskLayer);
+    boundsMaskLayer = null;
+  }
+  if (mode !== 'compare') return;
+  if (!eraA || !eraA.bounds) return;
+  // 外側リング (ほぼ全球)
+  const outer = [
+    [-85, -180], [85, -180], [85, 180], [-85, 180]
+  ];
+  // 内側リング (era の bounds、ホール扱い)
+  const b = eraA.bounds;
+  const inner = [
+    [b[0][0], b[0][1]],
+    [b[0][0], b[1][1]],
+    [b[1][0], b[1][1]],
+    [b[1][0], b[0][1]],
+  ];
+  boundsMaskLayer = L.polygon([outer, inner], {
+    color: '#ff2e9a',
+    weight: 1.5,
+    dashArray: '6 4',
+    fillColor: '#0f1116',
+    fillOpacity: 0.4,
+    interactive: false,
+  }).addTo(map);
+}
+
+function applyState() {
+  updateHash();
+  setTimeout(() => checkBoundsHint && checkBoundsHint(), 0);
+  // 単一モード
+  if (mode === 'single') {
+    if (layerB) removeOverlay('b');
+    if (eraHasLayer(eraA)) {
+      if (layerA) removeOverlay('a');
+      layerA = makeLayer(eraA);
+      attrA = eraAttribution(eraA);
+      layerA.addTo(map);
+      requestAnimationFrame(() => requestAnimationFrame(() => layerA && layerA.setOpacity(opacity)));
+    } else if (layerA) {
+      removeOverlay('a');
+    }
+  } else {
+    // 比較モード — v2: A は常時 100% (土台)、B をスライダーで重ね合わせる方式に変更。
+    // (旧クロスフェードは両方とも半透明で、下の淡色地図が透けてしまい「選択していない地図が出る」と
+    //  指摘された)
+    if (eraHasLayer(eraA)) {
+      if (!layerA || layerA._eraKey !== (eraA.url || eraA.affineImage)) {
+        if (layerA) removeOverlay('a');
+        layerA = makeLayer(eraA);
+        attrA = eraAttribution(eraA);
+        layerA.addTo(map);
+      }
+      requestAnimationFrame(() => layerA && layerA.setOpacity(1));
+    } else if (layerA) {
+      removeOverlay('a');
+    }
+    if (eraHasLayer(eraB)) {
+      if (!layerB || layerB._eraKey !== (eraB.url || eraB.affineImage)) {
+        if (layerB) removeOverlay('b');
+        layerB = makeLayer(eraB);
+        attrB = eraAttribution(eraB);
+        layerB.addTo(map);
+      }
+      requestAnimationFrame(() => layerB && layerB.setOpacity(blendAB));
+    } else if (layerB) {
+      removeOverlay('b');
+    }
+  }
+  updateBoundsMask();
+  updateEraSensitiveOverlays();
+  renderUI();
+}
+
+// ============================================================
+// ティック選択
+// ============================================================
+function tickClicked(eraId) {
+  const era = findEra(eraId);
+  if (!era || !eraHasLayer(era)) return;
+  if (mode === 'single') {
+    eraA = era; eraB = null; activeSlot = 'a';
+  } else {
+    // 上部で選んだ A/B を、次のカード選択の反映先として必ず優先する。
+    if (activeSlot === 'a') {
+      if (eraA && eraA.id === era.id) {
+        eraA = null;
+      } else {
+        if (eraB && eraB.id === era.id) eraB = null;
+        eraA = era;
+      }
+    } else {
+      if (eraB && eraB.id === era.id) {
+        eraB = null;
+      } else {
+        if (eraA && eraA.id === era.id) eraA = null;
+        eraB = era;
+      }
+    }
+  }
+  applyState();
+}
+
+function swapAB() {
+  if (mode !== 'compare') return;
+  const tmp = eraA; eraA = eraB; eraB = tmp;
+  activeSlot = activeSlot === 'a' ? 'b' : 'a';
+  // blendAB も反転 (見た目の比率を維持しつつ A/B を入れ替え)
+  blendAB = 1 - blendAB;
+  applyState();
+}
+
+function setActiveSlot(slot) {
+  if (mode !== 'compare') return;
+  activeSlot = slot;
+  renderUI();
+}
+
+// ============================================================
+// UI 更新
+// ============================================================
+function renderEraInfo() {
+  const eraInfo = document.getElementById('eraInfo');
+  const compareBar = document.getElementById('compareBar');
+  const compactCompare = document.getElementById('compactCompare');
+  const panelEl = document.getElementById('panel');
+  panelEl.classList.toggle('compare-mode', mode === 'compare');
+
+  // 折り畳み時の比較サマリー
+  if (mode === 'compare') {
+    const a = eraA
+      ? `<span class="pill a filled">A</span><span class="lbl">${escapeHtml(eraDisplayDate(eraA))} ${escapeHtml(eraA.label)}</span>`
+      : `<span class="pill a">A</span><span class="lbl" style="opacity:0.5">未選択</span>`;
+    const b = eraB
+      ? `<span class="pill b filled">B</span><span class="lbl">${escapeHtml(eraDisplayDate(eraB))} ${escapeHtml(eraB.label)}</span>`
+      : `<span class="pill b">B</span><span class="lbl" style="opacity:0.5">未選択</span>`;
+    compactCompare.innerHTML = a + '<span class="sep">⇄</span>' + b;
+  } else {
+    compactCompare.innerHTML = '';
+  }
+
+  if (mode === 'compare') {
+    eraInfo.classList.add('hide');
+    compareBar.classList.add('show');
+    // A/B のうち、次のカード選択を反映する側を明示する。
+    const slotHtml = (slot, era) => {
+      const isEmpty = !era;
+      const isTarget = activeSlot === slot;
+      const name = era ? `${eraDisplayDate(era)} ${era.label}${era.sub ? ' — ' + era.sub : ''}` : 'タイムラインから選択';
+      return `
+        <div class="slot slot-${slot} ${isEmpty ? 'empty' : ''} ${isTarget ? 'active-slot' : ''}" data-slot="${slot}" role="button" tabindex="0" aria-label="${slot.toUpperCase()} を次の選択先にする">
+          <span class="slot-pill">${slot.toUpperCase()}</span>
+          <span class="slot-name">${escapeHtml(name)}</span>
+        </div>`;
+    };
+    compareBar.innerHTML = slotHtml('a', eraA) +
+      '<button class="swap-btn" id="swapBtn" title="A と B を入れ替え">⇄</button>' +
+      slotHtml('b', eraB);
+    document.getElementById('swapBtn').addEventListener('click', swapAB);
+    compareBar.querySelectorAll('.slot').forEach(slotEl => {
+      const activate = () => setActiveSlot(slotEl.dataset.slot);
+      slotEl.addEventListener('click', activate);
+      slotEl.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activate();
+        }
+      });
+    });
+  } else {
+    compareBar.classList.remove('show');
+    eraInfo.classList.remove('hide');
+    if (eraA) {
+      document.getElementById('eraYear').textContent = eraDisplayDate(eraA);
+      document.getElementById('eraLabel').textContent = eraA.sub
+        ? `${eraA.label} — ${eraA.sub}`
+        : eraA.label;
+    }
+  }
+}
+
+function renderTicks() {
+  const aerialDiv = document.getElementById('aerialTicks');
+  const paperDiv = document.getElementById('paperTicks');
+  aerialDiv.innerHTML = '';
+  paperDiv.innerHTML = '';
+  // topo (1:3,000地形図×8世代) はほぼ同じ見た目でタイムラインを密集させるため
+  // タイムラインには出さず、🗂レイヤーポップオーバーの「詳細地図」から選ぶ
+  const eras = ERAS.filter(era => era.cat !== 'modern' && era.cat !== 'topo' && eraHasLayer(era))
+    .sort((a, b) => a.year - b.year || a.id.localeCompare(b.id));
+  eras.forEach(era => {
+    const tick = document.createElement('div');
+    tick.className = `tick cat-${era.cat}`;
+    tick.dataset.id = era.id;
+    tick.setAttribute('aria-label', `${eraDisplayDate(era)} ${era.label}`);
+    tick.innerHTML = `
+      <div class="dot"></div>
+      <div class="year">${escapeHtml(eraTickDate(era))}</div>
+      <div class="tooltip">${escapeHtml(eraDisplayDate(era))} ${escapeHtml(era.label)}${era.sub ? ' — ' + escapeHtml(era.sub) : ''}</div>
+    `;
+    tick.addEventListener('click', () => tickClicked(era.id));
+    (era.cat === 'aerial' ? aerialDiv : paperDiv).appendChild(tick);
+  });
+}
+
+// 🗂ポップオーバー内の「詳細地図」リスト (タイムラインから退避した topo 8世代)
+function buildDetailMapsList() {
+  const listEl = document.getElementById('detailMapsList');
+  if (!listEl) return;
+  const topos = ERAS.filter(era => era.cat === 'topo' && eraHasLayer(era))
+    .sort((a, b) => a.year - b.year || a.id.localeCompare(b.id));
+  listEl.innerHTML = topos.map(era => `
+    <div class="dm-row" data-id="${era.id}">
+      <span class="dm-year">${escapeHtml(eraDisplayDate(era))}</span>
+      <span>${escapeHtml(era.label)}</span>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.dm-row').forEach(row => {
+    row.addEventListener('click', () => {
+      tickClicked(row.dataset.id);
+      // 選択を見せてから閉じる (テーマ選択と同じ挙動)
+      setTimeout(() => closeAllPopovers(), 200);
+    });
+  });
+}
+
+function renderTickHighlights() {
+  document.querySelectorAll('.tick').forEach(t => {
+    t.classList.remove('active', 'select-a', 'select-b');
+    if (mode === 'single' && eraA && t.dataset.id === eraA.id) {
+      t.classList.add('active');
+    } else if (mode === 'compare') {
+      if (eraA && t.dataset.id === eraA.id) t.classList.add('select-a');
+      if (eraB && t.dataset.id === eraB.id) t.classList.add('select-b');
+    }
+  });
+  // 詳細地図リストの選択状態も同期
+  document.querySelectorAll('#detailMapsList .dm-row').forEach(row => {
+    const id = row.dataset.id;
+    row.classList.toggle('active',
+      (eraA && eraA.id === id) || (eraB && eraB.id === id));
+  });
+  document.getElementById('tracksWrap').classList.toggle('compare', mode === 'compare');
+
+  // モバイル時、アクティブティックを横スクロール領域内に表示
+  scrollActiveTickIntoView();
+}
+
+function scrollActiveTickIntoView() {
+  const focus = document.querySelector('.tick.select-b, .tick.active, .tick.select-a');
+  const scroller = focus && focus.closest('.track-ticks');
+  if (!scroller || !focus) return;
+  if (window.matchMedia('(max-width: 720px)').matches) return;
+  requestAnimationFrame(() => {
+    const cardRect = focus.getBoundingClientRect();
+    const listRect = scroller.getBoundingClientRect();
+    if (cardRect.left < listRect.left || cardRect.right > listRect.right) {
+      focus.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  });
+}
+
+function renderControls() {
+  const slider = document.getElementById('opacitySlider');
+  const label = document.getElementById('opacityLabel');
+  const val = document.getElementById('opacityVal');
+  const row = document.getElementById('controlsRow');
+  row.classList.toggle('compare', mode === 'compare');
+  if (mode === 'compare') {
+    // v2: A は土台で100%固定、スライダーは B の重ね合わせ強度
+    label.textContent = 'B重ね';
+    slider.value = Math.round(blendAB * 100);
+    val.textContent = `A:100% / B:${slider.value}%`;
+  } else {
+    label.textContent = '透過';
+    slider.value = Math.round(opacity * 100);
+    val.textContent = slider.value + '%';
+  }
+  // 比較モード時はボタンに「解除」ラベル
+  const btn = document.getElementById('compareBtn');
+  btn.classList.toggle('active', mode === 'compare');
+  btn.textContent = mode === 'compare' ? '✕ 比較を解除' : '⇆ 比較';
+}
+
+function renderUI() {
+  renderEraInfo();
+  renderTickHighlights();
+  renderControls();
+  updateMobileEraTriggerText();
+  if (typeof updateMiniPillText === 'function') updateMiniPillText();
+  // ボトムシートが開いていれば中身も再生成 (選択状態の即時反映)
+  if (mobileEraSheet && mobileEraSheet.classList.contains('show')) {
+    renderMobileSheet();
+  }
+}
+
+// ============================================================
+// 透過 / A↔B スライダー
+// ============================================================
+const slider = document.getElementById('opacitySlider');
+const sliderVal = document.getElementById('opacityVal');
+slider.addEventListener('input', () => {
+  const v = slider.value / 100;
+  if (mode === 'compare') {
+    blendAB = v;
+    // v2: 表示は「A:100% / B:NN%」両方明示
+    sliderVal.textContent = `A:100% / B:${slider.value}%`;
+    if (layerA) layerA.setOpacity(1);          // A は常時不透明
+    if (layerB) layerB.setOpacity(blendAB);    // B のみスライダー連動
+  } else {
+    opacity = v;
+    sliderVal.textContent = slider.value + '%';
+    if (layerA) layerA.setOpacity(opacity);
+  }
+});
+slider.addEventListener('change', updateHash); // ドラッグ終了で URL 更新
+
+// ============================================================
+// 比較モード切替
+// ============================================================
+document.getElementById('compareBtn').addEventListener('click', () => {
+  if (mode === 'single') {
+    mode = 'compare';
+    // 現在の A を anchor として残し、B は空 → 次のクリックで B が埋まる
+    eraB = null;
+    blendAB = 0.5;
+    activeSlot = 'b'; // 「次に B を選んでください」
+    applyState();
+    showHint('比較モード: A は土台に固定、もう一つの時代を選ぶと B として上に重なります。スライダーで B の濃さを調整。', 5000);
+  } else {
+    mode = 'single';
+    eraB = null;
+    activeSlot = 'a';
+    if (layerB) removeOverlay('b');
+    applyState();
+  }
+});
+
+function getAvailableEras() {
+  return ERAS.filter(e => e.url);
+}
+
+// ============================================================
+// v3: オーバーレイデータ — 街道 / 海岸線 / 鉄道 / 浮世絵ピン
+// 全て簡略化された座標 (実用には GeoJSON / GTFS 等の正式データを差し替え推奨)
+// ============================================================
+// v3.1: 浮世絵ピンのみ (歴史的フィーチャは歴史地図タイル自身に既に描かれているので別レイヤーは不要)
+// Wikimedia Commons の Special:FilePath を使うと、内部の hash プレフィックスを意識せず
+// 安定 URL でファイルにアクセスできる (リダイレクトで実 URL に届く)
+const WC_FILE = (filename, width = 800) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(filename)}?width=${width}`;
+
+const OVERLAY_DATA = {
+  // 広重「名所江戸百景」+ 東海道五十三次から、地点が明確な12箇所を厳選
+  // 座標は実在の名所の現在位置 (描かれた場所が現存しない場合は近接地)
+  pois: [
+    {
+      id: 'nihonbashi', lat: 35.6839, lng: 139.7740,
+      title: '日本橋',
+      old:    { url: WC_FILE('100_views_edo_001.jpg'), label: '名所江戸百景 一 日本橋雪晴 (広重 1856)' },
+      modern: { url: WC_FILE('Nihonbashi_bridge_Tokyo_2009.jpg'),       label: '現代の日本橋' },
+      desc: '五街道の起点。江戸期は木橋。現在の石造二連アーチ橋は明治44年(1911)築。'
+    },
+    {
+      id: 'asakusa', lat: 35.7148, lng: 139.7967,
+      title: '浅草寺 / 金龍山',
+      old:    { url: WC_FILE('100_views_edo_099.jpg'), label: '名所江戸百景 九十九 浅草金龍山 (広重)' },
+      modern: { url: WC_FILE('Senso-ji_-_Tokyo,_Japan_-_DSC07983.jpg'), label: '現代の浅草寺 雷門' },
+      desc: '推古天皇期(628)創建。江戸三大祭の三社祭で知られる、庶民信仰の中心。'
+    },
+    {
+      id: 'ryogoku', lat: 35.6960, lng: 139.7930,
+      title: '両国橋 / 大川端',
+      old:    { url: WC_FILE('100_views_edo_059.jpg'), label: '名所江戸百景 五十九 両国橋大川端 (広重)' },
+      modern: { url: WC_FILE('Ryogoku-bashi_bridge_2009.jpg'),          label: '現代の両国橋' },
+      desc: '隅田川に架かる橋。江戸の納涼花火、相撲の名所。明暦の大火(1657)後の防火対策として架橋。'
+    },
+    {
+      id: 'fireworks', lat: 35.6940, lng: 139.7950,
+      title: '両国 花火',
+      old:    { url: WC_FILE('100_views_edo_098.jpg'), label: '名所江戸百景 九十八 両国花火 (広重)' },
+      modern: { url: WC_FILE('Sumidagawa_fireworks.jpg'),                label: '隅田川花火大会' },
+      desc: '享保18年(1733)の川施餓鬼に始まる隅田川花火。現代も毎年7月最終土曜に開催される。'
+    },
+    {
+      id: 'shin_ohashi', lat: 35.6845, lng: 139.7920,
+      title: '新大橋',
+      old:    { url: WC_FILE('100_views_edo_058.jpg'), label: '名所江戸百景 五十八 大はしあたけの夕立 (広重)' },
+      modern: { url: WC_FILE('Shin-Ohashi_Bridge_2014.jpg'),             label: '現代の新大橋' },
+      desc: 'ゴッホが模写したことで世界的に有名。元禄6年(1693)架橋、隅田川5番目の橋。'
+    },
+    {
+      id: 'tsukudajima', lat: 35.6720, lng: 139.7860,
+      title: '佃島 / 永代橋',
+      old:    { url: WC_FILE('100_views_edo_004.jpg'), label: '名所江戸百景 四 永代橋佃しま (広重)' },
+      modern: { url: WC_FILE('Eitaibashi_Tokyo.jpg'),                    label: '現代の永代橋と佃島' },
+      desc: '家康が摂津国佃から漁師を移住させた人工島。江戸前漁業の中心。'
+    },
+    {
+      id: 'kameido_ume', lat: 35.7012, lng: 139.8195,
+      title: '亀戸 梅屋舗',
+      old:    { url: WC_FILE('100_views_edo_030.jpg'), label: '名所江戸百景 三十 亀戸梅屋舗 (広重)' },
+      modern: { url: WC_FILE('Kameido_Tenjin_Plum_Garden.jpg'),          label: '現代の亀戸天神の梅' },
+      desc: 'ゴッホも模写した「臥竜梅」で知られた梅園。現存しないが亀戸天神社で梅まつり継続。'
+    },
+    {
+      id: 'meguro', lat: 35.6325, lng: 139.7155,
+      title: '目黒 太鼓橋',
+      old:    { url: WC_FILE('100_views_edo_111.jpg'), label: '名所江戸百景 百十一 目黒太鼓橋夕日の岡 (広重)' },
+      modern: { url: WC_FILE('Taikobashi_Meguro.jpg'),                    label: '現代の目黒川 太鼓橋' },
+      desc: '目黒川に架かる石橋。江戸期は富士見と夕焼の名所として行楽地に。'
+    },
+    {
+      id: 'atago', lat: 35.6648, lng: 139.7484,
+      title: '愛宕山 (港区)',
+      old:    { url: WC_FILE('100_views_edo_021.jpg'), label: '名所江戸百景 二十一 芝愛宕山 (広重)' },
+      modern: { url: WC_FILE('Atago_Shrine_Tokyo.jpg'),                  label: '現代の愛宕神社' },
+      desc: '海抜26mの天然山、出世の階段「男坂」が有名。江戸を一望できる景勝地として描かれた。'
+    },
+    {
+      id: 'zojoji', lat: 35.6552, lng: 139.7485,
+      title: '増上寺 / 芝',
+      old:    { url: WC_FILE('100_views_edo_053.jpg'), label: '名所江戸百景 五十三 増上寺塔赤羽根 (広重)' },
+      modern: { url: WC_FILE('Zojoji_Tokyo_Tower.jpg'),                  label: '現代の増上寺と東京タワー' },
+      desc: '徳川家の菩提寺。江戸期は徳川秀忠の墓所として広大な伽藍を擁した。'
+    },
+    {
+      id: 'shinagawa', lat: 35.6213, lng: 139.7416,
+      title: '品川 御殿山',
+      old:    { url: WC_FILE('100_views_edo_028.jpg'), label: '名所江戸百景 二十八 品川御殿やま (広重)' },
+      modern: { url: WC_FILE('Shinagawa_Station_west_2018.jpg'),         label: '現代の品川駅周辺' },
+      desc: '東海道の最初の宿場。海に面し、本陣2軒・脇本陣3軒の大規模宿場であった。'
+    },
+    {
+      id: 'ueno', lat: 35.7141, lng: 139.7740,
+      title: '上野 寛永寺',
+      old:    { url: WC_FILE('100_views_edo_011.jpg'), label: '名所江戸百景 十一 上野山内月のまつ (広重)' },
+      modern: { url: WC_FILE('Ueno_Park_April_2014.jpg'),                label: '現代の上野公園' },
+      desc: '徳川家の菩提寺・寛永寺の境内。戊辰戦争(1868)で焼失、明治6年(1873)に日本初の公園に。'
+    },
+  ],
+};
+
+// オーバーレイ状態
+const overlayState = { ukiyoe: false, hillshade: false, chisui: false };
+const OVERLAY_KEY = 'edo-konjaku-v3-overlay-';
+// 地形タイルは時代図 (tilePane z200) の上・ベクター (overlayPane z400) の下に半透明で重ねる
+map.createPane('terrainPane');
+map.getPane('terrainPane').style.zIndex = 250;
+const overlayLayers = {
+  ukiyoe: L.layerGroup(),
+  hillshade: L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+    pane: 'terrainPane', opacity: 0.55, maxNativeZoom: 16, maxZoom: 19, attribution: GSI }),
+  chisui: L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/lcmfc2/{z}/{x}/{y}.png', {
+    pane: 'terrainPane', opacity: 0.5, minZoom: 9, maxNativeZoom: 16, maxZoom: 19, attribution: GSI }),
+};
+
+function renderUkiyoeOverlay() {
+  overlayLayers.ukiyoe.clearLayers();
+  OVERLAY_DATA.pois.forEach(p => {
+    const m = L.marker([p.lat, p.lng], {
+      icon: L.divIcon({
+        className: 'ukiyoe-marker',
+        html: '<div class="um-inner">🖼</div>',
+        iconSize: [34, 34], iconAnchor: [17, 17],
+      }),
+    });
+    m.on('click', () => openPoiModal(p));
+    m.addTo(overlayLayers.ukiyoe);
+  });
+}
+
+function setOverlay(key, on) {
+  overlayState[key] = on;
+  if (on) {
+    if (key === 'ukiyoe') renderUkiyoeOverlay();
+    overlayLayers[key].addTo(map);
+  } else {
+    map.removeLayer(overlayLayers[key]);
+  }
+  try { localStorage.setItem(OVERLAY_KEY + key, on ? '1' : '0'); } catch (_) {}
+  if (key === 'ukiyoe') syncUkiyoeBtn();
+}
+function updateEraSensitiveOverlays() { /* v3.1: 偽オーバーレイ撤去後は不要 */ }
+
+// 地形チェックボックス (⛰ ポップオーバー内) を wire up
+const overlayCheckboxes = {
+  hillshade: document.getElementById('layerHillshade'),
+  chisui: document.getElementById('layerChisui'),
+};
+Object.entries(overlayCheckboxes).forEach(([key, cb]) => {
+  try {
+    if (localStorage.getItem(OVERLAY_KEY + key) === '1') { cb.checked = true; setOverlay(key, true); }
+  } catch (_) {}
+  cb.addEventListener('change', () => setOverlay(key, cb.checked));
+});
+
+// 浮世絵ピンは 🖼 ボタンのワンクリック ON/OFF (ポップオーバーなし)
+const ukiyoeBtn = document.getElementById('ukiyoeBtn');
+function syncUkiyoeBtn() { ukiyoeBtn.classList.toggle('active', !!overlayState.ukiyoe); }
+ukiyoeBtn.addEventListener('click', () => setOverlay('ukiyoe', !overlayState.ukiyoe));
+try { if (localStorage.getItem(OVERLAY_KEY + 'ukiyoe') === '1') setOverlay('ukiyoe', true); } catch (_) {}
+
+// POI モーダル 閉じる + divider drag
+document.getElementById('poiClose').addEventListener('click', closePoiModal);
+document.getElementById('poiBackdrop').addEventListener('click', closePoiModal);
+attachPoiDividerDrag();
+
+// ============================================================
+// v3: ガイドツアー
+// ============================================================
+// v3.1: テーマ別ガイドツアー
+// 各ツアーは「東京の特定テーマ」を掘り下げる構造
+const TOURS = [
+  {
+    // 東京興亡史 — 「東京興亡史 8章 統合データ表 v2.1 (2026-07-17) 最終監査済」より実装。
+    // マーカー座標 = 地図変化が最も見える地点 (bestViewPlace)。出来事の象徴地点 (symbolPlace) は本文メモ内に記載。
+    // 表示ERAは全章「後世の復元図 / 近似年代図」前提 (事件当時の実測図は現存せず)。
+    id: 'kobo_shi',
+    icon: '📜',
+    title: '東京興亡史',
+    theme: '通史 1590–現代',
+    desc: '家康入府から高度成長まで。8つの転換点で東京436年の興亡を辿る。各章に史実メモ・留意点・出典つき (8地点)',
+    steps: [
+      // 全章 zoom 13 固定: 都市全体の変化を読むツアーなのでスポットに寄らない
+      { name: '家康入府', lat: 35.6785, lng: 139.7595, zoom: 13, era: 'edo_pre',
+        text: '<h4>第一章 家康入府 — 1590 (天正18)</h4>'
+          + '天正十八年、徳川家康は東国の低湿地・江戸に入った。だがここは中世以来、太田道灌の城と江戸湊を抱えた水陸交通の要衝でもあった。秀吉が与えた辺境の地に、家康は日本の重心を東へ動かす好機を見る。城を修め、湊を活かし、水を引く。のちに百万都市となる江戸の物語は、この入府から静かに始まった。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1590年8月1日入城。江戸城は1457年頃太田道灌築城。城東側まで日比谷入江。芝浦は入府以前からの漁場。象徴地点: 江戸城天守台 (皇居東御苑)。</p>'
+          + '<p class="to-unc">「寒村」説は近年の研究で修正 (齋藤慎一2021ほか)。典拠『落穂集追加』は130年後の伝聞史料。当時の実測地図は現存せず復元図に依拠。</p>'
+          + '<p class="to-era-note">表示 = 江戸以前・想像図 (後世の復元図) / 比較 = 現代地図</p>'
+          + '<p>出典: <a href="https://www.bousai.go.jp/kyoiku/kyokun/kyoukunnokeishou/rep/1657_meireki_edotaika/pdf/1657-meireki-edoTAIKA_03_chap1.pdf" target="_blank" rel="noopener">内閣府防災</a> · <a href="https://crd.ndl.go.jp/reference/entry/index.php?id=1000360545&amp;page=ref_view" target="_blank" rel="noopener">NDLレファレンス</a> · <a href="https://www.toshiseibi.metro.tokyo.lg.jp/documents/d/toshiseibi/pdf_keikaku_chousa_singikai_pdf_tokyotoshizukuri_0_01" target="_blank" rel="noopener">東京都都市整備局</a> · <a href="https://www.ndl.go.jp/landmarks/sights/shibaura" target="_blank" rel="noopener">NDL (芝浦)</a></p>'
+          + '</details>' },
+      { name: '江戸の大改造', lat: 35.6854, lng: 139.7747, zoom: 13, era: 'edo_early',
+        text: '<h4>第二章 江戸の大改造 — 1603〜1636 (天下普請)</h4>'
+          + '幕府を開いた家康は、全国の大名を動員し都市そのものを作り替えた。神田山を削り、その土や城普請の残土で日比谷入江を埋め、堀を「の」の字に巡らせる。慶長九年、日本橋は五街道の起点に定められた。江戸は自然の地形を人の意志で上書きした都市となる。だがこの過密な木の都は、やがて炎に試されることになる。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">日本橋架橋1603年、五街道起点化1604年。埋立は1592年開始・1603年以降本格化。外濠完成1636年。象徴地点: 日本橋。</p>'
+          + '<p class="to-unc">埋立土砂は神田山のみでなく城普請残土も併用の説。普請完了時期は画期の取り方で幅。「渦巻状」は概念的表現。</p>'
+          + '<p class="to-era-note">表示 = 江戸初期・正保年中江戸絵図 (近似年代) / 比較 = 現代地図 (補助: 江戸以前想像図)</p>'
+          + '<p>出典: <a href="https://www.meiji.ac.jp/history/meidai_sanmyaku/thema/article/mkmht000000t9raf.html" target="_blank" rel="noopener">明治大学</a> · <a href="https://www.pa.ktr.mlit.go.jp/tokyo/history/index.htm" target="_blank" rel="noopener">国交省関東地方整備局</a> · <a href="https://www.ndl.go.jp/landmarks/sights/nihonbashi" target="_blank" rel="noopener">NDL (日本橋)</a></p>'
+          + '</details>' },
+      { name: '明暦の大火と復興', lat: 35.6940, lng: 139.7928, zoom: 13, era: 'kyoho',
+        text: '<h4>第三章 明暦の大火と復興 — 1657 (明暦3)</h4>'
+          + '明暦三年、炎は三日にわたり江戸の大半を呑み込み、天守すら焼き落とした。幕府は焼け跡に火除地と広小路を設け、寺社を郊外へ移し、両国橋を架けて川向こうの本所・深川へ町を広げる。破壊は終わりではない。巨大都市・江戸は、灰の中から東へ、その姿を再設計していった。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1657年3月、三件の大火の総称。天守は以後再建せず。両国橋架橋 = 万治2年 (1659、NDL採用)。回向院建立。象徴地点: 回向院。</p>'
+          + '<p class="to-unc">死者3万〜10万超と諸説 (『武江年表』10万7046人 /『元延実録』約6万8000人)。架橋1661年説あり。「大火による都市改造」を神話とする異論 (岩本馨2021)。江戸期の橋は現在位置よりやや下流。</p>'
+          + '<p class="to-era-note">表示 = 享保年間江戸絵図 (大火後の復元。明暦直後図は未収録) / 比較 = 江戸初期図・現代地図</p>'
+          + '<p>出典: <a href="https://www.ndl.go.jp/en/landmarks/sights/ryogokubashi" target="_blank" rel="noopener">NDL (両国橋)</a> · <a href="https://www.bousai.go.jp/kyoiku/kyokun/kyoukunnokeishou/rep/1657_meireki_edotaika/index.html" target="_blank" rel="noopener">内閣府防災</a> · <a href="https://www.tfd.metro.tokyo.lg.jp/libr/qa/qa_30.htm" target="_blank" rel="noopener">東京消防庁</a></p>'
+          + '</details>' },
+      { name: '黒船と幕府の終焉', lat: 35.6376, lng: 139.7722, zoom: 13, era: 'edo_late',
+        text: '<h4>第四章 黒船と幕府の終焉 — 1853〜1868</h4>'
+          + '嘉永六年、四隻の蒸気船が浦賀沖に現れ、二百年余の泰平は軋みはじめた。幕府は品川沖に急ぎ砲台の島を築くが、島は一度も火を噴かぬまま開国を迎える。慶応四年、江戸城は戦わずして明け渡された。だが上野では彰義隊と新政府軍が衝突し、山は焼けた。大規模な市街戦を免れた江戸は、その名を東京へ譲ってゆく。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1853年6月ペリー来航。同年8月台場着工、第一〜第三は1854年7月竣工。現存は第三・第六。1859年横浜開港。1868年4月江戸無血開城、5月上野戦争。象徴地点: 第三台場 (台場公園) — 海上砲台→陸続き・臨海副都心の変化が同地点で見える。</p>'
+          + '<p class="to-unc">台場計画数は11〜12基と諸説。</p>'
+          + '<p class="to-era-note">表示 = 江戸末期・江戸図萬延 (近似年代) / 比較 = 現代地図</p>'
+          + '<p>出典: <a href="https://www.tptc.co.jp/park/01_01/history" target="_blank" rel="noopener">東京港埠頭</a> · <a href="https://www.kissport.or.jp/spot/tanbou/1905/" target="_blank" rel="noopener">港区Kissポート</a> · <a href="https://www.ndl.go.jp/landmarks/sights/shinagawa" target="_blank" rel="noopener">NDL (品川)</a> · <a href="https://www.ndl.go.jp/landmarks/sights/yokohama" target="_blank" rel="noopener">NDL (横浜)</a></p>'
+          + '</details>' },
+      { name: '文明開化', lat: 35.6717, lng: 139.7649, zoom: 13, era: 'meiji',
+        text: '<h4>第五章 文明開化 — 1868〜1889</h4>'
+          + '江戸は東京と名を改め、天皇を迎えた。明治五年、新橋に汽笛が響き、翌年からは銀座に煉瓦街とガス灯が並ぶ。人々は髷を落とし、太陽暦に替え、世界の時間に合流した。だが火に強いはずの煉瓦街は高価で畳の暮らしにも合わず、当初は借り手がつかなかった。理想と現実の落差もまた、生まれたばかりの首都の学びとなった。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1872年鉄道開業。1872年銀座大火→煉瓦街建設 (1873年銀座通り、1877年完成)。1874年ガス灯85基。「借り手がつかず」は東京都公文書館の記録に裏づけ。象徴地点: 銀座煉瓦街 (銀座通り)。</p>'
+          + '<p class="to-unc">煉瓦街不人気の要因は複合的 (湿気・家賃・生活様式)。旧新橋停車場の現駅舎は2003年復元 (震災で焼失)。</p>'
+          + '<p class="to-era-note">表示 = 明治初期・旧版地形図 (近似年代) / 比較 = 江戸末期図・現代地図</p>'
+          + '<p>出典: <a href="https://www.soumu.metro.tokyo.lg.jp/01soumu-archives/07edo_tokyo/0701syoko_kara02" target="_blank" rel="noopener">東京都公文書館</a> · <a href="https://www.shibusawa.or.jp/eiichi/wagamachi/914.html" target="_blank" rel="noopener">渋沢栄一記念財団</a> · <a href="https://www.ejrcf.or.jp/shinbashi/facilities.html" target="_blank" rel="noopener">旧新橋停車場</a> · <a href="https://www.ndl.go.jp/landmarks/sights/ginza" target="_blank" rel="noopener">NDL (銀座)</a></p>'
+          + '</details>' },
+      { name: '関東大震災', lat: 35.6818, lng: 139.7973, zoom: 13, era: 'showa_pre',
+        text: '<h4>第六章 関東大震災 — 1923 (大正12)</h4>'
+          + '大正十二年九月一日、正午前。大地は江戸以来の木の都を揺るがし、火災旋風が街を襲った。被服廠跡だけで約三万八千の命が失われ、東京全体の死者・行方不明は約十万五千人にのぼる。だが廃墟から立ち上がった帝都復興計画は、昭和通りと復興橋梁、小公園の網を都市に刻んだ。現代東京の骨格は、この悲劇の上に引かれている。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1923年9月1日11時58分、M7.9。死者・行方不明約10万5000人 (内閣府推計)、うち火災死約9万1781人。被服廠跡約3万8000人。復興 = 昭和通り (1928)、復興橋梁、三大公園、復興小学校117校+小公園52。象徴地点: 横網町公園 (旧被服廠跡・東京都慰霊堂)。マーカーは清洲橋西詰〜浜町 — 復興橋梁・復興街路が読める。</p>'
+          + '<p class="to-unc">旧説約14万人は二重集計により修正。火災旋風メカニズムには研究の余地 (内閣府)。</p>'
+          + '<p class="to-era-note">表示 = 昭和初期・旧版地形図 (震災復興後) / 比較 = 大正図・現代地図</p>'
+          + '<p>出典: <a href="https://www.bousai.go.jp/kaigirep/hakusho/r05/honbun/t1_1s_01_00.html" target="_blank" rel="noopener">防災白書</a> · <a href="https://www.bousai.go.jp/kohou/kouhoubousai/r05/108/special_01.html" target="_blank" rel="noopener">内閣府広報</a> · <a href="https://tokyoireikyoukai.or.jp/park/history.html" target="_blank" rel="noopener">東京都慰霊協会</a> · <a href="https://www.jaee.gr.jp/stack/submit-j/v04n04/040402_paper.pdf" target="_blank" rel="noopener">日本地震工学会</a></p>'
+          + '</details>' },
+      { name: '東京大空襲', lat: 35.7160, lng: 139.8032, zoom: 13, era: 'aerial_1945',
+        text: '<h4>第七章 東京大空襲 — 1945 (昭和20) 3月10日</h4>'
+          + '昭和二十年三月十日未明、約三百機の爆撃機が下町を焼いた。低空からの焼夷弾攻撃は一夜で街を灰にし、死者は八万とも十万とも伝わる。震災から立ち直ったばかりの下町は再び焦土となり、江戸以来の町並みと共同体の多くがここで途絶えた。戦後の東京は、この巨大な空白の上に、まったく別の都市として建て直されていく。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1945年3月10日未明、B-29低空夜間焼夷弾爆撃。焼失約40平方キロメートル、焼失家屋約27万戸、罹災者100万人超。象徴地点: 東京都慰霊堂 (横網町公園)。マーカーは言問橋付近 — 下町焼失域の広がりが読める。</p>'
+          + '<p class="to-unc">死者 = 警視庁調査8万3793人 / 東京空襲を記録する会約10万人 (市民団体・非公的)。機数約300機 (344機説)。焼夷弾約1665トン (約2000トン説)。確定統計なし。</p>'
+          + '<p class="to-era-note">表示 = 空中写真1945–1950 (戦災直後の実写) / 比較 = 昭和初期図・現代地図</p>'
+          + '<p>出典: <a href="https://tokyoireikyoukai.or.jp/park/history.html" target="_blank" rel="noopener">東京都慰霊協会</a> · <a href="https://tokyo-sensai.net/about/tokyoraids/" target="_blank" rel="noopener">東京大空襲・戦災資料センター</a></p>'
+          + '</details>' },
+      { name: '高度成長と現代東京', lat: 35.6896, lng: 139.6917, zoom: 13, era: 'konjaku_1965',
+        text: '<h4>第八章 高度成長と現代東京 — 1954〜</h4>'
+          + '焼け跡は二十年で世界最大級の都市圏へと姿を変えた。一九六四年の五輪を契機に首都高が都心を貫き、日本橋川の上には高架が架かる。淀橋浄水場の跡地には超高層が林立し、都庁もやがて西新宿へ移った。江戸の堀は道路の下に消え、都市は空へ伸びる。得たものは繁栄、失ったものは水辺と記憶。いま日本橋では、高架を地下へ移し空を取り戻す工事が進む。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">首都高初開通1962年12月。日本橋川上空1963年12月開通。淀橋浄水場1965年廃止→1971年京王プラザ、1991年都庁移転。日本橋地下化 = 地下ルート2035年度・高架撤去2040年度完成予定 (2026-07時点)。象徴地点: 東京都庁。マーカーは西新宿 (旧淀橋浄水場跡)。</p>'
+          + '<p class="to-unc">五輪と首都高は「契機」の関係 (五輪専用事業ではない)。地下化完成年度は予定であり要更新。</p>'
+          + '<p class="to-era-note">表示 = 今昔・高度成長 旧版地形図 (1965–1968) / 比較 = 現代地図 (補助: 戦前図)</p>'
+          + '<p>出典: <a href="https://www.shutoko.jp/ss/nihonbashi-tikaka/overview/" target="_blank" rel="noopener">首都高速</a> · <a href="https://www.toshiseibi.metro.tokyo.lg.jp/kotsu_butsuryu/doromou/kosoku/kosoku_nihonbashi" target="_blank" rel="noopener">東京都都市整備局</a></p>'
+          + '</details>' },
+    ]
+  },
+  {
+    id: 'shitamachi',
+    icon: '🏮',
+    title: '江戸下町巡り',
+    theme: '江戸の庶民文化',
+    desc: '日本橋から両国・浅草・上野へ。商業・参詣・娯楽の中心地を順に辿る (6地点)',
+    steps: [
+      { name: '日本橋', lat: 35.6839, lng: 139.7740, zoom: 16, era: 'edo_late',
+        text: '<h4>日本橋 — すべてはここから</h4>慶長8年(1603)架橋、五街道の起点。魚河岸・呉服店が並ぶ商業の中心。現在の石造二連アーチ橋は明治44年(1911)築。' },
+      { name: '両国橋', lat: 35.6960, lng: 139.7930, zoom: 16, era: 'edo_late',
+        text: '<h4>両国橋 — 火事と花火</h4>明暦の大火(1657)で隅田川を渡れず多くが亡くなった反省から架橋。納涼花火大会(享保18年/1733)・勧進相撲発祥地。' },
+      { name: '浅草寺', lat: 35.7148, lng: 139.7967, zoom: 17, era: 'edo_late',
+        text: '<h4>浅草寺 — 庶民信仰のメッカ</h4>推古天皇期(628)創建。雷門は寛永12年(1635)、現在の鉄筋本堂は昭和33年(1958)再建 (戦災焼失後)。' },
+      { name: '吉原',   lat: 35.7250, lng: 139.7950, zoom: 16, era: 'edo_late',
+        text: '<h4>新吉原 — 公許の遊郭</h4>明暦の大火後、日本橋から浅草寺裏に移転 (新吉原)。明治期も続いたが昭和33年(1958)売春防止法で廃絶。' },
+      { name: '上野',   lat: 35.7141, lng: 139.7740, zoom: 16, era: 'meiji',
+        text: '<h4>上野 — 寛永寺から公園へ</h4>徳川家菩提寺・寛永寺の広大な境内。戊辰戦争 上野戦争(1868)で焼失。明治6年(1873)日本初の公園に。' },
+      { name: '神田',   lat: 35.6916, lng: 139.7707, zoom: 16, era: 'taisho',
+        text: '<h4>神田 — 学生街と古本</h4>大正期に明治・中央・専修などの大学が立地、神保町古書街が形成。関東大震災(1923)でも文化の中心であり続けた。' },
+    ]
+  },
+  {
+    id: 'umetate',
+    icon: '🌊',
+    title: '東京湾 埋立て史',
+    theme: '海岸線の変遷',
+    desc: '日比谷入江から臨海副都心まで。400年で内陸化した地点を6つ巡る。古地図と現代地図を比較',
+    steps: [
+      { name: '日比谷入江', lat: 35.6745, lng: 139.7595, zoom: 15, era: 'edo_pre',
+        text: '<h4>日比谷入江 (1590頃)</h4>家康入府前、現在の日比谷公園のあたりまで深く海が入り込んでいた。慶長8-11年(1603-1606)の天下普請で埋立て開始。' },
+      { name: '築地',     lat: 35.6654, lng: 139.7707, zoom: 16, era: 'edo_late',
+        text: '<h4>築地 — 明暦大火後の埋立て</h4>明暦の大火(1657)後の復興で本願寺移転とともに埋立て。字義通り「築いた地」。明治期に外国人居留地、戦後に魚市場。' },
+      { name: '佃島',     lat: 35.6700, lng: 139.7900, zoom: 16, era: 'edo_late',
+        text: '<h4>佃島 — 摂津からの人工島</h4>家康が摂津国佃 (現大阪市西淀川区) の漁師を呼び、寛永年間(1624-44)に作った人工島。佃煮発祥の地。' },
+      { name: 'お台場',   lat: 35.6300, lng: 139.7820, zoom: 14, era: 'edo_late',
+        text: '<h4>お台場 — 黒船対策の砲台</h4>嘉永6年(1853)ペリー来航後、品川沖に築かれた11基の砲台。現存するのは第三・第六台場のみ。' },
+      { name: '夢の島',   lat: 35.6480, lng: 139.8260, zoom: 14, era: 'aerial_1974',
+        text: '<h4>夢の島 — ゴミの島</h4>昭和32-42年(1957-67)、東京のゴミ最終処分場として埋立てられた。現在は公園・スポーツ施設に。' },
+      { name: '臨海副都心', lat: 35.6260, lng: 139.7795, zoom: 13, era: 'konjaku_1998',
+        text: '<h4>臨海副都心 — 1990年代以降</h4>豊洲・有明・お台場の大規模埋立て。フジテレビ・ビッグサイト・豊洲市場が立地。' },
+    ]
+  },
+  {
+    id: 'hiroshige',
+    icon: '🖼',
+    title: '広重「名所江戸百景」を巡る',
+    theme: '浮世絵で見る江戸',
+    desc: '安政3-5年(1856-59)の広重の連作から、地点が特定できる6箇所を巡る。浮世絵ピンを ON にして開始',
+    requireOverlay: 'ukiyoe',
+    steps: [
+      { name: '日本橋雪晴',      lat: 35.6839, lng: 139.7740, zoom: 17, era: 'edo_late',
+        text: '<h4>第一景 日本橋雪晴</h4>連作の冒頭。雪晴れの早朝、魚市場へ向かう人々と背後に富士。日本橋から見える富士は現代では失われた景観。' },
+      { name: '永代橋佃しま',    lat: 35.6720, lng: 139.7860, zoom: 16, era: 'edo_late',
+        text: '<h4>第四景 永代橋佃しま</h4>初代永代橋は元禄11年(1698)架橋。波頭と帆船で隅田川河口の交易の賑わいを表現。' },
+      { name: '芝愛宕山',        lat: 35.6648, lng: 139.7484, zoom: 17, era: 'edo_late',
+        text: '<h4>第二十一景 芝愛宕山</h4>海抜26mの天然山から江戸湾を一望する構図。鳶 (とび) の縁起物を持つ男性が階段を登る。' },
+      { name: '亀戸梅屋舗',      lat: 35.7012, lng: 139.8195, zoom: 16, era: 'edo_late',
+        text: '<h4>第三十景 亀戸梅屋舗</h4>ゴッホが模写した有名な構図。「臥竜梅」と呼ばれた老梅は明治の洪水で枯れて現存しない。' },
+      { name: '大はしあたけの夕立', lat: 35.6845, lng: 139.7920, zoom: 16, era: 'edo_late',
+        text: '<h4>第五十八景 大はしあたけの夕立</h4>ゴッホ模写で世界的に有名。突然の夕立を上から見下ろす大胆な構図。新大橋は元禄6年(1693)架橋。' },
+      { name: '両国花火',        lat: 35.6940, lng: 139.7950, zoom: 16, era: 'edo_late',
+        text: '<h4>第九十八景 両国花火</h4>連作の終盤、夜景の花火。享保18年(1733)の川施餓鬼に始まる隅田川花火大会は現代も続く。' },
+    ]
+  },
+  {
+    id: 'meiji_kaika',
+    icon: '🚂',
+    title: '明治の文明開化',
+    theme: '近代化の足跡',
+    desc: '鉄道・銀座煉瓦街・帝都計画。江戸から東京へ変貌した6地点',
+    steps: [
+      { name: '旧新橋停車場',  lat: 35.6655, lng: 139.7593, zoom: 17, era: 'meiji',
+        text: '<h4>新橋停車場 — 日本初の鉄道始発駅</h4>明治5年(1872)10月14日、新橋〜横浜間 29kmで日本初の鉄道開業。旧駅舎は関東大震災で焼失。' },
+      { name: '銀座煉瓦街',    lat: 35.6720, lng: 139.7660, zoom: 16, era: 'meiji',
+        text: '<h4>銀座煉瓦街</h4>明治5年(1872)銀座大火の復興で、お雇い外国人 T.J.ウォートルスが設計した本格的な煉瓦造街並み。文明開化の象徴。' },
+      { name: '築地外国人居留地', lat: 35.6660, lng: 139.7757, zoom: 17, era: 'meiji',
+        text: '<h4>築地居留地</h4>慶応3年(1867)〜明治32年(1899)の外国人居留地。明治学院・立教学院・暁星学園など、ミッション系教育機関のルーツ。' },
+      { name: '上野駅・上野公園', lat: 35.7141, lng: 139.7770, zoom: 16, era: 'meiji',
+        text: '<h4>上野駅 (1883)・第1回内国勧業博覧会会場(1877)</h4>東北本線の始発駅 (明治16年/1883)。上野公園は明治10年(1877)第1回内国勧業博覧会の会場。' },
+      { name: '皇居 (江戸城跡)',  lat: 35.6852, lng: 139.7528, zoom: 15, era: 'meiji',
+        text: '<h4>皇居 — 江戸城から</h4>明治2年(1869)東京遷都で、江戸城が皇城 (後の宮城・皇居) となる。明治22年(1889)に明治宮殿落成 (戦災焼失)。' },
+      { name: '日本橋三越本店',  lat: 35.6842, lng: 139.7733, zoom: 17, era: 'taisho',
+        text: '<h4>三越呉服店 — 日本初の百貨店</h4>明治37年(1904)、越後屋呉服店から「デパートメントストア宣言」。現本館は昭和10年(1935)築の重要文化財。' },
+    ]
+  },
+];
+
+let activeTour = null;
+let tourStepIdx = 0;
+const tourOverlayEl = document.getElementById('tourOverlay');
+const tourPickerEl  = document.getElementById('tourPicker');
+
+function openTourPicker() {
+  closeAllPopovers();
+  const body = document.getElementById('tourPickerBody');
+  body.innerHTML = TOURS.map(t => `
+    <div class="tp-tour" data-tour="${t.id}">
+      <div class="tp-tour-head">
+        <span class="tp-icon">${t.icon || '📖'}</span>
+        <div class="tp-tour-titles">
+          <h4>${escapeHtml(t.title)}</h4>
+          <div class="tp-tour-theme">${escapeHtml(t.theme || '')}</div>
+        </div>
+        <span class="tp-tour-count">${t.steps.length}地点</span>
+      </div>
+      <p>${escapeHtml(t.desc)}</p>
+    </div>
+  `).join('');
+  body.querySelectorAll('.tp-tour').forEach(el => {
+    el.addEventListener('click', () => {
+      const t = TOURS.find(x => x.id === el.dataset.tour);
+      tourPickerEl.classList.remove('show');
+      startTour(t);
+    });
+  });
+  tourPickerEl.classList.add('show');
+}
+function closeTourPicker() { tourPickerEl.classList.remove('show'); }
+document.getElementById('tourBtn').addEventListener('click', openTourPicker);
+document.getElementById('tourPickerClose').addEventListener('click', closeTourPicker);
+document.getElementById('tourPickerBackdrop').addEventListener('click', closeTourPicker);
+
+function startTour(t) {
+  activeTour = t;
+  tourStepIdx = 0;
+  // 必要な overlay を自動で ON (現在は 'ukiyoe' のみ)
+  if (t.requireOverlay) {
+    if (overlayCheckboxes[t.requireOverlay]) overlayCheckboxes[t.requireOverlay].checked = true;
+    setOverlay(t.requireOverlay, true);
+  }
+  // パネルを折り畳んでツアーカードに集中
+  if (!panelEl.classList.contains('collapsed')) setPanelCollapsed(true);
+  tourOverlayEl.classList.add('show');
+  document.getElementById('tourTitle').textContent = t.title;
+  renderTourStep();
+}
+function exitTour() {
+  activeTour = null;
+  tourStepIdx = 0;
+  tourOverlayEl.classList.remove('show');
+}
+// ツアーの視界決定: できるだけ広く見せつつ、時代レイヤーの範囲外
+// (ベース地図の素肌) が画面に入らないズーム・中心を計算する。
+// ズームの上下は「レイヤーで画面を満たすための調整」以上のことはしない。
+function tourStepView(s, era) {
+  let zoom = s.zoom;
+  let center = L.latLng(s.lat, s.lng);
+  if (era && era.bounds) {
+    const b = L.latLngBounds(era.bounds);
+    // 画面全体がレイヤー範囲に収まる最小ズーム。これ未満だとベースが見える
+    const minInside = map.getBoundsZoom(b, true);
+    zoom = Math.max(s.zoom, minInside);
+    // 中心が範囲の端に寄っているとはみ出すので、表示矩形が範囲内に収まるよう平行移動
+    const half = map.getSize().divideBy(2);
+    const c  = map.project(center, zoom);
+    const nw = map.project(b.getNorthWest(), zoom);
+    const se = map.project(b.getSouthEast(), zoom);
+    const x = Math.min(Math.max(c.x, nw.x + half.x), Math.max(nw.x + half.x, se.x - half.x));
+    const y = Math.min(Math.max(c.y, nw.y + half.y), Math.max(nw.y + half.y, se.y - half.y));
+    center = map.unproject(L.point(x, y), zoom);
+  }
+  return { center, zoom };
+}
+
+function renderTourStep() {
+  if (!activeTour) return;
+  const s = activeTour.steps[tourStepIdx];
+  document.getElementById('tourStep').innerHTML = s.text;
+  document.getElementById('tourProgress').textContent = `${tourStepIdx + 1} / ${activeTour.steps.length}`;
+  document.getElementById('tourPrev').disabled = tourStepIdx === 0;
+  document.getElementById('tourNext').textContent = tourStepIdx === activeTour.steps.length - 1 ? '🏁 終了' : '次 ▶';
+  // era 切替を先に確定し、その有効範囲に合わせて視界を決める
+  if (s.era && (!eraA || eraA.id !== s.era)) {
+    const era = findEra(s.era);
+    if (eraHasLayer(era)) {
+      if (mode === 'compare') { mode = 'single'; eraB = null; if (layerB) removeOverlay('b'); }
+      eraA = era;
+      applyState();
+    }
+  }
+  const view = tourStepView(s, eraA);
+  map.flyTo(view.center, view.zoom, { duration: 1.0 });
+}
+document.getElementById('tourNext').addEventListener('click', () => {
+  if (!activeTour) return;
+  if (tourStepIdx >= activeTour.steps.length - 1) { exitTour(); return; }
+  tourStepIdx++;
+  renderTourStep();
+});
+document.getElementById('tourPrev').addEventListener('click', () => {
+  if (!activeTour || tourStepIdx === 0) return;
+  tourStepIdx--;
+  renderTourStep();
+});
+document.getElementById('tourClose').addEventListener('click', exitTour);
+
+// ============================================================
+// v3: POI モーダル — 古/今写真スライダー (縦割り divider をドラッグ)
+// ============================================================
+function openPoiModal(poi) {
+  document.getElementById('poiTitle').textContent = poi.title;
+  document.getElementById('poiOldImg').src    = poi.old.url;
+  document.getElementById('poiModernImg').src = poi.modern.url;
+  document.getElementById('poiOldLabel').textContent = poi.old.label;
+  document.getElementById('poiNewLabel').textContent = poi.modern.label;
+  document.getElementById('poiDesc').textContent = poi.desc || '';
+  document.getElementById('poiModal').classList.add('show');
+  setPoiDivider(50);
+}
+function closePoiModal() {
+  document.getElementById('poiModal').classList.remove('show');
+}
+function setPoiDivider(pct) {
+  pct = Math.max(0, Math.min(100, pct));
+  // 旧画像は clip-path で右側を切る (左 pct% だけ表示)
+  document.getElementById('poiOldImg').style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+  document.getElementById('poiDivider').style.left = pct + '%';
+  // ラベルの可視性
+  document.getElementById('poiOldLabel').style.opacity = pct > 8 ? '1' : '0';
+  document.getElementById('poiNewLabel').style.opacity = pct < 92 ? '1' : '0';
+}
+function attachPoiDividerDrag() {
+  const wrap    = document.getElementById('poiImages');
+  const divider = document.getElementById('poiDivider');
+  let dragging = false;
+  const onMove = (clientX) => {
+    const r = wrap.getBoundingClientRect();
+    const pct = ((clientX - r.left) / r.width) * 100;
+    setPoiDivider(pct);
+  };
+  divider.addEventListener('mousedown', () => { dragging = true; });
+  divider.addEventListener('touchstart', () => { dragging = true; });
+  document.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX); });
+  document.addEventListener('touchmove', e => { if (dragging && e.touches[0]) onMove(e.touches[0].clientX); });
+  document.addEventListener('mouseup',  () => dragging = false);
+  document.addEventListener('touchend', () => dragging = false);
+  // クリックでも divider 移動
+  wrap.addEventListener('click', e => {
+    if (e.target.closest('.pm-divider')) return;
+    onMove(e.clientX);
+  });
+}
+
+// タイムラプス機能は将来の再検討に備えて設計履歴のみ残し、
+// UI・タイマー・自動ERA切替処理は現在すべて無効化している。
+
+// ============================================================
+// v2: モバイル ボトムシート式 年代ピッカー
+// ============================================================
+const mobileEraTrigger     = document.getElementById('mobileEraTrigger');
+const mobileEraTriggerText = document.getElementById('mobileEraTriggerText');
+const mobileEraSheet       = document.getElementById('mobileEraSheet');
+const mobileEraSheetClose  = document.getElementById('mobileEraSheetClose');
+const mobileEraSheetBody   = document.getElementById('mobileEraSheetBody');
+const mobileEraSheetBackdrop = document.getElementById('mobileEraSheetBackdrop');
+
+const MES_CATS = [
+  { id: 'old', label: '古地図・絵図・旧版地形図' },
+  { id: 'aerial', label: '航空写真' },
+  { id: 'topo', label: '1:3,000 地形図' },
+];
+const MES_FILTER_KEY = 'edo-konjaku-v2-mes-filter';
+let mesFilter = 'all';
+try { mesFilter = localStorage.getItem(MES_FILTER_KEY) || 'all'; } catch (_) {}
+
+function renderMobileSheet() {
+  document.querySelectorAll('#mobileEraSheetFilters .mes-chip').forEach(chip => {
+    chip.classList.toggle('is-active', chip.dataset.filter === mesFilter);
+  });
+  const cats = mesFilter === 'all' ? MES_CATS : MES_CATS.filter(cat => cat.id === mesFilter);
+  mobileEraSheetBody.innerHTML = cats.map(cat => {
+    const list = ERAS.filter(era => era.cat === cat.id && eraHasLayer(era))
+      .sort((a, b) => a.year - b.year || a.id.localeCompare(b.id));
+    if (!list.length) return '';
+    const rows = list.map(era => {
+      let cls = `mes-row cat-${era.cat}`;
+      let tag = '';
+      if (mode === 'single' && eraA && eraA.id === era.id) {
+        cls += ' is-active';
+        tag = '<span class="tag active-tag">表示中</span>';
+      } else if (mode === 'compare') {
+        if (eraA && eraA.id === era.id) { cls += ' is-a'; tag = '<span class="tag a-tag">A</span>'; }
+        else if (eraB && eraB.id === era.id) { cls += ' is-b'; tag = '<span class="tag b-tag">B</span>'; }
+      }
+      return `
+        <div class="${cls}" data-era="${era.id}">
+          <div class="dot"></div>
+          <div class="year">${escapeHtml(eraDisplayDate(era))}</div>
+          <div class="label-wrap">
+            <div class="label">${escapeHtml(era.label)}</div>
+            ${era.sub ? `<div class="sub">${escapeHtml(era.sub)}</div>` : ''}
+          </div>
+          ${tag}
+        </div>`;
+    }).join('');
+    return `<div class="mes-section"><div class="mes-section-title">${escapeHtml(cat.label)}</div>${rows}</div>`;
+  }).join('');
+  mobileEraSheetBody.querySelectorAll('.mes-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = row.dataset.era;
+      tickClicked(id);
+      // 比較モードで両方未埋まり時はシートを開いたまま、それ以外は閉じる
+      if (mode === 'compare' && (!eraA || !eraB)) {
+        // 選択状態だけ更新して、続けて選びやすくする
+        renderMobileSheet();
+      } else {
+        closeMobileSheet();
+      }
+    });
+  });
+}
+
+function openMobileSheet() {
+  renderMobileSheet();
+  mobileEraSheet.classList.add('show');
+  mobileEraSheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  // v2.1: 現在選択中の era 行へ自動スクロール (中央に表示)
+  // slide-up アニメーション完了後にスクロール (instant) → 違和感なく中央に表示
+  setTimeout(() => {
+    const target = mobileEraSheetBody.querySelector('.mes-row.is-active, .mes-row.is-a, .mes-row.is-b');
+    if (target) {
+      // scrollIntoView with 'center' so the active row sits in the middle
+      target.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+  }, 280);
+}
+function closeMobileSheet() {
+  mobileEraSheet.classList.remove('show');
+  mobileEraSheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+mobileEraTrigger.addEventListener('click', openMobileSheet);
+mobileEraSheetClose.addEventListener('click', closeMobileSheet);
+mobileEraSheetBackdrop.addEventListener('click', closeMobileSheet);
+
+document.getElementById('mobileEraSheetFilters').addEventListener('click', (e) => {
+  const chip = e.target.closest('.mes-chip');
+  if (!chip) return;
+  mesFilter = chip.dataset.filter || 'all';
+  try { localStorage.setItem(MES_FILTER_KEY, mesFilter); } catch (_) {}
+  renderMobileSheet();
+});
+
+function updateMobileEraTriggerText() {
+  if (!mobileEraTriggerText) return;
+  if (mode === 'compare') {
+    const a = eraA ? `${eraDisplayDate(eraA)} ${eraA.label}` : 'A 未選択';
+    const b = eraB ? `${eraDisplayDate(eraB)} ${eraB.label}` : 'B 未選択';
+    mobileEraTriggerText.textContent = `${a} ⇄ ${b}`;
+  } else if (eraA) {
+    mobileEraTriggerText.textContent = `${eraDisplayDate(eraA)} ${eraA.label}${eraA.sub ? ' — ' + eraA.sub : ''}`;
+  } else {
+    mobileEraTriggerText.textContent = '時代を選択';
+  }
+}
+
+// ============================================================
+// パネル開閉 (localStorage で状態保持 / H キーでトグル)
+// ============================================================
+const PANEL_COLLAPSED_KEY = 'edo-konjaku-v2-panel-collapsed';
+const panelEl = document.getElementById('panel');
+const panelToggle = document.getElementById('panelToggle');
+function setPanelCollapsed(collapsed) {
+  panelEl.classList.toggle('collapsed', collapsed);
+  try { localStorage.setItem(PANEL_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (_) {}
+}
+function togglePanel() {
+  setPanelCollapsed(!panelEl.classList.contains('collapsed'));
+}
+panelToggle.addEventListener('click', togglePanel);
+try {
+  if (localStorage.getItem(PANEL_COLLAPSED_KEY) === '1') setPanelCollapsed(true);
+} catch (_) {}
+
+// v2.1: ミニピル (全画面) モード
+const PANEL_MINIMIZED_KEY = 'edo-konjaku-v2-panel-minimized';
+const miniPill = document.getElementById('miniPill');
+const miniPillText = document.getElementById('miniPillText');
+const panelMinimize = document.getElementById('panelMinimize');
+
+function setPanelMinimized(minimized) {
+  document.body.classList.toggle('panel-minimized', minimized);
+  try { localStorage.setItem(PANEL_MINIMIZED_KEY, minimized ? '1' : '0'); } catch (_) {}
+  if (minimized) updateMiniPillText();
+}
+function updateMiniPillText() {
+  if (mode === 'compare') {
+    const a = eraA ? `${eraDisplayDate(eraA)} ${eraA.label}` : 'A 未選択';
+    const b = eraB ? `${eraDisplayDate(eraB)} ${eraB.label}` : 'B 未選択';
+    miniPillText.textContent = `${a} ⇄ ${b}`;
+  } else if (eraA) {
+    miniPillText.textContent = `${eraDisplayDate(eraA)} ${eraA.label}`;
+  } else {
+    miniPillText.textContent = '時代を選択';
+  }
+}
+panelMinimize.addEventListener('click', () => setPanelMinimized(true));
+miniPill.addEventListener('click', () => setPanelMinimized(false));
+try {
+  if (localStorage.getItem(PANEL_MINIMIZED_KEY) === '1') setPanelMinimized(true);
+} catch (_) {}
+
+// ============================================================
+// キーボード ← → で時代をスクラブ / H でパネル開閉
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  // 入力欄にフォーカスがある時は ESC のみ受け付け (検索結果クローズに使えるよう)
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
+
+  // ESC キー: 開いているものを優先順位順に閉じる
+  if (e.key === 'Escape') {
+    if (document.getElementById('poiModal').classList.contains('show')) {
+      e.preventDefault();
+      closePoiModal();
+      return;
+    }
+    if (tourPickerEl.classList.contains('show')) {
+      e.preventDefault();
+      closeTourPicker();
+      return;
+    }
+    if (activeTour) {
+      e.preventDefault();
+      exitTour();
+      return;
+    }
+    if (POPOVER_PAIRS.some(({ pop }) => pop.classList.contains('show'))) {
+      e.preventDefault();
+      closeAllPopovers();
+      return;
+    }
+    if (infoOverlay.classList.contains('show')) {
+      e.preventDefault();
+      toggleInfo(false);
+      return;
+    }
+    if (shortcutsOverlay.classList.contains('show')) {
+      e.preventDefault();
+      toggleShortcuts(false);
+      return;
+    }
+    if (mobileEraSheet.classList.contains('show')) {
+      e.preventDefault();
+      closeMobileSheet();
+      return;
+    }
+    if (searchResults.classList.contains('show')) {
+      e.preventDefault();
+      searchResults.classList.remove('show');
+      searchInput.blur();
+      return;
+    }
+    if (!panelEl.classList.contains('collapsed') && !document.body.classList.contains('panel-minimized')) {
+      e.preventDefault();
+      setPanelCollapsed(true);
+      return;
+    }
+    return;
+  }
+
+  if (isInput) return;
+  // ? キー (Shift+/): ショートカット一覧
+  if (e.key === '?') {
+    e.preventDefault();
+    toggleShortcuts();
+    return;
+  }
+  // H キー: パネル開閉
+  if (e.key === 'h' || e.key === 'H') {
+    e.preventDefault();
+    togglePanel();
+    return;
+  }
+  // T キー: ベース地図（最新）を順送り
+  if (e.key === 't' || e.key === 'T') {
+    e.preventDefault();
+    const ids = Object.keys(BASE_THEMES);
+    const next = ids[(ids.indexOf(currentBaseTheme) + 1) % ids.length];
+    applyBaseTheme(next);
+    renderThemePopover();
+    showToast('🗺️ ' + BASE_THEMES[next].label);
+    return;
+  }
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const dir = e.key === 'ArrowRight' ? 1 : -1;
+  const list = getAvailableEras().slice().sort((a, b) => a.year - b.year);
+  // 比較中は B (activeSlot) を動かす。単一なら A
+  const curEra = mode === 'compare' ? (eraB || eraA) : eraA;
+  const curId = curEra && curEra.id;
+  let idx = list.findIndex(x => x.id === curId);
+  if (idx === -1) idx = 0;
+  const nextIdx = Math.max(0, Math.min(list.length - 1, idx + dir));
+  if (nextIdx === idx) return;
+  e.preventDefault();
+  tickClicked(list[nextIdx].id);
+});
+
+// ============================================================
+// URL ハッシュで状態を保存・復元 (共有可能リンク)
+// 形式: #era=<id>&ll=<lat>,<lng>&z=<zoom>&op=<0-100>
+//       (比較中) #a=<id>&b=<id>&blend=<0-100>&ll=...&z=...
+// ============================================================
+let suppressHash = false;
+function updateHash() {
+  if (suppressHash) return;
+  const parts = [];
+  if (mode === 'compare' && eraA) {
+    parts.push('a=' + eraA.id);
+    if (eraB) parts.push('b=' + eraB.id);
+    parts.push('blend=' + Math.round(blendAB * 100));
+  } else if (eraA) {
+    parts.push('era=' + eraA.id);
+    parts.push('op=' + Math.round(opacity * 100));
+  }
+  const c = map.getCenter();
+  parts.push('ll=' + c.lat.toFixed(5) + ',' + c.lng.toFixed(5));
+  parts.push('z=' + map.getZoom());
+  try { history.replaceState(null, '', '#' + parts.join('&')); } catch (_) {}
+}
+
+function parseHash() {
+  const hash = location.hash.replace(/^#/, '');
+  if (!hash) return null;
+  const params = {};
+  hash.split('&').forEach(pair => {
+    const eq = pair.indexOf('=');
+    if (eq < 0) return;
+    params[pair.slice(0, eq)] = decodeURIComponent(pair.slice(eq + 1));
+  });
+  return params;
+}
+
+function restoreFromHash() {
+  const p = parseHash();
+  if (!p) return false;
+  suppressHash = true;
+  try {
+    if (p.a) {
+      mode = 'compare';
+      eraA = findEra(p.a) || null;
+      eraB = p.b ? findEra(p.b) || null : null;
+      if (p.blend != null) blendAB = (+p.blend) / 100;
+      activeSlot = 'b';
+    } else if (p.era) {
+      mode = 'single';
+      eraA = findEra(p.era) || null;
+      eraB = null;
+    }
+    if (p.op != null) {
+      opacity = (+p.op) / 100;
+      const slider = document.getElementById('opacitySlider');
+      if (slider) slider.value = +p.op;
+    }
+    if (p.ll) {
+      const [lat, lng] = p.ll.split(',').map(parseFloat);
+      const zoom = p.z ? parseInt(p.z, 10) : map.getZoom();
+      if (!isNaN(lat) && !isNaN(lng) && KANTO_BOUNDS.contains([lat, lng])) {
+        map.setView([lat, lng], zoom, { animate: false });
+      }
+    }
+  } finally { suppressHash = false; }
+  return true;
+}
+
+// マップ move/zoom 終了で URL 更新 (連続発火するので moveend のみ)
+map.on('moveend zoomend', updateHash);
+
+// ============================================================
+// データ外ヒント: 現在のビューに、選択中の era のデータが無いとき表示
+// (era に bounds が定義されていて、map center が bounds 外にいる場合)
+// ============================================================
+const boundsHintEl = document.getElementById('boundsHint');
+function checkBoundsHint() {
+  const checks = [];
+  if (mode === 'compare') {
+    if (eraA && eraA.bounds) checks.push({ era: eraA, slot: 'A' });
+    if (eraB && eraB.bounds) checks.push({ era: eraB, slot: 'B' });
+  } else if (eraA && eraA.bounds) {
+    checks.push({ era: eraA, slot: null });
+  }
+  const c = map.getCenter();
+  const z = map.getZoom();
+  const outOfBounds = checks.filter(x => !L.latLngBounds(x.era.bounds).contains(c));
+
+  // v3.1: 年度別空中写真 (z14以上) などの zoom 不足を検知
+  const zoomTooLow = [];
+  const currentEras = mode === 'compare' ? [eraA, eraB].filter(Boolean) : (eraA ? [eraA] : []);
+  currentEras.forEach(e => {
+    if (e && e.url && e.min && z < e.min) {
+      zoomTooLow.push(e);
+    }
+  });
+
+  if (zoomTooLow.length) {
+    const e = zoomTooLow[0];
+    const needZ = e.min;
+    boundsHintEl.innerHTML =
+      `「${escapeHtml(eraDisplayDate(e) + ' ' + e.label)}」はズーム ${needZ} 以上で表示されます` +
+      ` <button class="center-btn" id="zoomInBtn">ズームインする</button>`;
+    boundsHintEl.classList.add('show');
+    const btn = document.getElementById('zoomInBtn');
+    if (btn) btn.addEventListener('click', () => map.setZoom(needZ));
+    return;
+  }
+  if (!outOfBounds.length) {
+    boundsHintEl.classList.remove('show');
+    return;
+  }
+  const list = outOfBounds.map(x => {
+    const prefix = x.slot ? `${x.slot}: ` : '';
+    return `${prefix}${eraDisplayDate(x.era)} ${x.era.label}`;
+  }).join(' / ');
+  const first = outOfBounds[0].era;
+  const center = L.latLngBounds(first.bounds).getCenter();
+  boundsHintEl.innerHTML =
+    `この場所に「${escapeHtml(list)}」のデータがありません` +
+    ` <button class="center-btn" id="centerBtn">データのある場所へ</button>`;
+  boundsHintEl.classList.add('show');
+  document.getElementById('centerBtn').addEventListener('click', () => {
+    map.setView(center, map.getZoom(), { animate: true });
+  });
+}
+map.on('moveend zoomend', checkBoundsHint);
+
+// ============================================================
+// トースト通知 (テーマ切替・タイムラプス開始時などに表示)
+// ============================================================
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(msg, dur = 2200) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), dur);
+}
+
+// v3: テーマポップオーバー
+const themePopover = document.getElementById('themePopover');
+const themePopoverBody = document.getElementById('themePopoverBody');
+function renderThemePopover() {
+  themePopoverBody.innerHTML = Object.entries(BASE_THEMES).map(([id, t]) => `
+    <div class="theme-option ${id === currentBaseTheme ? 'active' : ''}" data-theme="${id}">
+      <span class="theme-swatch ${id}"></span>
+      <span>${escapeHtml(t.label)}</span>
+    </div>
+  `).join('');
+  themePopoverBody.querySelectorAll('.theme-option').forEach(el => {
+    el.addEventListener('click', () => {
+      applyBaseTheme(el.dataset.theme);
+      renderThemePopover();
+      // 選択直後は閉じる
+      setTimeout(() => themePopover.classList.remove('show'), 200);
+    });
+  });
+}
+renderThemePopover();
+
+// ポップオーバー共通管理: 開くのは常に1つ、矢印は対応ボタンの中央に合わせる
+const terrainPopover = document.getElementById('terrainPopover');
+const detailPopover  = document.getElementById('detailPopover');
+const POPOVER_PAIRS = [
+  { pop: themePopover,   btn: document.getElementById('themeBtn') },
+  { pop: terrainPopover, btn: document.getElementById('terrainBtn') },
+  { pop: detailPopover,  btn: document.getElementById('detailBtn') },
+];
+function closeAllPopovers() {
+  POPOVER_PAIRS.forEach(({ pop }) => pop.classList.remove('show'));
+}
+function anchorPopoverArrow(pop, btn) {
+  const arrow = pop.querySelector('.popover-arrow');
+  if (!arrow) return;
+  const pr = pop.getBoundingClientRect();
+  const br = btn.getBoundingClientRect();
+  const fromRight = pr.right - (br.left + br.width / 2) - 6;
+  arrow.style.right = Math.max(12, Math.min(pr.width - 24, fromRight)) + 'px';
+}
+POPOVER_PAIRS.forEach(({ pop, btn }) => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const wasShown = pop.classList.contains('show');
+    closeAllPopovers();
+    if (!wasShown) {
+      pop.classList.add('show');
+      anchorPopoverArrow(pop, btn);
+    }
+  });
+});
+document.addEventListener('click', (e) => {
+  POPOVER_PAIRS.forEach(({ pop, btn }) => {
+    if (!e.target.closest('#' + pop.id) && !e.target.closest('#' + btn.id)) pop.classList.remove('show');
+  });
+});
+
+// v2.1: キーボードショートカット一覧
+const shortcutsOverlay = document.getElementById('shortcutsOverlay');
+function toggleShortcuts(forceOpen) {
+  const willShow = forceOpen != null ? forceOpen : !shortcutsOverlay.classList.contains('show');
+  shortcutsOverlay.classList.toggle('show', willShow);
+  shortcutsOverlay.setAttribute('aria-hidden', willShow ? 'false' : 'true');
+}
+document.getElementById('shortcutsClose').addEventListener('click', () => toggleShortcuts(false));
+document.getElementById('shortcutsBackdrop').addEventListener('click', () => toggleShortcuts(false));
+
+// 地図提供元・出典・利用条件
+const infoOverlay = document.getElementById('infoOverlay');
+function toggleInfo(forceOpen) {
+  const willShow = forceOpen != null ? forceOpen : !infoOverlay.classList.contains('show');
+  infoOverlay.classList.toggle('show', willShow);
+  infoOverlay.setAttribute('aria-hidden', willShow ? 'false' : 'true');
+}
+document.getElementById('infoBtn').addEventListener('click', () => {
+  closeAllPopovers();
+  toggleInfo(true);
+});
+document.getElementById('infoClose').addEventListener('click', () => toggleInfo(false));
+document.getElementById('infoBackdrop').addEventListener('click', () => toggleInfo(false));
+
+// ============================================================
+// 現在地
+// ============================================================
+const locateBtn = document.getElementById('locateBtn');
+let locateMarker = null;
+locateBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) { showHint('お使いのブラウザは位置情報未対応'); return; }
+  locateBtn.classList.add('locating');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      locateBtn.classList.remove('locating');
+      const ll = [pos.coords.latitude, pos.coords.longitude];
+      if (locateMarker) map.removeLayer(locateMarker);
+      locateMarker = L.marker(ll, {
+        icon: L.divIcon({ className: '', html: '<div class="locate-marker"></div>', iconSize: [18, 18] })
+      }).addTo(map);
+      // 関東外なら maxBounds に制限される
+      if (KANTO_BOUNDS.contains(ll)) {
+        map.setView(ll, 17);
+      } else {
+        showHint('現在地は関東圏外のため、表示範囲を制限しています', 3000);
+        map.setView([35.6814, 139.7660], 14);
+      }
+    },
+    err => {
+      locateBtn.classList.remove('locating');
+      const msg = err.code === 1 ? '位置情報の使用が拒否されました' :
+                  err.code === 2 ? '位置を取得できません' :
+                  err.code === 3 ? 'タイムアウトしました' : err.message;
+      showHint(msg, 3000);
+    },
+    { timeout: 8000, enableHighAccuracy: true }
+  );
+});
+
+// ============================================================
+// 住所・地名検索 (Nominatim)
+// ============================================================
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const searchResults = document.getElementById('searchResults');
+const searchResultsContent = document.getElementById('searchResultsContent');
+const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
+const GSI_SEARCH_API_URL = 'https://msearch.gsi.go.jp/address-search/AddressSearch';
+const TOKYO_SEARCH_VIEWBOX = '138.9,35.95,140.05,35.15';
+const SEARCH_MIN_INTERVAL_MS = 1000;
+const SEARCH_TIMEOUT_MS = 10000;
+const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
+const searchCache = new Map();
+let lastSearchStartedAt = 0;
+let searchInProgress = false;
+
+// 検索は2系統の並行照会:
+//   地理院 AddressSearch — 日本の住居表示 (「○○区△△2-8-1」) に強い。Nominatim はこれが弱い
+//   Nominatim (OSM)      — 施設名・ランドマーク・POI に強い
+// 正規化して { lat, lon, title, sub } のリストに統合し、住所ヒット (地理院) を先頭に出す。
+async function nominatimSearch(q, signal) {
+  const params = new URLSearchParams({
+    q,
+    countrycodes: 'jp',
+    viewbox: TOKYO_SEARCH_VIEWBOX,
+    bounded: '0',
+    limit: '8',
+    format: 'json',
+    addressdetails: '1',
+    namedetails: '1',
+    'accept-language': 'ja',
+  });
+  const res = await fetch(`${NOMINATIM_API_URL}?${params}`, {
+    signal, headers: { 'Accept': 'application/json' },
+  });
+  if (res.status === 429) return { state: 'rate-limit', items: [] };
+  if (!res.ok) return { state: 'network-error', items: [] };
+  const raw = await res.json();
+  return {
+    state: 'success',
+    items: raw.map(it => ({
+      lat: parseFloat(it.lat),
+      lon: parseFloat(it.lon),
+      title: (it.namedetails && it.namedetails.name) || it.name || it.display_name.split(',')[0],
+      sub: it.display_name,
+    })),
+  };
+}
+
+async function gsiAddressSearch(q, signal) {
+  const res = await fetch(`${GSI_SEARCH_API_URL}?q=${encodeURIComponent(q)}`, {
+    signal, headers: { 'Accept': 'application/json' },
+  });
+  if (!res.ok) return { state: 'network-error', items: [] };
+  const raw = await res.json();
+  return {
+    state: 'success',
+    items: (Array.isArray(raw) ? raw : []).slice(0, 6).map(it => ({
+      lat: it.geometry.coordinates[1],
+      lon: it.geometry.coordinates[0],
+      title: it.properties.title,
+      sub: '住所検索 (国土地理院)',
+    })),
+  };
+}
+
+async function doSearch(q) {
+  const cacheKey = q.replace(/\s+/g, ' ').trim().toLocaleLowerCase('ja-JP');
+  const cached = searchCache.get(cacheKey);
+  if (cached && Date.now() - cached.savedAt < SEARCH_CACHE_TTL_MS) {
+    return { state: cached.items.length ? 'success' : 'empty', items: cached.items, cached: true };
+  }
+  if (cached) searchCache.delete(cacheKey);
+
+  const controller = new AbortController();
+  let didTimeout = false;
+  const timeoutId = setTimeout(() => {
+    didTimeout = true;
+    controller.abort();
+  }, SEARCH_TIMEOUT_MS);
+
+  try {
+    // 片方が落ちてももう片方の結果を出す (allSettled)
+    const [gsiRes, nomiRes] = await Promise.allSettled([
+      gsiAddressSearch(q, controller.signal),
+      nominatimSearch(q, controller.signal),
+    ]);
+    const gsi  = gsiRes.status === 'fulfilled' ? gsiRes.value : { state: 'network-error', items: [] };
+    const nomi = nomiRes.status === 'fulfilled' ? nomiRes.value : { state: 'network-error', items: [] };
+
+    // 両系統とも失敗した場合のみエラー扱い
+    if (!gsi.items.length && !nomi.items.length) {
+      if (didTimeout) return { state: 'timeout', items: [] };
+      if (nomi.state === 'rate-limit') return { state: 'rate-limit', items: [] };
+      if (gsi.state === 'network-error' && nomi.state === 'network-error') {
+        return { state: 'network-error', items: [] };
+      }
+    }
+
+    // 統合: 地理院住所を先頭、タイトル重複は除去
+    const seen = new Set();
+    const items = [...gsi.items, ...nomi.items].filter(it => {
+      const key = it.title.replace(/\s+/g, '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 10);
+
+    searchCache.set(cacheKey, { savedAt: Date.now(), items });
+    return { state: items.length ? 'success' : 'empty', items };
+  } catch (e) {
+    if (didTimeout && e.name === 'AbortError') {
+      return { state: 'timeout', items: [] };
+    }
+    console.error(e);
+    return { state: 'network-error', items: [] };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+let searchMarker = null;
+function gotoSearchResult(ll, label) {
+  if (searchMarker) map.removeLayer(searchMarker);
+  if (!KANTO_BOUNDS.contains(ll)) {
+    showHint('検索結果が関東圏外のため移動できません', 3000);
+    return;
+  }
+  searchMarker = L.marker(ll, {
+    icon: L.divIcon({ className: '', html: '<div class="search-marker"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
+    zIndexOffset: 1000,
+  }).addTo(map);
+  searchMarker.bindTooltip(label, {
+    permanent: true, direction: 'top', offset: [0, -10], className: 'search-tooltip'
+  }).openTooltip();
+  map.setView(ll, 17);
+  // 8 秒後にツールチップを閉じる (マーカー自体は残す)
+  setTimeout(() => { if (searchMarker) searchMarker.closeTooltip(); }, 8000);
+}
+
+function showSearchResults(items) {
+  searchResultsContent.innerHTML = '';
+  if (!items || !items.length) {
+    searchResultsContent.innerHTML = '<div class="search-item empty">該当する場所が見つかりませんでした</div>';
+    searchResults.classList.add('show');
+    return;
+  }
+  items.forEach(it => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    div.innerHTML = `<div class="title">${escapeHtml(it.title)}</div><div class="sub">${escapeHtml(it.sub)}</div>`;
+    div.addEventListener('click', () => {
+      gotoSearchResult([it.lat, it.lon], it.title);
+      searchResults.classList.remove('show');
+      searchInput.value = it.title;
+    });
+    searchResultsContent.appendChild(div);
+  });
+  searchResults.classList.add('show');
+}
+
+function showSearchStatus(message) {
+  searchResultsContent.innerHTML = `<div class="search-item empty">${escapeHtml(message)}</div>`;
+  searchResults.classList.add('show');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+async function executeSearch() {
+  const q = searchInput.value.trim();
+  if (!q) return;
+
+  const now = Date.now();
+  if (searchInProgress || now - lastSearchStartedAt < SEARCH_MIN_INTERVAL_MS) {
+    showSearchStatus('連続検索は1秒以上あけてください');
+    return;
+  }
+
+  lastSearchStartedAt = now;
+  searchInProgress = true;
+  searchBtn.disabled = true;
+  showSearchStatus('検索中…');
+  const result = await doSearch(q);
+  searchInProgress = false;
+  searchBtn.disabled = false;
+
+  if (result.state === 'rate-limit') {
+    showSearchStatus('検索回数の上限に達しました。しばらく待ってからお試しください');
+    return;
+  }
+  if (result.state === 'network-error') {
+    showSearchStatus('通信に失敗しました。接続を確認してもう一度お試しください');
+    return;
+  }
+  if (result.state === 'timeout') {
+    showSearchStatus('検索がタイムアウトしました。再度お試しください。');
+    return;
+  }
+  if (result.state === 'empty') {
+    showSearchResults([]);
+    return;
+  }
+
+  showSearchResults(result.items);
+  if (result.items.length) {
+    const it = result.items[0];
+    const title = it.namedetails && it.namedetails.name ? it.namedetails.name : (it.name || it.display_name.split(',')[0]);
+    gotoSearchResult([parseFloat(it.lat), parseFloat(it.lon)], title);
+    searchInput.value = title;
+  }
+}
+
+// 入力中は通信せず、Enter または検索ボタンでのみ検索する
+searchInput.addEventListener('input', () => searchResults.classList.remove('show'));
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  executeSearch();
+});
+searchBtn.addEventListener('click', executeSearch);
+searchInput.addEventListener('focus', () => {
+  if (searchResultsContent.innerHTML.trim()) searchResults.classList.add('show');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-bar')) searchResults.classList.remove('show');
+});
+
+// ============================================================
+// ヒント
+// ============================================================
+const hint = document.getElementById('hint');
+function showHint(msg, dur = 0) {
+  hint.textContent = msg;
+  hint.classList.add('show');
+  if (dur) setTimeout(() => hint.classList.remove('show'), dur);
+}
+
+// ============================================================
+// 起動
+// ============================================================
+renderTicks();
+buildDetailMapsList();
+
+// ウィンドウリサイズ追従。Leaflet 標準の resize 処理はデバウンスされるため、
+// リサイズ直後に内部サイズが古いまま描画され、現在地ピン・検索マーカー等が
+// 一瞬ずれて見える。ResizeObserver で即時 invalidateSize して追従させる。
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => {
+    map.invalidateSize({ animate: false });
+  }).observe(document.getElementById('map'));
+}
+// デスクトップ⇔モバイル境界 (720px) をまたいだときの UI 再センタリング
+window.addEventListener('resize', () => {
+  scrollActiveTickIntoView();
+});
+// URL ハッシュに状態があればそこから復元、なければ江戸末期スタート
+const restored = restoreFromHash();
+if (!restored || !eraA) {
+  eraA = findEra('edo_late'); // 江戸末期 1860 でスタート
+}
+applyState();
+</script>
+</body>
+</html>
