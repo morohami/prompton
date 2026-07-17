@@ -6,17 +6,16 @@
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
 <meta name="x-apple-disable-message-reformatting" />
 
-<!-- v3: PWA basics (Service Worker は file:// では動作しないので、ホスト後に有効化) -->
 <meta name="theme-color" content="#0f1116" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="今昔マップ" />
 <meta name="application-name" content="東京今昔マップ" />
 <meta name="description" content="江戸から現代までの東京を、古地図・空中写真・地形図で重ね見ぶれする今昔マップ" />
-<!-- インライン SVG をホーム画面アイコンに (透過対応、データ URL) -->
+
 <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%230f1116'/><circle cx='90' cy='90' r='62' fill='none' stroke='%23c54f3e' stroke-width='6'/><text x='90' y='112' text-anchor='middle' font-family='serif' font-size='90' fill='%23e8e3d6'>今</text></svg>" />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230f1116'/><text x='16' y='24' text-anchor='middle' font-family='serif' font-size='22' fill='%23c54f3e'>今</text></svg>" />
-<!-- インライン Manifest (data URL — 一部ブラウザのみ。本番では別ファイルでホスト推奨) -->
+
 <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"東京 今昔マップ","short_name":"今昔マップ","start_url":".","display":"standalone","background_color":"%230f1116","theme_color":"%230f1116","orientation":"any","description":"江戸から現代までの東京を、古地図・空中写真・地形図で重ね見ぶれする今昔マップ","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 512 512%27><rect width=%27512%27 height=%27512%27 fill=%27%230f1116%27/><circle cx=%27256%27 cy=%27256%27 r=%27180%27 fill=%27none%27 stroke=%27%23c54f3e%27 stroke-width=%2718%27/><text x=%27256%27 y=%27320%27 text-anchor=%27middle%27 font-family=%27serif%27 font-size=%27260%27 fill=%27%23e8e3d6%27>今</text></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}' />
 
 <title>東京 今昔マップ ２ — Tokyo Through Time</title>
@@ -1673,7 +1672,6 @@
   <div class="en">Tokyo · Through Time</div>
 </div>
 
-<!-- モバイル専用: 左上ハンバーガー (ブランド窓の代わり)。地図情報などを格納 -->
 <button class="hamburger-btn" id="menuBtn" aria-label="メニュー" type="button">☰</button>
 <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
   <div class="mm-title">東京 今昔マップ</div>
@@ -1692,17 +1690,13 @@
   </div>
 </div>
 
-
-<!-- v2.1: 共有/コピー完了トースト -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- v2.1: 全画面地図モード時の小さなフローティングピル -->
 <button class="mini-pill" id="miniPill" type="button" title="パネルを戻す">
   <span class="mp-text" id="miniPillText">時代を選択</span>
   <span class="mp-restore">⤴</span>
 </button>
 
-<!-- v3: POI モーダル (浮世絵 + 古今写真スライダー) -->
 <div class="poi-modal" id="poiModal" aria-hidden="true">
   <div class="pm-backdrop" id="poiBackdrop"></div>
   <div class="pm-panel">
@@ -1726,7 +1720,6 @@
   </div>
 </div>
 
-<!-- v3: ガイドツアー オーバーレイ -->
 <div class="tour-overlay" id="tourOverlay" aria-hidden="true">
   <div class="to-panel">
     <div class="to-header">
@@ -1742,7 +1735,6 @@
   </div>
 </div>
 
-<!-- v3: ガイドツアー 選択モーダル -->
 <div class="tour-picker" id="tourPicker" aria-hidden="true">
   <div class="tp-backdrop" id="tourPickerBackdrop"></div>
   <div class="tp-panel">
@@ -1754,7 +1746,6 @@
   </div>
 </div>
 
-<!-- v2.1: キーボードショートカット一覧 (? キーで開閉) -->
 <div class="shortcuts-overlay" id="shortcutsOverlay" aria-hidden="true">
   <div class="so-backdrop" id="shortcutsBackdrop"></div>
   <div class="so-panel">
@@ -1774,7 +1765,6 @@
   </div>
 </div>
 
-<!-- 地図提供元・出典・利用条件 -->
 <div class="shortcuts-overlay" id="infoOverlay" aria-hidden="true">
   <div class="so-backdrop" id="infoBackdrop"></div>
   <div class="so-panel info-panel" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
@@ -1832,7 +1822,6 @@
   <div class="compact-compare" id="compactCompare"></div>
   <div class="compare-bar" id="compareBar"></div>
 
-  <!-- v2: モバイル専用 — 横タイムラインを置き換える「時代を選ぶ」ボタン -->
   <button class="mobile-era-trigger" id="mobileEraTrigger" type="button">
     <span class="met-icon">📜</span>
     <span class="met-text" id="mobileEraTriggerText">時代を選択</span>
@@ -1865,14 +1854,12 @@
     <button class="compare-btn" id="compareBtn" title="2つの時代を選んで重ねる">⇆ 比較</button>
   </div>
 
-  <!-- v3.1: テーマ選択ポップオーバー (下paneのボタンに anchor) -->
   <div class="popover" id="themePopover" aria-hidden="true">
     <div class="popover-arrow"></div>
     <div class="popover-title">ベース地図（最新）</div>
     <div class="popover-body" id="themePopoverBody"></div>
   </div>
 
-  <!-- 地形レイヤー ポップオーバー (⛰ ボタンに anchor) -->
   <div class="popover" id="terrainPopover" aria-hidden="true">
     <div class="popover-arrow"></div>
     <div class="popover-title">地形レイヤー</div>
@@ -1883,7 +1870,6 @@
     </div>
   </div>
 
-  <!-- 詳細地図 ポップオーバー (📐 ボタンに anchor) -->
   <div class="popover" id="detailPopover" aria-hidden="true">
     <div class="popover-arrow"></div>
     <div class="popover-title">詳細図 — 東京都1:3,000地形図</div>
@@ -1897,7 +1883,6 @@
 <div class="hint" id="hint"></div>
 <div class="bounds-hint" id="boundsHint"></div>
 
-<!-- v2: モバイル用 ボトムシート式 年代選択 -->
 <div class="mobile-era-sheet" id="mobileEraSheet" aria-hidden="true">
   <div class="mes-backdrop" id="mobileEraSheetBackdrop"></div>
   <div class="mes-panel">
