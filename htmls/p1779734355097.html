@@ -304,7 +304,6 @@
     border-bottom: 2px solid var(--gold);
     border-top: none;
   }
-  .popover-layers .popover-arrow { right: 64px; }
   .popover-help {
     font-size: 10px;
     color: var(--cream-dim);
@@ -357,6 +356,30 @@
   .layer-toggle input { cursor: pointer; }
   .layer-toggle:hover { color: var(--gold); }
   .popover-divider { height: 1px; background: var(--line); margin: 10px 0; }
+
+  /* 詳細地図 (1:3,000地形図) — タイムラインから退避した8世代 (📐 ポップオーバー内) */
+  .dm-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px;
+    margin: 1px 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: "Shippori Mincho B1", serif;
+    color: var(--cream);
+    border-left: 2px solid transparent;
+    transition: all 0.12s;
+  }
+  .dm-row:hover { background: rgba(197, 79, 62, 0.14); }
+  .dm-row.active {
+    border-left-color: var(--vermillion);
+    background: rgba(200, 169, 106, 0.18);
+  }
+  .dm-row .dm-year {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--gold);
+    min-width: 64px;
+  }
   .tour-btn {
     width: 100%;
     background: transparent;
@@ -374,7 +397,6 @@
   @media (max-width: 720px) {
     .popover { width: calc(100vw - 16px); right: 8px; top: calc(8px + 44px + 8px); }
     .popover-arrow { right: 16px; }
-    .popover-layers .popover-arrow { right: 56px; }
   }
 
   /* v3: 浮世絵ピン (ティアドロップ風) */
@@ -570,6 +592,8 @@
     font-size: 12px;
     line-height: 1.6;
     min-height: 60px;
+    max-height: min(46vh, 340px);
+    overflow-y: auto;
   }
   .to-step h4 {
     font-family: "Shippori Mincho B1", serif;
@@ -578,6 +602,31 @@
     margin-bottom: 4px;
     font-weight: 500;
   }
+  /* 東京興亡史ツアー: 本文とは分離した史実メモ・留意点・出典 (折り畳み) */
+  .to-step .to-notes {
+    margin-top: 9px;
+    border-top: 1px dashed var(--line);
+    padding-top: 7px;
+  }
+  .to-step .to-notes summary {
+    cursor: pointer;
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 0.06em;
+    user-select: none;
+  }
+  .to-step .to-notes summary:hover { color: var(--vermillion); }
+  .to-step .to-notes p {
+    font-size: 10px;
+    color: var(--cream-dim);
+    line-height: 1.65;
+    margin-top: 6px;
+  }
+  .to-step .to-notes .to-fact::before { content: "史実: "; color: var(--moss); }
+  .to-step .to-notes .to-unc::before  { content: "留意: "; color: var(--gold); }
+  .to-step .to-notes .to-era-note::before { content: "地図: "; color: var(--silver); }
+  .to-step .to-notes a { color: var(--silver); text-decoration: underline; text-underline-offset: 2px; }
+  .to-step .to-notes a:hover { color: var(--vermillion); }
   .to-controls {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 14px;
@@ -722,6 +771,21 @@
   .so-divider {
     height: 1px; background: var(--line); margin: 8px 0;
   }
+  .info-panel { width: min(640px, calc(100vw - 32px)); }
+  .info-body { max-height: min(70vh, 620px); overflow-y: auto; }
+  .info-provider { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .info-provider:first-child { padding-top: 0; }
+  .info-provider h3 {
+    margin: 0 0 5px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 14px; font-weight: 500; color: var(--cream);
+  }
+  .info-provider p, .info-legal {
+    margin: 3px 0; font-size: 11px; line-height: 1.6; color: var(--cream-dim);
+  }
+  .info-provider a { color: var(--gold); text-decoration: none; }
+  .info-provider a:hover { text-decoration: underline; }
+  .info-legal { margin-top: 12px; opacity: 0.75; }
   /* モバイル時はショートカットは ESC のみ意味があるので "?" の説明文を少し変える */
   @media (max-width: 720px) {
     .so-panel { width: calc(100vw - 24px); }
@@ -782,33 +846,9 @@
     font-family: "Shippori Mincho B1", serif;
     font-size: 16px; color: var(--cream);
     letter-spacing: 0.06em;
+    min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .era-sub {
-    font-size: 11px; color: var(--cream-dim);
-    letter-spacing: 0.05em;
-  }
-  /* era-info はラベルとアトリビュートを縦積み (右側にはみ出す事故を防止) */
-  .era-info { flex-wrap: wrap; row-gap: 4px; }
-  .era-info > .era-meta { flex: 1 1 auto; min-width: 0; }
-  .era-attr {
-    flex: 1 1 100%;
-    font-size: 10px; color: var(--cream-dim);
-    letter-spacing: 0.04em;
-    text-align: left;
-    margin-top: 4px;
-    line-height: 1.4;
-    opacity: 0.7;
-    word-break: break-word;
-  }
-  .era-attr a { color: var(--gold); text-decoration: none; }
-  .era-attr a:hover { text-decoration: underline; }
-  .era-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-  .era-badge {
-    border: 1px solid var(--line); color: var(--cream-dim);
-    font-size: 9px; line-height: 1; padding: 3px 5px;
-    letter-spacing: 0.03em;
-  }
-  .era-badge.warning { border-color: rgba(200,169,106,0.7); color: var(--gold); }
 
   /* === 比較バー (比較モード時のみ表示) === */
   .compare-bar {
@@ -892,108 +932,48 @@
     transform: rotate(180deg);
   }
 
-  /* === Tracks (aerial top + paper bottom) === */
+  /* === Map selector: aerial and paper rails === */
   .tracks-wrap {
     position: relative;
     margin-bottom: 12px;
     user-select: none; -webkit-user-select: none;
   }
   .track {
-    position: relative;
-    height: 36px;
-  }
-  .track-label {
-    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    font-family: "Shippori Mincho B1", serif;
-    font-size: 10px; letter-spacing: 0.12em;
-    color: var(--cream-dim);
-    pointer-events: none;
-    background: rgba(15, 17, 22, 0.7);
-    padding: 2px 8px;
-    z-index: 3;
-  }
-  .track-ticks {
-    position: relative;
-    margin-left: 64px; /* room for label */
-    height: 100%;
-  }
-  /* 紙地図だけは時期数が多いため、独立した横スクロール領域にする */
-  .paper-scroll {
-    position: relative;
-    height: 100%;
-    margin-left: 64px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--line) transparent;
-    scroll-behavior: smooth;
-  }
-  .paper-scroll::-webkit-scrollbar { height: 3px; }
-  .paper-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-  .paper-scroll .track-ticks {
-    width: 1500px;
-    min-width: 1500px;
-    margin-left: 0;
-  }
-  .paper-track::after {
-    content: '';
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 28px;
-    pointer-events: none;
-    z-index: 4;
-    background: linear-gradient(to right, transparent, var(--ink));
-  }
-
-  /* === Map selector rails ===
-     Proportional tick placement cannot accommodate multiple overlapping map
-     editions.  The selector therefore uses chronological, independently
-     sized cards; the timeline's two source tracks remain visible. */
-  .tracks-wrap {
-    display: grid;
-    gap: 7px;
-    margin-bottom: 14px;
-  }
-  .track {
-    height: auto;
-    min-height: 46px;
-    display: grid;
-    grid-template-columns: 64px minmax(0, 1fr);
-    align-items: center;
-  }
-  .track-label {
-    position: static;
-    transform: none;
-    justify-self: start;
-  }
-  .track-ticks,
-  .paper-scroll .track-ticks {
-    width: auto;
-    min-width: 0;
-    height: auto;
-    margin-left: 0;
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px 7px 1px;
+    min-height: 40px;
+  }
+  .track-label {
+    flex: 0 0 70px;
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--cream-dim);
+    padding: 0 8px;
+  }
+  .track-ticks {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
+    padding: 4px 4px 6px;
     scrollbar-width: thin;
     scrollbar-color: var(--line) transparent;
   }
   .track-ticks::-webkit-scrollbar { height: 3px; }
   .track-ticks::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-  .paper-scroll {
-    margin-left: 0;
-    overflow: visible;
+  .track-divider {
+    height: 3px;
+    margin: 2px 0;
+    background: var(--vermillion);
+    box-shadow: 0 0 12px rgba(197, 79, 62, 0.5);
   }
-  .paper-track::after { right: 0; height: 46px; top: 0; bottom: auto; }
-  .track-divider { height: 1px; margin: 0 0 0 64px; }
-  .tick,
-  .aerial-track .tick,
-  .paper-track .tick {
+  .tick {
     position: relative;
-    left: auto !important;
     transform: none;
     flex: 0 0 auto;
     height: 30px;
@@ -1005,57 +985,16 @@
     border: 1px solid var(--line);
     border-radius: 3px;
     background: rgba(255,255,255,0.025);
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s;
+    z-index: 2;
   }
-  .aerial-track .tick .dot,
-  .paper-track .tick .dot,
-  .aerial-track .tick .year,
-  .paper-track .tick .year { order: initial; }
   .tick .year { font-size: 10px; }
   .tick:hover { transform: none; }
   .tick.active, .tick.select-a, .tick.select-b { border-color: var(--vermillion); }
   .tick.select-a { border-color: var(--cream); }
   .tick.select-b { border-color: var(--gold); }
-  .tick.select-a::after,
-  .tick.select-b::after,
-  .paper-track .tick.select-a::after,
-  .paper-track .tick.select-b::after {
-    top: -7px;
-    bottom: auto;
-    right: 3px;
-    left: auto;
-    transform: none;
-  }
-  .aerial-track .tick .tooltip,
-  .paper-track .tick .tooltip { top: calc(100% + 5px); bottom: auto; margin: 0; }
-  /* 真ん中の太い線 */
-  .track-divider {
-    position: relative;
-    height: 3px;
-    margin: 2px 0;
-    background: var(--vermillion);
-    box-shadow: 0 0 12px rgba(197, 79, 62, 0.5);
-  }
-  .track-divider::before {
-    content: ''; position: absolute; inset: -4px 0;
-    background: linear-gradient(to bottom, transparent, rgba(197, 79, 62, 0.18), transparent);
-  }
-  .tick {
-    position: absolute; top: 0; height: 100%;
-    transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center;
-    gap: 3px;
-    cursor: pointer;
-    transition: transform 0.15s;
-    z-index: 2;
-  }
-  /* 航空写真トラック: 年が上、ドットが下 (中央線寄り) */
-  .aerial-track .tick { justify-content: flex-end; padding-bottom: 0; }
-  .aerial-track .tick .year { order: 1; }
-  .aerial-track .tick .dot  { order: 2; }
-  /* 紙地図トラック: ドットが上 (中央線寄り)、年が下 */
-  .paper-track .tick  { justify-content: flex-start; padding-top: 0; }
-  .paper-track .tick .dot  { order: 1; }
-  .paper-track .tick .year { order: 2; }
   .tick .dot {
     width: 11px; height: 11px; border-radius: 50%;
     background: var(--ink-soft);
@@ -1106,7 +1045,6 @@
     font-family: "JetBrains Mono", monospace;
     font-size: 9px; color: var(--gold); letter-spacing: 0.04em;
   }
-  /* paper-track の A/B ラベルは下に出す */
   .paper-track .tick.select-a::after,
   .paper-track .tick.select-b::after {
     top: auto; bottom: -2px; transform: translateX(-50%) translateY(100%);
@@ -1196,29 +1134,16 @@
   }
   .panel-icon-btn:hover { border-color: var(--gold); color: var(--gold); }
   .panel-icon-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(200, 169, 106, 0.12); }
+  /* SVG アイコン (地形など) は絵文字とベースラインを揃える */
+  .panel-icon-btn svg { display: block; margin: -1px auto; }
 
-  /* v3: タイムラプス再生ボタン */
-  .play-btn {
-    padding: 8px 14px;
+  .info-btn {
+    padding: 8px 12px;
     background: transparent; border: 1px solid var(--line);
-    color: var(--cream-dim);
-    font-family: "JetBrains Mono", monospace;
-    font-size: 13px;
-    cursor: pointer; transition: all 0.2s;
-    flex-shrink: 0;
-    min-width: 42px;
+    color: var(--cream-dim); font-size: 11px;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
-  .play-btn:hover { border-color: var(--gold); color: var(--gold); }
-  .play-btn.playing {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--ink);
-    animation: play-pulse 1.5s ease-in-out infinite;
-  }
-  @keyframes play-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(200, 169, 106, 0.4); }
-    50%      { box-shadow: 0 0 0 8px rgba(200, 169, 106, 0); }
-  }
+  .info-btn:hover { border-color: var(--gold); color: var(--gold); }
   /* A/B のスライダー両端ラベルは v2 で削除 (slot bar と tick 色で既に識別可) */
   .slider-end { display: none !important; }
 
@@ -1416,7 +1341,6 @@
     color: var(--cream);
     box-shadow: 0 0 12px var(--vermillion-glow);
   }
-
   .mes-body {
     flex: 1; min-height: 0;
     overflow-y: auto;
@@ -1517,26 +1441,21 @@
     .icon-btn { min-width: 40px; padding: 0 10px; font-size: 14px; }
     .search-results { min-width: 0; width: calc(100vw - 16px); right: 0; max-width: none; }
     .leaflet-control-zoom { margin-top: 68px !important; }
-    /* Leaflet 帰属表示は panel と被るのでモバイルでは隠す。
-       代わりに era-attr (panel 内) で出典を見せる */
-    .leaflet-control-attribution { display: none !important; }
-    .era-attr {
+    /* 法的帰属表示はモバイルでも維持し、パネルの上へ逃がす。 */
+    .leaflet-bottom.leaflet-right { bottom: 224px; }
+    .leaflet-control-attribution {
       display: block !important;
-      max-width: 100%;
-      font-size: 9px;
-      margin-top: 4px;
-      text-align: left;
-      opacity: 0.6;
-      line-height: 1.3;
+      max-width: calc(100vw - 16px);
+      font-size: 8px; line-height: 1.25;
+      white-space: normal;
+      background: rgba(255,255,255,0.82) !important;
     }
     .bounds-hint { top: 64px; font-size: 11px; padding: 7px 12px; }
 
     /* === Era info === */
-    .era-info { gap: 8px; flex-wrap: wrap; margin-bottom: 8px; padding-bottom: 8px; }
+    .era-info { gap: 8px; margin-bottom: 8px; padding-bottom: 8px; }
     .era-year { font-size: 18px; min-width: 50px; }
     .era-label { font-size: 14px; }
-    .era-sub { font-size: 10px; }
-    .era-attr { display: none; }
 
     /* === Compare bar: stack vertically + ultra-compact on mobile === */
     .compare-bar.show { flex-direction: column; gap: 4px; }
@@ -1587,86 +1506,6 @@
     /* 折り畳み中は trigger ボタンも隠す */
     .panel.collapsed .mobile-era-trigger { display: none !important; }
 
-    /* === 旧: 横スクロール (非モバイルでは生かす) === */
-    .tracks-wrap-legacy-ignore {
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--line) transparent;
-      padding-bottom: 4px;
-    }
-    .tracks-wrap::-webkit-scrollbar { height: 3px; }
-    .tracks-wrap::-webkit-scrollbar-thumb { background: var(--line); }
-    .tracks-wrap > .track,
-    .tracks-wrap > .track-divider {
-      min-width: 1200px; /* v2: 760→1200px に拡大、ティック間隔を広げて密集回避 */
-    }
-    .track { height: 38px; padding: 0; }
-    /* モバイルでは label を隠してスペースを稼ぐ。ティックの色 (silver/gold/moss)
-       で航空写真/絵図/地形図 を識別できる */
-    .track-label { display: none; }
-    .track-ticks { margin-left: 0; min-width: 1140px; }
-    .paper-scroll { margin-left: 0; }
-    /* divider をモバイルで細く */
-    .track-divider { height: 2px; box-shadow: 0 0 6px rgba(197, 79, 62, 0.4); }
-    .tick .dot { width: 14px; height: 14px; }
-    .tick.active .dot,
-    .tick.select-a .dot,
-    .tick.select-b .dot { width: 18px; height: 18px; }
-    /* v2: モバイルは年ラベルを通常時は隠し、ドット色のみで識別。
-       選択中 (active / select-a / select-b) のティックだけ年を表示する。
-       これで topo_X や aerial_19XX の密集帯でも文字衝突しない */
-    .tick .year {
-      font-size: 10px;
-      display: none;
-    }
-    .tick.active .year,
-    .tick.select-a .year,
-    .tick.select-b .year {
-      display: block;
-      position: absolute;
-      left: 50%; transform: translateX(-50%);
-      padding: 1px 5px;
-      background: rgba(15, 17, 22, 0.9);
-      border-radius: 2px;
-      font-weight: 600;
-      white-space: nowrap;
-      pointer-events: none;
-    }
-    /* 航空写真トラック: バッジは下側 (中央線寄りの反対) */
-    .aerial-track .tick.active .year,
-    .aerial-track .tick.select-a .year,
-    .aerial-track .tick.select-b .year { top: -2px; transform: translateX(-50%) translateY(-100%); }
-    /* 紙地図トラック: バッジは下側 */
-    .paper-track .tick.active .year,
-    .paper-track .tick.select-a .year,
-    .paper-track .tick.select-b .year { bottom: -2px; transform: translateX(-50%) translateY(100%); }
-    .tick:hover { transform: translateX(-50%); /* disable hover-lift on mobile */ }
-    .tick:hover .dot { transform: scale(1); }
-    /* モバイルではタップで一時的に era 情報をフラッシュ表示 (JS が tap-flash クラスを付与) */
-    .tick .tooltip {
-      display: block;
-      position: absolute;
-      left: 50%; transform: translateX(-50%);
-      padding: 2px 7px;
-      background: rgba(15, 17, 22, 0.94);
-      color: var(--cream);
-      font-family: "Shippori Mincho B1", serif;
-      font-size: 10px;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      border-left: 2px solid var(--gold);
-      border-radius: 0;
-      z-index: 5;
-    }
-    .tick.tap-flash .tooltip { opacity: 1; }
-    .aerial-track .tick .tooltip { bottom: 100%; margin-bottom: 2px; top: auto; }
-    .paper-track .tick .tooltip  { top: 100%; margin-top: 2px; bottom: auto; }
-
     /* === Controls === */
     .controls-row { gap: 8px; flex-wrap: wrap; }
     .slider-wrap { flex: 1 1 100%; }
@@ -1698,7 +1537,7 @@
   <button class="icon-btn" id="locateBtn" title="現在地を表示">📍</button>
   <div class="search-results" id="searchResults">
     <div id="searchResultsContent" role="status" aria-live="polite"></div>
-    <div class="search-attribution">検索データ © OpenStreetMap contributors</div>
+    <div class="search-attribution">検索データ © OpenStreetMap contributors / 国土地理院 住所検索API</div>
   </div>
 </div>
 
@@ -1783,6 +1622,50 @@
   </div>
 </div>
 
+<!-- 地図提供元・出典・利用条件 -->
+<div class="shortcuts-overlay" id="infoOverlay" aria-hidden="true">
+  <div class="so-backdrop" id="infoBackdrop"></div>
+  <div class="so-panel info-panel" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="so-header">
+      <div class="so-title" id="infoTitle">地図情報</div>
+      <button class="so-close" id="infoClose" type="button" aria-label="閉じる">✕</button>
+    </div>
+    <div class="so-body info-body">
+      <section class="info-provider">
+        <h3>国土地理院</h3>
+        <p>最新のベース地図、年代別空中写真、年度別空中写真を使用しています。</p>
+        <p><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">地理院タイル一覧</a> · <a href="https://maps.gsi.go.jp/help/termsofuse.html" target="_blank" rel="noopener noreferrer">利用規約</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>ツナガルマップ（東京古地図展）</h3>
+        <p>江戸期から昭和期までの東京古地図タイルを使用しています。利用条件は提供元の案内に従います。</p>
+        <p><a href="https://www.tsunagaru-map.com/pf-tokyo/map.html" target="_blank" rel="noopener noreferrer">提供元ページ</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>今昔マップ on the web（谷謙二研究室）</h3>
+        <p>首都圏の旧版地形図を使用しています。「今昔マップ on the web」のクレジット表示が必要です。</p>
+        <p><a href="https://ktgis.net/kjmapw/tilemapservice.html" target="_blank" rel="noopener noreferrer">タイルサービスと利用条件</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>全国Q地図</h3>
+        <p>東京都作成の1:3,000地形図を使用しています。期間ごとに収録図郭が異なり、未収録部分は透明になります。</p>
+        <p><a href="https://qchizu.jp/tokyo-topographic-map/" target="_blank" rel="noopener noreferrer">東京都1:3,000地形図の解説</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>国立国会図書館デジタルコレクション</h3>
+        <p>享保年間の江戸絵図（PDM）を公式IIIF画像から取得し、独自のジオリファレンスで表示しています。</p>
+        <p><a href="https://dl.ndl.go.jp/pid/2542719" target="_blank" rel="noopener noreferrer">原資料</a> · <a href="https://dl.ndl.go.jp/ja/help_iiif" target="_blank" rel="noopener noreferrer">IIIF APIの利用</a></p>
+      </section>
+      <section class="info-provider">
+        <h3>OpenStreetMap / Nominatim</h3>
+        <p>住所・駅・地名検索にNominatimを使用しています。</p>
+        <p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></p>
+      </section>
+      <p class="info-legal">地図上のLeafletクレジットは、表示中のレイヤーに応じた法的帰属表示です。</p>
+    </div>
+  </div>
+</div>
+
 <div class="panel" id="panel">
   <button class="panel-toggle" id="panelToggle" title="パネルを開閉 (H キー)" aria-label="パネル開閉">
     <span class="chev">▼</span>
@@ -1792,12 +1675,7 @@
   </button>
   <div class="era-info" id="eraInfo">
     <div class="era-year" id="eraYear">—</div>
-    <div class="era-meta">
-      <div class="era-label" id="eraLabel">読み込み中…</div>
-      <div class="era-sub" id="eraSub"></div>
-      <div class="era-badges" id="eraBadges"></div>
-    </div>
-    <div class="era-attr" id="eraAttr"></div>
+    <div class="era-label" id="eraLabel">読み込み中…</div>
   </div>
   <div class="compact-compare" id="compactCompare"></div>
   <div class="compare-bar" id="compareBar"></div>
@@ -1817,9 +1695,7 @@
     <div class="track-divider"></div>
     <div class="track paper-track">
       <div class="track-label">紙地図</div>
-      <div class="paper-scroll" id="paperScroll">
-        <div class="track-ticks" id="paperTicks"></div>
-      </div>
+      <div class="track-ticks" id="paperTicks"></div>
     </div>
   </div>
   <div class="controls-row" id="controlsRow">
@@ -1828,9 +1704,12 @@
       <input type="range" min="0" max="100" value="100" class="slider" id="opacitySlider" />
       <div class="slider-val" id="opacityVal">100%</div>
     </div>
-    <button class="play-btn" id="playBtn" title="タイムラプス再生 (江戸→現代)">▶</button>
     <button class="panel-icon-btn" id="themeBtn" title="ベース地図（最新） (T キー)">🗺️</button>
-    <button class="panel-icon-btn" id="layersBtn" title="重ねるレイヤー / ガイドツアー">🗂</button>
+    <button class="panel-icon-btn" id="terrainBtn" title="地形レイヤー (陰影起伏・治水地形)"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M2.5 19 L9 7 L12.8 13.4 L15.3 9.6 L21.5 19 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path d="M7.2 10.3 L9 7 L10.8 10.1" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" opacity="0.65"/></svg></button>
+    <button class="panel-icon-btn" id="detailBtn" title="詳細地図 (東京都1:3,000地形図)">📐</button>
+    <button class="panel-icon-btn" id="ukiyoeBtn" title="浮世絵ピン ON/OFF (広重・名所江戸百景)">🖼</button>
+    <button class="panel-icon-btn" id="tourBtn" title="ガイドツアー">📖</button>
+    <button class="info-btn" id="infoBtn" type="button" title="地図提供元・出典・利用条件">ⓘ 情報</button>
     <button class="compare-btn" id="compareBtn" title="2つの時代を選んで重ねる">⇆ 比較</button>
   </div>
 
@@ -1841,15 +1720,24 @@
     <div class="popover-body" id="themePopoverBody"></div>
   </div>
 
-  <!-- v3.1: レイヤー切替ポップオーバー -->
-  <div class="popover popover-layers" id="layersPopover" aria-hidden="true">
+  <!-- 地形レイヤー ポップオーバー (⛰ ボタンに anchor) -->
+  <div class="popover" id="terrainPopover" aria-hidden="true">
     <div class="popover-arrow"></div>
-    <div class="popover-title">オーバーレイとツアー</div>
+    <div class="popover-title">地形レイヤー</div>
     <div class="popover-body">
-      <label class="layer-toggle"><input type="checkbox" id="layerUkiyoe" /> <span>🖼 浮世絵ピン (広重・名所江戸百景)</span></label>
-      <div class="popover-help">※ 五街道/鉄道/海岸線は<b>歴史地図タイル自身</b>に既に描かれています。年代を変えて確認してください。</div>
-      <div class="popover-divider"></div>
-      <button class="tour-btn" id="tourBtn">🧭 ガイドツアーを選ぶ…</button>
+      <label class="layer-toggle"><input type="checkbox" id="layerHillshade" /> <span>⛰ 陰影起伏図 (地形の凹凸)</span></label>
+      <label class="layer-toggle"><input type="checkbox" id="layerChisui" /> <span>💧 治水地形分類図 (旧河道・埋立地)</span></label>
+      <div class="popover-help">どの時代の地図にも半透明で重なります。地形と埋立の歴史を重ねて読むためのレイヤーです。</div>
+    </div>
+  </div>
+
+  <!-- 詳細地図 ポップオーバー (📐 ボタンに anchor) -->
+  <div class="popover" id="detailPopover" aria-hidden="true">
+    <div class="popover-arrow"></div>
+    <div class="popover-title">詳細地図 — 東京都1:3,000地形図</div>
+    <div class="popover-body">
+      <div id="detailMapsList"></div>
+      <div class="popover-help">1952–69年の8世代。23区中心・拡大時のみ描画。選ぶと表示中の時代と入れ替わります。</div>
     </div>
   </div>
 </div>
@@ -1868,9 +1756,9 @@
     </div>
     <div class="mes-filters" id="mobileEraSheetFilters">
       <button class="mes-chip is-active" data-filter="all" type="button">すべて</button>
-      <button class="mes-chip" data-filter="old"    type="button">古地図</button>
+      <button class="mes-chip" data-filter="old" type="button">古地図</button>
       <button class="mes-chip" data-filter="aerial" type="button">航空写真</button>
-      <button class="mes-chip" data-filter="topo"   type="button">地形図</button>
+      <button class="mes-chip" data-filter="topo" type="button">地形図</button>
     </div>
     <div class="mes-body" id="mobileEraSheetBody"></div>
   </div>
@@ -1886,7 +1774,6 @@
 // bounds: [[南緯, 西経], [北緯, 東経]] (該当エリアのみタイル取得 → エリア外は淡色が透ける)
 // ============================================================
 const GSI_SOURCE_URL = 'https://maps.gsi.go.jp/development/ichiran.html';
-const QCHIZU_SOURCE_URL = 'https://qchizu.jp/maps/#11/35.695504/139.567566/&base=pale&ls=pale%7C13p_tokyo_03&blend=0&disp=11&lcd=13p_tokyo_03';
 const TSUNAGARU_SOURCE_URL = 'https://www.tsunagaru-map.com/pf-tokyo/map.html';
 const KONJAKU_SOURCE_URL = 'https://ktgis.net/kjmapw/tilemapservice.html';
 const GSI = `<a href="${GSI_SOURCE_URL}" target="_blank" rel="noopener noreferrer">地理院タイル</a>`;
@@ -1906,7 +1793,7 @@ const ERAS = [
   // 享保江戸図 — NDL原画像を既存の測地基準点でアフィン補正して表示
   // 1644-1860 の 216 年ギャップを埋める中間時代。絵図ゆえ場所により数百 m の歪みあり
   { id: 'kyoho',     year: 1720, label: '享保年間', sub: '江戸絵図 (伊賀屋・中型図)', cat: 'old',
-    affineImage: 'kyoho-edo-1720.jpg', resourceSize: [19366, 11324],
+    affineImage: 'https://dl.ndl.go.jp/api/iiif/2542719/R0000002/full/full/0/default.jpg', resourceSize: [19366, 11324],
     gcps: [
       [10840, 4540, 35.6866, 139.7565], [6736, 9618, 35.6650, 139.7847],
       [16950, 5700, 35.7121, 139.7666], [17538, 9043, 35.7148, 139.7967],
@@ -2020,48 +1907,47 @@ const ERAS = [
 ];
 
 // 公式公開情報に照らした表示用メタデータ。
+const eraMeta = (dateRange, sourceType = '実測資料', note = '') => ({ dateRange, sourceType, note });
 const ERA_METADATA = {
-  edo_pre: { dateRange: '1600', sourceType: '復元図', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '想像図（推定を含む）。' },
-  edo_early: { dateRange: '1644–1648（正保年間）', sourceType: '実測資料', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '正保年中江戸絵図。' },
-  kyoho: { dateRange: '1720', sourceType: '実測資料', confidence: '参考', sourceUrl: 'https://dl.ndl.go.jp/pid/2542719', sourceName: '国立国会図書館デジタルコレクション', note: 'IIIF画像を独自ジオリファレンスでワープ表示。' },
-  edo_late: { dateRange: '1860', sourceType: '実測資料', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '江戸図 萬延。' },
-  meiji: { dateRange: '1880', sourceType: '実測資料', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '旧版地形図。' },
-  taisho: { dateRange: '1920', sourceType: '実測資料', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '旧版地形図。' },
-  showa_pre: { dateRange: '1930', sourceType: '実測資料', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '旧版地形図。' },
-  aerial_1936: { dateRange: '1936–1942年頃', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '国土地理院の公式区分による撮影期間。ズーム13–18。' },
-  aerial_1945: { dateRange: '1945–1950年', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '国土地理院の公式区分による撮影期間。ズーム10–17。' },
-  showa_mid: { dateRange: '1955', sourceType: '実測資料', confidence: '参考', sourceUrl: TSUNAGARU_SOURCE_URL, sourceName: 'ツナガルマップ（東京古地図展）', note: '旧版地形図。' },
-  konjaku_1896: { dateRange: '1896–1909', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1917: { dateRange: '1917–1924', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1927: { dateRange: '1927–1939', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1944: { dateRange: '1944–1954', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1965: { dateRange: '1965–1968', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1975: { dateRange: '1975–1978', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1983: { dateRange: '1983–1987', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1992: { dateRange: '1992–1995', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  konjaku_1998: { dateRange: '1998–2005', sourceType: '実測資料', confidence: '確認済み', sourceUrl: KONJAKU_SOURCE_URL, sourceName: '今昔マップ on the web', note: '首都圏旧版地形図。南西起点のTMSタイル、ズーム8–15。' },
-  topo_1: { dateRange: '1952–1958', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。期間ごとに収録図郭が異なります。' },
-  topo_2: { dateRange: '1959', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。公式レイヤー区分は1959–1960年。' },
-  aerial_1961: { dateRange: '1961–1969', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '撮影期間あり、ズーム10–17。' },
-  topo_3: { dateRange: '1961', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。公式レイヤー区分は1961–1962年。' },
-  topo_4: { dateRange: '1963', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。公式レイヤー区分は1963–1964年。' },
-  topo_5: { dateRange: '1965', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。公式レイヤー区分は1965–1966年。' },
-  aerial_1974: { dateRange: '1974–1978', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '国土画像情報。撮影期間あり、ズーム10–17。' },
-  topo_6: { dateRange: '1967', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。期間ごとに収録図郭が異なります。' },
-  aerial_1979: { dateRange: '1979–1983', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '国土画像情報。撮影期間あり、ズーム10–17。' },
-  topo_7: { dateRange: '1968', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。期間ごとに収録図郭が異なります。' },
-  aerial_1984: { dateRange: '1984–1986', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '国土画像情報。撮影期間あり、ズーム10–17。' },
-  aerial_1987: { dateRange: '1987–1990', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '国土画像情報。撮影期間あり、ズーム10–17。' },
-  aerial_2009: { dateRange: '2009年度', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '年度別空中写真。東京都心で実タイル確認済み、ズーム14–18。' },
-  aerial_2014: { dateRange: '2014年度', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '年度別空中写真。東京都心で実タイル確認済み、ズーム14–18。' },
-  aerial_2017: { dateRange: '2017年度', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '年度別空中写真。東京都心で実タイル確認済み、ズーム14–18。' },
-  aerial_2019: { dateRange: '2019年度', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '年度別空中写真。東京都心で実タイル確認済み、ズーム14–18。' },
-  topo_8: { dateRange: '1969', sourceType: '実測資料', confidence: '確認済み', sourceUrl: QCHIZU_SOURCE_URL, sourceName: '全国Q地図', note: '東京都作成・縮尺1:3,000。公式レイヤー区分は1969–1970年。' },
-  modern: { dateRange: '現代', sourceType: '実測資料', confidence: '確認済み', sourceUrl: GSI_SOURCE_URL, sourceName: '国土地理院・地理院タイル', note: '淡色地図のベースマップ。' },
+  edo_pre: eraMeta('1600', '復元図', '想像図（推定を含む）。'),
+  edo_early: eraMeta('1644–1648（正保年間）', '実測資料', '正保年中江戸絵図。'),
+  kyoho: eraMeta('1720', '実測資料', 'IIIF画像を独自ジオリファレンスで表示。'),
+  edo_late: eraMeta('1860', '実測資料', '江戸図 萬延。'),
+  meiji: eraMeta('1880', '実測資料', '旧版地形図。'),
+  taisho: eraMeta('1920', '実測資料', '旧版地形図。'),
+  showa_pre: eraMeta('1930', '実測資料', '旧版地形図。'),
+  aerial_1936: eraMeta('1936–1942年頃'),
+  aerial_1945: eraMeta('1945–1950年'),
+  showa_mid: eraMeta('1955', '実測資料', '旧版地形図。'),
+  konjaku_1896: eraMeta('1896–1909'),
+  konjaku_1917: eraMeta('1917–1924'),
+  konjaku_1927: eraMeta('1927–1939'),
+  konjaku_1944: eraMeta('1944–1954'),
+  konjaku_1965: eraMeta('1965–1968'),
+  konjaku_1975: eraMeta('1975–1978'),
+  konjaku_1983: eraMeta('1983–1987'),
+  konjaku_1992: eraMeta('1992–1995'),
+  konjaku_1998: eraMeta('1998–2005'),
+  topo_1: eraMeta('1952–1958'),
+  topo_2: eraMeta('1959'),
+  aerial_1961: eraMeta('1961–1969'),
+  topo_3: eraMeta('1961'),
+  topo_4: eraMeta('1963'),
+  topo_5: eraMeta('1965'),
+  aerial_1974: eraMeta('1974–1978'),
+  topo_6: eraMeta('1967'),
+  aerial_1979: eraMeta('1979–1983'),
+  topo_7: eraMeta('1968'),
+  aerial_1984: eraMeta('1984–1986'),
+  aerial_1987: eraMeta('1987–1990'),
+  aerial_2009: eraMeta('2009年度'),
+  aerial_2014: eraMeta('2014年度'),
+  aerial_2017: eraMeta('2017年度'),
+  aerial_2019: eraMeta('2019年度'),
+  topo_8: eraMeta('1969'),
+  modern: eraMeta('現代'),
 };
-ERAS.forEach(era => Object.assign(era, ERA_METADATA[era.id] || {
-  dateRange: String(era.year), sourceType: '推定', confidence: '参考', sourceUrl: '', sourceName: '出典情報なし', note: ''
-}));
+ERAS.forEach(era => Object.assign(era, ERA_METADATA[era.id] || eraMeta(String(era.year), '推定')));
 
 function eraDisplayDate(era) { return era && era.dateRange ? era.dateRange : String(era.year); }
 function eraTickDate(era) {
@@ -2074,15 +1960,7 @@ function eraTickDate(era) {
     .replace(/（萬延元）/g, '');
 }
 function eraAttribution(era) {
-  if (!era || !era.sourceUrl) return era && era.attr ? era.attr : '';
-  return `<a href="${escapeHtml(era.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(era.sourceName || '出典')}</a>`;
-}
-function eraBadges(era) {
-  if (!era) return '';
-  const badges = [era.sourceType || '推定'];
-  if (/推定|想像/.test(era.note || '')) badges.push('推定');
-  if (era.cat === 'aerial' && (/–/.test(era.dateRange || '') || /年度/.test(era.note || ''))) badges.push('撮影期間あり');
-  return badges.map(label => `<span class="era-badge">${escapeHtml(label)}</span>`).join('');
+  return era && era.attr ? era.attr : '';
 }
 
 function findEra(id) { return ERAS.find(e => e.id === id); }
@@ -2510,10 +2388,9 @@ function renderEraInfo() {
     eraInfo.classList.remove('hide');
     if (eraA) {
       document.getElementById('eraYear').textContent = eraDisplayDate(eraA);
-      document.getElementById('eraLabel').textContent = eraA.label;
-      document.getElementById('eraSub').textContent = eraA.sub || '';
-      document.getElementById('eraBadges').innerHTML = eraBadges(eraA);
-      document.getElementById('eraAttr').innerHTML = `${eraAttribution(eraA)}${eraA.note ? ' — ' + escapeHtml(eraA.note) : ''}`;
+      document.getElementById('eraLabel').textContent = eraA.sub
+        ? `${eraA.label} — ${eraA.sub}`
+        : eraA.label;
     }
   }
 }
@@ -2523,23 +2400,43 @@ function renderTicks() {
   const paperDiv = document.getElementById('paperTicks');
   aerialDiv.innerHTML = '';
   paperDiv.innerHTML = '';
-  ERAS.slice().sort((a, b) => a.year - b.year || a.id.localeCompare(b.id)).forEach(era => {
-    if (era.cat === 'modern') return;
-    if (!eraHasLayer(era)) return; // qchizu 検出前の topo はスキップ
+  // topo (1:3,000地形図×8世代) はほぼ同じ見た目でタイムラインを密集させるため
+  // タイムラインには出さず、🗂レイヤーポップオーバーの「詳細地図」から選ぶ
+  const eras = ERAS.filter(era => era.cat !== 'modern' && era.cat !== 'topo' && eraHasLayer(era))
+    .sort((a, b) => a.year - b.year || a.id.localeCompare(b.id));
+  eras.forEach(era => {
     const tick = document.createElement('div');
     tick.className = `tick cat-${era.cat}`;
     tick.dataset.id = era.id;
     tick.setAttribute('aria-label', `${eraDisplayDate(era)} ${era.label}`);
-    tick.style.left = yearToX(era.year) + '%';
     tick.innerHTML = `
       <div class="dot"></div>
       <div class="year">${escapeHtml(eraTickDate(era))}</div>
       <div class="tooltip">${escapeHtml(eraDisplayDate(era))} ${escapeHtml(era.label)}${era.sub ? ' — ' + escapeHtml(era.sub) : ''}</div>
     `;
     tick.addEventListener('click', () => tickClicked(era.id));
-    // v2.1: ホバーで era の bounds をマップ上にハイライト (デスクトップのみ意味あり)
-    if (era.cat === 'aerial') aerialDiv.appendChild(tick);
-    else paperDiv.appendChild(tick); // 'old' or 'topo'
+    (era.cat === 'aerial' ? aerialDiv : paperDiv).appendChild(tick);
+  });
+}
+
+// 🗂ポップオーバー内の「詳細地図」リスト (タイムラインから退避した topo 8世代)
+function buildDetailMapsList() {
+  const listEl = document.getElementById('detailMapsList');
+  if (!listEl) return;
+  const topos = ERAS.filter(era => era.cat === 'topo' && eraHasLayer(era))
+    .sort((a, b) => a.year - b.year || a.id.localeCompare(b.id));
+  listEl.innerHTML = topos.map(era => `
+    <div class="dm-row" data-id="${era.id}">
+      <span class="dm-year">${escapeHtml(eraDisplayDate(era))}</span>
+      <span>${escapeHtml(era.label)}</span>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.dm-row').forEach(row => {
+    row.addEventListener('click', () => {
+      tickClicked(row.dataset.id);
+      // 選択を見せてから閉じる (テーマ選択と同じ挙動)
+      setTimeout(() => closeAllPopovers(), 200);
+    });
   });
 }
 
@@ -2553,6 +2450,12 @@ function renderTickHighlights() {
       if (eraB && t.dataset.id === eraB.id) t.classList.add('select-b');
     }
   });
+  // 詳細地図リストの選択状態も同期
+  document.querySelectorAll('#detailMapsList .dm-row').forEach(row => {
+    const id = row.dataset.id;
+    row.classList.toggle('active',
+      (eraA && eraA.id === id) || (eraB && eraB.id === id));
+  });
   document.getElementById('tracksWrap').classList.toggle('compare', mode === 'compare');
 
   // モバイル時、アクティブティックを横スクロール領域内に表示
@@ -2560,13 +2463,16 @@ function renderTickHighlights() {
 }
 
 function scrollActiveTickIntoView() {
-  const focus = document.querySelector('.paper-track .tick.select-b, .paper-track .tick.active, .paper-track .tick.select-a');
-  const scroller = document.getElementById('paperScroll');
+  const focus = document.querySelector('.tick.select-b, .tick.active, .tick.select-a');
+  const scroller = focus && focus.closest('.track-ticks');
   if (!scroller || !focus) return;
-  // offsetLeft を使うことで、URL 復元直後でも紙地図トラック内の位置を確実に求める。
+  if (window.matchMedia('(max-width: 720px)').matches) return;
   requestAnimationFrame(() => {
-    const target = focus.offsetLeft - (scroller.clientWidth - focus.offsetWidth) / 2;
-    scroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+    const cardRect = focus.getBoundingClientRect();
+    const listRect = scroller.getBoundingClientRect();
+    if (cardRect.left < listRect.left || cardRect.right > listRect.right) {
+      focus.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   });
 }
 
@@ -2751,10 +2657,19 @@ const OVERLAY_DATA = {
   ],
 };
 
-// オーバーレイ状態 (ukiyoe のみ)
-const overlayState = { ukiyoe: false };
+// オーバーレイ状態
+const overlayState = { ukiyoe: false, hillshade: false, chisui: false };
 const OVERLAY_KEY = 'edo-konjaku-v3-overlay-';
-const overlayLayers = { ukiyoe: L.layerGroup() };
+// 地形タイルは時代図 (tilePane z200) の上・ベクター (overlayPane z400) の下に半透明で重ねる
+map.createPane('terrainPane');
+map.getPane('terrainPane').style.zIndex = 250;
+const overlayLayers = {
+  ukiyoe: L.layerGroup(),
+  hillshade: L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+    pane: 'terrainPane', opacity: 0.55, maxNativeZoom: 16, maxZoom: 19, attribution: GSI }),
+  chisui: L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/lcmfc2/{z}/{x}/{y}.png', {
+    pane: 'terrainPane', opacity: 0.5, minZoom: 9, maxNativeZoom: 16, maxZoom: 19, attribution: GSI }),
+};
 
 function renderUkiyoeOverlay() {
   overlayLayers.ukiyoe.clearLayers();
@@ -2780,12 +2695,14 @@ function setOverlay(key, on) {
     map.removeLayer(overlayLayers[key]);
   }
   try { localStorage.setItem(OVERLAY_KEY + key, on ? '1' : '0'); } catch (_) {}
+  if (key === 'ukiyoe') syncUkiyoeBtn();
 }
 function updateEraSensitiveOverlays() { /* v3.1: 偽オーバーレイ撤去後は不要 */ }
 
-// チェックボックスを wire up
+// 地形チェックボックス (⛰ ポップオーバー内) を wire up
 const overlayCheckboxes = {
-  ukiyoe: document.getElementById('layerUkiyoe'),
+  hillshade: document.getElementById('layerHillshade'),
+  chisui: document.getElementById('layerChisui'),
 };
 Object.entries(overlayCheckboxes).forEach(([key, cb]) => {
   try {
@@ -2793,6 +2710,12 @@ Object.entries(overlayCheckboxes).forEach(([key, cb]) => {
   } catch (_) {}
   cb.addEventListener('change', () => setOverlay(key, cb.checked));
 });
+
+// 浮世絵ピンは 🖼 ボタンのワンクリック ON/OFF (ポップオーバーなし)
+const ukiyoeBtn = document.getElementById('ukiyoeBtn');
+function syncUkiyoeBtn() { ukiyoeBtn.classList.toggle('active', !!overlayState.ukiyoe); }
+ukiyoeBtn.addEventListener('click', () => setOverlay('ukiyoe', !overlayState.ukiyoe));
+try { if (localStorage.getItem(OVERLAY_KEY + 'ukiyoe') === '1') setOverlay('ukiyoe', true); } catch (_) {}
 
 // POI モーダル 閉じる + divider drag
 document.getElementById('poiClose').addEventListener('click', closePoiModal);
@@ -2805,6 +2728,91 @@ attachPoiDividerDrag();
 // v3.1: テーマ別ガイドツアー
 // 各ツアーは「東京の特定テーマ」を掘り下げる構造
 const TOURS = [
+  {
+    // 東京興亡史 — 「東京興亡史 8章 統合データ表 v2.1 (2026-07-17) 最終監査済」より実装。
+    // マーカー座標 = 地図変化が最も見える地点 (bestViewPlace)。出来事の象徴地点 (symbolPlace) は本文メモ内に記載。
+    // 表示ERAは全章「後世の復元図 / 近似年代図」前提 (事件当時の実測図は現存せず)。
+    id: 'kobo_shi',
+    icon: '📜',
+    title: '東京興亡史',
+    theme: '通史 1590–現代',
+    desc: '家康入府から高度成長まで。8つの転換点で東京436年の興亡を辿る。各章に史実メモ・留意点・出典つき (8地点)',
+    steps: [
+      // 全章 zoom 13 固定: 都市全体の変化を読むツアーなのでスポットに寄らない
+      { name: '家康入府', lat: 35.6785, lng: 139.7595, zoom: 13, era: 'edo_pre',
+        text: '<h4>第一章 家康入府 — 1590 (天正18)</h4>'
+          + '天正十八年、徳川家康は東国の低湿地・江戸に入った。だがここは中世以来、太田道灌の城と江戸湊を抱えた水陸交通の要衝でもあった。秀吉が与えた辺境の地に、家康は日本の重心を東へ動かす好機を見る。城を修め、湊を活かし、水を引く。のちに百万都市となる江戸の物語は、この入府から静かに始まった。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1590年8月1日入城。江戸城は1457年頃太田道灌築城。城東側まで日比谷入江。芝浦は入府以前からの漁場。象徴地点: 江戸城天守台 (皇居東御苑)。</p>'
+          + '<p class="to-unc">「寒村」説は近年の研究で修正 (齋藤慎一2021ほか)。典拠『落穂集追加』は130年後の伝聞史料。当時の実測地図は現存せず復元図に依拠。</p>'
+          + '<p class="to-era-note">表示 = 江戸以前・想像図 (後世の復元図) / 比較 = 現代地図</p>'
+          + '<p>出典: <a href="https://www.bousai.go.jp/kyoiku/kyokun/kyoukunnokeishou/rep/1657_meireki_edotaika/pdf/1657-meireki-edoTAIKA_03_chap1.pdf" target="_blank" rel="noopener">内閣府防災</a> · <a href="https://crd.ndl.go.jp/reference/entry/index.php?id=1000360545&amp;page=ref_view" target="_blank" rel="noopener">NDLレファレンス</a> · <a href="https://www.toshiseibi.metro.tokyo.lg.jp/documents/d/toshiseibi/pdf_keikaku_chousa_singikai_pdf_tokyotoshizukuri_0_01" target="_blank" rel="noopener">東京都都市整備局</a> · <a href="https://www.ndl.go.jp/landmarks/sights/shibaura" target="_blank" rel="noopener">NDL (芝浦)</a></p>'
+          + '</details>' },
+      { name: '江戸の大改造', lat: 35.6854, lng: 139.7747, zoom: 13, era: 'edo_early',
+        text: '<h4>第二章 江戸の大改造 — 1603〜1636 (天下普請)</h4>'
+          + '幕府を開いた家康は、全国の大名を動員し都市そのものを作り替えた。神田山を削り、その土や城普請の残土で日比谷入江を埋め、堀を「の」の字に巡らせる。慶長九年、日本橋は五街道の起点に定められた。江戸は自然の地形を人の意志で上書きした都市となる。だがこの過密な木の都は、やがて炎に試されることになる。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">日本橋架橋1603年、五街道起点化1604年。埋立は1592年開始・1603年以降本格化。外濠完成1636年。象徴地点: 日本橋。</p>'
+          + '<p class="to-unc">埋立土砂は神田山のみでなく城普請残土も併用の説。普請完了時期は画期の取り方で幅。「渦巻状」は概念的表現。</p>'
+          + '<p class="to-era-note">表示 = 江戸初期・正保年中江戸絵図 (近似年代) / 比較 = 現代地図 (補助: 江戸以前想像図)</p>'
+          + '<p>出典: <a href="https://www.meiji.ac.jp/history/meidai_sanmyaku/thema/article/mkmht000000t9raf.html" target="_blank" rel="noopener">明治大学</a> · <a href="https://www.pa.ktr.mlit.go.jp/tokyo/history/index.htm" target="_blank" rel="noopener">国交省関東地方整備局</a> · <a href="https://www.ndl.go.jp/landmarks/sights/nihonbashi" target="_blank" rel="noopener">NDL (日本橋)</a></p>'
+          + '</details>' },
+      { name: '明暦の大火と復興', lat: 35.6940, lng: 139.7928, zoom: 13, era: 'kyoho',
+        text: '<h4>第三章 明暦の大火と復興 — 1657 (明暦3)</h4>'
+          + '明暦三年、炎は三日にわたり江戸の大半を呑み込み、天守すら焼き落とした。幕府は焼け跡に火除地と広小路を設け、寺社を郊外へ移し、両国橋を架けて川向こうの本所・深川へ町を広げる。破壊は終わりではない。巨大都市・江戸は、灰の中から東へ、その姿を再設計していった。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1657年3月、三件の大火の総称。天守は以後再建せず。両国橋架橋 = 万治2年 (1659、NDL採用)。回向院建立。象徴地点: 回向院。</p>'
+          + '<p class="to-unc">死者3万〜10万超と諸説 (『武江年表』10万7046人 /『元延実録』約6万8000人)。架橋1661年説あり。「大火による都市改造」を神話とする異論 (岩本馨2021)。江戸期の橋は現在位置よりやや下流。</p>'
+          + '<p class="to-era-note">表示 = 享保年間江戸絵図 (大火後の復元。明暦直後図は未収録) / 比較 = 江戸初期図・現代地図</p>'
+          + '<p>出典: <a href="https://www.ndl.go.jp/en/landmarks/sights/ryogokubashi" target="_blank" rel="noopener">NDL (両国橋)</a> · <a href="https://www.bousai.go.jp/kyoiku/kyokun/kyoukunnokeishou/rep/1657_meireki_edotaika/index.html" target="_blank" rel="noopener">内閣府防災</a> · <a href="https://www.tfd.metro.tokyo.lg.jp/libr/qa/qa_30.htm" target="_blank" rel="noopener">東京消防庁</a></p>'
+          + '</details>' },
+      { name: '黒船と幕府の終焉', lat: 35.6376, lng: 139.7722, zoom: 13, era: 'edo_late',
+        text: '<h4>第四章 黒船と幕府の終焉 — 1853〜1868</h4>'
+          + '嘉永六年、四隻の蒸気船が浦賀沖に現れ、二百年余の泰平は軋みはじめた。幕府は品川沖に急ぎ砲台の島を築くが、島は一度も火を噴かぬまま開国を迎える。慶応四年、江戸城は戦わずして明け渡された。だが上野では彰義隊と新政府軍が衝突し、山は焼けた。大規模な市街戦を免れた江戸は、その名を東京へ譲ってゆく。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1853年6月ペリー来航。同年8月台場着工、第一〜第三は1854年7月竣工。現存は第三・第六。1859年横浜開港。1868年4月江戸無血開城、5月上野戦争。象徴地点: 第三台場 (台場公園) — 海上砲台→陸続き・臨海副都心の変化が同地点で見える。</p>'
+          + '<p class="to-unc">台場計画数は11〜12基と諸説。</p>'
+          + '<p class="to-era-note">表示 = 江戸末期・江戸図萬延 (近似年代) / 比較 = 現代地図</p>'
+          + '<p>出典: <a href="https://www.tptc.co.jp/park/01_01/history" target="_blank" rel="noopener">東京港埠頭</a> · <a href="https://www.kissport.or.jp/spot/tanbou/1905/" target="_blank" rel="noopener">港区Kissポート</a> · <a href="https://www.ndl.go.jp/landmarks/sights/shinagawa" target="_blank" rel="noopener">NDL (品川)</a> · <a href="https://www.ndl.go.jp/landmarks/sights/yokohama" target="_blank" rel="noopener">NDL (横浜)</a></p>'
+          + '</details>' },
+      { name: '文明開化', lat: 35.6717, lng: 139.7649, zoom: 13, era: 'meiji',
+        text: '<h4>第五章 文明開化 — 1868〜1889</h4>'
+          + '江戸は東京と名を改め、天皇を迎えた。明治五年、新橋に汽笛が響き、翌年からは銀座に煉瓦街とガス灯が並ぶ。人々は髷を落とし、太陽暦に替え、世界の時間に合流した。だが火に強いはずの煉瓦街は高価で畳の暮らしにも合わず、当初は借り手がつかなかった。理想と現実の落差もまた、生まれたばかりの首都の学びとなった。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1872年鉄道開業。1872年銀座大火→煉瓦街建設 (1873年銀座通り、1877年完成)。1874年ガス灯85基。「借り手がつかず」は東京都公文書館の記録に裏づけ。象徴地点: 銀座煉瓦街 (銀座通り)。</p>'
+          + '<p class="to-unc">煉瓦街不人気の要因は複合的 (湿気・家賃・生活様式)。旧新橋停車場の現駅舎は2003年復元 (震災で焼失)。</p>'
+          + '<p class="to-era-note">表示 = 明治初期・旧版地形図 (近似年代) / 比較 = 江戸末期図・現代地図</p>'
+          + '<p>出典: <a href="https://www.soumu.metro.tokyo.lg.jp/01soumu-archives/07edo_tokyo/0701syoko_kara02" target="_blank" rel="noopener">東京都公文書館</a> · <a href="https://www.shibusawa.or.jp/eiichi/wagamachi/914.html" target="_blank" rel="noopener">渋沢栄一記念財団</a> · <a href="https://www.ejrcf.or.jp/shinbashi/facilities.html" target="_blank" rel="noopener">旧新橋停車場</a> · <a href="https://www.ndl.go.jp/landmarks/sights/ginza" target="_blank" rel="noopener">NDL (銀座)</a></p>'
+          + '</details>' },
+      { name: '関東大震災', lat: 35.6818, lng: 139.7973, zoom: 13, era: 'showa_pre',
+        text: '<h4>第六章 関東大震災 — 1923 (大正12)</h4>'
+          + '大正十二年九月一日、正午前。大地は江戸以来の木の都を揺るがし、火災旋風が街を襲った。被服廠跡だけで約三万八千の命が失われ、東京全体の死者・行方不明は約十万五千人にのぼる。だが廃墟から立ち上がった帝都復興計画は、昭和通りと復興橋梁、小公園の網を都市に刻んだ。現代東京の骨格は、この悲劇の上に引かれている。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1923年9月1日11時58分、M7.9。死者・行方不明約10万5000人 (内閣府推計)、うち火災死約9万1781人。被服廠跡約3万8000人。復興 = 昭和通り (1928)、復興橋梁、三大公園、復興小学校117校+小公園52。象徴地点: 横網町公園 (旧被服廠跡・東京都慰霊堂)。マーカーは清洲橋西詰〜浜町 — 復興橋梁・復興街路が読める。</p>'
+          + '<p class="to-unc">旧説約14万人は二重集計により修正。火災旋風メカニズムには研究の余地 (内閣府)。</p>'
+          + '<p class="to-era-note">表示 = 昭和初期・旧版地形図 (震災復興後) / 比較 = 大正図・現代地図</p>'
+          + '<p>出典: <a href="https://www.bousai.go.jp/kaigirep/hakusho/r05/honbun/t1_1s_01_00.html" target="_blank" rel="noopener">防災白書</a> · <a href="https://www.bousai.go.jp/kohou/kouhoubousai/r05/108/special_01.html" target="_blank" rel="noopener">内閣府広報</a> · <a href="https://tokyoireikyoukai.or.jp/park/history.html" target="_blank" rel="noopener">東京都慰霊協会</a> · <a href="https://www.jaee.gr.jp/stack/submit-j/v04n04/040402_paper.pdf" target="_blank" rel="noopener">日本地震工学会</a></p>'
+          + '</details>' },
+      { name: '東京大空襲', lat: 35.7160, lng: 139.8032, zoom: 13, era: 'aerial_1945',
+        text: '<h4>第七章 東京大空襲 — 1945 (昭和20) 3月10日</h4>'
+          + '昭和二十年三月十日未明、約三百機の爆撃機が下町を焼いた。低空からの焼夷弾攻撃は一夜で街を灰にし、死者は八万とも十万とも伝わる。震災から立ち直ったばかりの下町は再び焦土となり、江戸以来の町並みと共同体の多くがここで途絶えた。戦後の東京は、この巨大な空白の上に、まったく別の都市として建て直されていく。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">1945年3月10日未明、B-29低空夜間焼夷弾爆撃。焼失約40平方キロメートル、焼失家屋約27万戸、罹災者100万人超。象徴地点: 東京都慰霊堂 (横網町公園)。マーカーは言問橋付近 — 下町焼失域の広がりが読める。</p>'
+          + '<p class="to-unc">死者 = 警視庁調査8万3793人 / 東京空襲を記録する会約10万人 (市民団体・非公的)。機数約300機 (344機説)。焼夷弾約1665トン (約2000トン説)。確定統計なし。</p>'
+          + '<p class="to-era-note">表示 = 空中写真1945–1950 (戦災直後の実写) / 比較 = 昭和初期図・現代地図</p>'
+          + '<p>出典: <a href="https://tokyoireikyoukai.or.jp/park/history.html" target="_blank" rel="noopener">東京都慰霊協会</a> · <a href="https://tokyo-sensai.net/about/tokyoraids/" target="_blank" rel="noopener">東京大空襲・戦災資料センター</a></p>'
+          + '</details>' },
+      { name: '高度成長と現代東京', lat: 35.6896, lng: 139.6917, zoom: 13, era: 'konjaku_1965',
+        text: '<h4>第八章 高度成長と現代東京 — 1954〜</h4>'
+          + '焼け跡は二十年で世界最大級の都市圏へと姿を変えた。一九六四年の五輪を契機に首都高が都心を貫き、日本橋川の上には高架が架かる。淀橋浄水場の跡地には超高層が林立し、都庁もやがて西新宿へ移った。江戸の堀は道路の下に消え、都市は空へ伸びる。得たものは繁栄、失ったものは水辺と記憶。いま日本橋では、高架を地下へ移し空を取り戻す工事が進む。'
+          + '<details class="to-notes"><summary>史実メモ・留意点・出典</summary>'
+          + '<p class="to-fact">首都高初開通1962年12月。日本橋川上空1963年12月開通。淀橋浄水場1965年廃止→1971年京王プラザ、1991年都庁移転。日本橋地下化 = 地下ルート2035年度・高架撤去2040年度完成予定 (2026-07時点)。象徴地点: 東京都庁。マーカーは西新宿 (旧淀橋浄水場跡)。</p>'
+          + '<p class="to-unc">五輪と首都高は「契機」の関係 (五輪専用事業ではない)。地下化完成年度は予定であり要更新。</p>'
+          + '<p class="to-era-note">表示 = 今昔・高度成長 旧版地形図 (1965–1968) / 比較 = 現代地図 (補助: 戦前図)</p>'
+          + '<p>出典: <a href="https://www.shutoko.jp/ss/nihonbashi-tikaka/overview/" target="_blank" rel="noopener">首都高速</a> · <a href="https://www.toshiseibi.metro.tokyo.lg.jp/kotsu_butsuryu/doromou/kosoku/kosoku_nihonbashi" target="_blank" rel="noopener">東京都都市整備局</a></p>'
+          + '</details>' },
+    ]
+  },
   {
     id: 'shitamachi',
     icon: '🏮',
@@ -2898,12 +2906,12 @@ const tourOverlayEl = document.getElementById('tourOverlay');
 const tourPickerEl  = document.getElementById('tourPicker');
 
 function openTourPicker() {
-  layersPopover.classList.remove('show');
+  closeAllPopovers();
   const body = document.getElementById('tourPickerBody');
   body.innerHTML = TOURS.map(t => `
     <div class="tp-tour" data-tour="${t.id}">
       <div class="tp-tour-head">
-        <span class="tp-icon">${t.icon || '🧭'}</span>
+        <span class="tp-icon">${t.icon || '📖'}</span>
         <div class="tp-tour-titles">
           <h4>${escapeHtml(t.title)}</h4>
           <div class="tp-tour-theme">${escapeHtml(t.theme || '')}</div>
@@ -2931,8 +2939,8 @@ function startTour(t) {
   activeTour = t;
   tourStepIdx = 0;
   // 必要な overlay を自動で ON (現在は 'ukiyoe' のみ)
-  if (t.requireOverlay && overlayCheckboxes[t.requireOverlay]) {
-    overlayCheckboxes[t.requireOverlay].checked = true;
+  if (t.requireOverlay) {
+    if (overlayCheckboxes[t.requireOverlay]) overlayCheckboxes[t.requireOverlay].checked = true;
     setOverlay(t.requireOverlay, true);
   }
   // パネルを折り畳んでツアーカードに集中
@@ -2946,6 +2954,29 @@ function exitTour() {
   tourStepIdx = 0;
   tourOverlayEl.classList.remove('show');
 }
+// ツアーの視界決定: できるだけ広く見せつつ、時代レイヤーの範囲外
+// (ベース地図の素肌) が画面に入らないズーム・中心を計算する。
+// ズームの上下は「レイヤーで画面を満たすための調整」以上のことはしない。
+function tourStepView(s, era) {
+  let zoom = s.zoom;
+  let center = L.latLng(s.lat, s.lng);
+  if (era && era.bounds) {
+    const b = L.latLngBounds(era.bounds);
+    // 画面全体がレイヤー範囲に収まる最小ズーム。これ未満だとベースが見える
+    const minInside = map.getBoundsZoom(b, true);
+    zoom = Math.max(s.zoom, minInside);
+    // 中心が範囲の端に寄っているとはみ出すので、表示矩形が範囲内に収まるよう平行移動
+    const half = map.getSize().divideBy(2);
+    const c  = map.project(center, zoom);
+    const nw = map.project(b.getNorthWest(), zoom);
+    const se = map.project(b.getSouthEast(), zoom);
+    const x = Math.min(Math.max(c.x, nw.x + half.x), Math.max(nw.x + half.x, se.x - half.x));
+    const y = Math.min(Math.max(c.y, nw.y + half.y), Math.max(nw.y + half.y, se.y - half.y));
+    center = map.unproject(L.point(x, y), zoom);
+  }
+  return { center, zoom };
+}
+
 function renderTourStep() {
   if (!activeTour) return;
   const s = activeTour.steps[tourStepIdx];
@@ -2953,16 +2984,17 @@ function renderTourStep() {
   document.getElementById('tourProgress').textContent = `${tourStepIdx + 1} / ${activeTour.steps.length}`;
   document.getElementById('tourPrev').disabled = tourStepIdx === 0;
   document.getElementById('tourNext').textContent = tourStepIdx === activeTour.steps.length - 1 ? '🏁 終了' : '次 ▶';
-  // 地図を動かす + era 切替
-  map.flyTo([s.lat, s.lng], s.zoom, { duration: 1.0 });
+  // era 切替を先に確定し、その有効範囲に合わせて視界を決める
   if (s.era && (!eraA || eraA.id !== s.era)) {
     const era = findEra(s.era);
-    if (era && era.url) {
+    if (eraHasLayer(era)) {
       if (mode === 'compare') { mode = 'single'; eraB = null; if (layerB) removeOverlay('b'); }
       eraA = era;
       applyState();
     }
   }
+  const view = tourStepView(s, eraA);
+  map.flyTo(view.center, view.zoom, { duration: 1.0 });
 }
 document.getElementById('tourNext').addEventListener('click', () => {
   if (!activeTour) return;
@@ -3024,57 +3056,8 @@ function attachPoiDividerDrag() {
   });
 }
 
-// ============================================================
-// v3: タイムラプス再生 — 江戸 → 現代を自動でスクラブ
-// ============================================================
-const playBtn = document.getElementById('playBtn');
-const TIMELAPSE_INTERVAL = 2200;  // ms per era
-let timeLapseTimer = null;
-let timeLapsePlaying = false;
-
-function startTimeLapse() {
-  if (mode === 'compare') {
-    // 比較モードでは挙動が混乱するので一旦 single へ
-    mode = 'single'; eraB = null; if (layerB) removeOverlay('b');
-    applyState();
-  }
-  const list = getAvailableEras().slice().sort((a, b) => a.year - b.year);
-  if (!list.length) return;
-  // 現在地から開始 (一番古いところが既に表示中ならその次から)
-  let idx = eraA ? list.findIndex(e => e.id === eraA.id) : -1;
-  if (idx < 0 || idx >= list.length - 1) {
-    idx = -1; // 最初から
-  }
-  timeLapsePlaying = true;
-  playBtn.classList.add('playing');
-  playBtn.textContent = '■';
-  playBtn.title = 'タイムラプス停止';
-  showToast('▶ タイムラプス開始 ' + list[Math.max(0, idx + 1)].year + ' から');
-  const step = () => {
-    if (!timeLapsePlaying) return;
-    idx++;
-    if (idx >= list.length) {
-      stopTimeLapse();
-      showToast('🏁 タイムラプス終了');
-      return;
-    }
-    tickClicked(list[idx].id);
-    timeLapseTimer = setTimeout(step, TIMELAPSE_INTERVAL);
-  };
-  // 最初のステップは少し遅延
-  timeLapseTimer = setTimeout(step, 400);
-}
-function stopTimeLapse() {
-  timeLapsePlaying = false;
-  if (timeLapseTimer) { clearTimeout(timeLapseTimer); timeLapseTimer = null; }
-  playBtn.classList.remove('playing');
-  playBtn.textContent = '▶';
-  playBtn.title = 'タイムラプス再生 (江戸→現代)';
-}
-function toggleTimeLapse() {
-  if (timeLapsePlaying) stopTimeLapse(); else startTimeLapse();
-}
-playBtn.addEventListener('click', toggleTimeLapse);
+// タイムラプス機能は将来の再検討に備えて設計履歴のみ残し、
+// UI・タイマー・自動ERA切替処理は現在すべて無効化している。
 
 // ============================================================
 // v2: モバイル ボトムシート式 年代ピッカー
@@ -3087,25 +3070,22 @@ const mobileEraSheetBody   = document.getElementById('mobileEraSheetBody');
 const mobileEraSheetBackdrop = document.getElementById('mobileEraSheetBackdrop');
 
 const MES_CATS = [
-  { id: 'old',    label: '古地図・絵図・旧版地形図' },
+  { id: 'old', label: '古地図・絵図・旧版地形図' },
   { id: 'aerial', label: '航空写真' },
-  { id: 'topo',   label: '東京都1:3,000地形図' },
+  { id: 'topo', label: '1:3,000 地形図' },
 ];
-
-// v2.1: 現在のフィルター ('all' | 'old' | 'aerial' | 'topo')
 const MES_FILTER_KEY = 'edo-konjaku-v2-mes-filter';
 let mesFilter = 'all';
 try { mesFilter = localStorage.getItem(MES_FILTER_KEY) || 'all'; } catch (_) {}
 
 function renderMobileSheet() {
-  // フィルターチップの active 状態を更新
   document.querySelectorAll('#mobileEraSheetFilters .mes-chip').forEach(chip => {
     chip.classList.toggle('is-active', chip.dataset.filter === mesFilter);
   });
-  const cats = mesFilter === 'all' ? MES_CATS : MES_CATS.filter(c => c.id === mesFilter);
-  const html = cats.map(cat => {
-    const list = ERAS.filter(e => e.cat === cat.id && eraHasLayer(e))
-                     .sort((a, b) => a.year - b.year);
+  const cats = mesFilter === 'all' ? MES_CATS : MES_CATS.filter(cat => cat.id === mesFilter);
+  mobileEraSheetBody.innerHTML = cats.map(cat => {
+    const list = ERAS.filter(era => era.cat === cat.id && eraHasLayer(era))
+      .sort((a, b) => a.year - b.year || a.id.localeCompare(b.id));
     if (!list.length) return '';
     const rows = list.map(era => {
       let cls = `mes-row cat-${era.cat}`;
@@ -3130,7 +3110,6 @@ function renderMobileSheet() {
     }).join('');
     return `<div class="mes-section"><div class="mes-section-title">${escapeHtml(cat.label)}</div>${rows}</div>`;
   }).join('');
-  mobileEraSheetBody.innerHTML = html;
   mobileEraSheetBody.querySelectorAll('.mes-row').forEach(row => {
     row.addEventListener('click', () => {
       const id = row.dataset.era;
@@ -3170,7 +3149,6 @@ mobileEraTrigger.addEventListener('click', openMobileSheet);
 mobileEraSheetClose.addEventListener('click', closeMobileSheet);
 mobileEraSheetBackdrop.addEventListener('click', closeMobileSheet);
 
-// v2.1: フィルターチップのクリック
 document.getElementById('mobileEraSheetFilters').addEventListener('click', (e) => {
   const chip = e.target.closest('.mes-chip');
   if (!chip) return;
@@ -3263,10 +3241,14 @@ document.addEventListener('keydown', (e) => {
       exitTour();
       return;
     }
-    if (themePopover.classList.contains('show') || layersPopover.classList.contains('show')) {
+    if (POPOVER_PAIRS.some(({ pop }) => pop.classList.contains('show'))) {
       e.preventDefault();
-      themePopover.classList.remove('show');
-      layersPopover.classList.remove('show');
+      closeAllPopovers();
+      return;
+    }
+    if (infoOverlay.classList.contains('show')) {
+      e.preventDefault();
+      toggleInfo(false);
       return;
     }
     if (shortcutsOverlay.classList.contains('show')) {
@@ -3489,22 +3471,41 @@ function renderThemePopover() {
   });
 }
 renderThemePopover();
-document.getElementById('themeBtn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  layersPopover.classList.remove('show');
-  themePopover.classList.toggle('show');
-});
 
-// v3: レイヤーポップオーバー
-const layersPopover = document.getElementById('layersPopover');
-document.getElementById('layersBtn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  themePopover.classList.remove('show');
-  layersPopover.classList.toggle('show');
+// ポップオーバー共通管理: 開くのは常に1つ、矢印は対応ボタンの中央に合わせる
+const terrainPopover = document.getElementById('terrainPopover');
+const detailPopover  = document.getElementById('detailPopover');
+const POPOVER_PAIRS = [
+  { pop: themePopover,   btn: document.getElementById('themeBtn') },
+  { pop: terrainPopover, btn: document.getElementById('terrainBtn') },
+  { pop: detailPopover,  btn: document.getElementById('detailBtn') },
+];
+function closeAllPopovers() {
+  POPOVER_PAIRS.forEach(({ pop }) => pop.classList.remove('show'));
+}
+function anchorPopoverArrow(pop, btn) {
+  const arrow = pop.querySelector('.popover-arrow');
+  if (!arrow) return;
+  const pr = pop.getBoundingClientRect();
+  const br = btn.getBoundingClientRect();
+  const fromRight = pr.right - (br.left + br.width / 2) - 6;
+  arrow.style.right = Math.max(12, Math.min(pr.width - 24, fromRight)) + 'px';
+}
+POPOVER_PAIRS.forEach(({ pop, btn }) => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const wasShown = pop.classList.contains('show');
+    closeAllPopovers();
+    if (!wasShown) {
+      pop.classList.add('show');
+      anchorPopoverArrow(pop, btn);
+    }
+  });
 });
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('#themePopover') && !e.target.closest('#themeBtn')) themePopover.classList.remove('show');
-  if (!e.target.closest('#layersPopover') && !e.target.closest('#layersBtn')) layersPopover.classList.remove('show');
+  POPOVER_PAIRS.forEach(({ pop, btn }) => {
+    if (!e.target.closest('#' + pop.id) && !e.target.closest('#' + btn.id)) pop.classList.remove('show');
+  });
 });
 
 // v2.1: キーボードショートカット一覧
@@ -3516,6 +3517,20 @@ function toggleShortcuts(forceOpen) {
 }
 document.getElementById('shortcutsClose').addEventListener('click', () => toggleShortcuts(false));
 document.getElementById('shortcutsBackdrop').addEventListener('click', () => toggleShortcuts(false));
+
+// 地図提供元・出典・利用条件
+const infoOverlay = document.getElementById('infoOverlay');
+function toggleInfo(forceOpen) {
+  const willShow = forceOpen != null ? forceOpen : !infoOverlay.classList.contains('show');
+  infoOverlay.classList.toggle('show', willShow);
+  infoOverlay.setAttribute('aria-hidden', willShow ? 'false' : 'true');
+}
+document.getElementById('infoBtn').addEventListener('click', () => {
+  closeAllPopovers();
+  toggleInfo(true);
+});
+document.getElementById('infoClose').addEventListener('click', () => toggleInfo(false));
+document.getElementById('infoBackdrop').addEventListener('click', () => toggleInfo(false));
 
 // ============================================================
 // 現在地
@@ -3560,6 +3575,7 @@ const searchBtn = document.getElementById('searchBtn');
 const searchResults = document.getElementById('searchResults');
 const searchResultsContent = document.getElementById('searchResultsContent');
 const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
+const GSI_SEARCH_API_URL = 'https://msearch.gsi.go.jp/address-search/AddressSearch';
 const TOKYO_SEARCH_VIEWBOX = '138.9,35.95,140.05,35.15';
 const SEARCH_MIN_INTERVAL_MS = 1000;
 const SEARCH_TIMEOUT_MS = 10000;
@@ -3567,6 +3583,56 @@ const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
 const searchCache = new Map();
 let lastSearchStartedAt = 0;
 let searchInProgress = false;
+
+// 検索は2系統の並行照会:
+//   地理院 AddressSearch — 日本の住居表示 (「○○区△△2-8-1」) に強い。Nominatim はこれが弱い
+//   Nominatim (OSM)      — 施設名・ランドマーク・POI に強い
+// 正規化して { lat, lon, title, sub } のリストに統合し、住所ヒット (地理院) を先頭に出す。
+async function nominatimSearch(q, signal) {
+  const params = new URLSearchParams({
+    q,
+    countrycodes: 'jp',
+    viewbox: TOKYO_SEARCH_VIEWBOX,
+    bounded: '0',
+    limit: '8',
+    format: 'json',
+    addressdetails: '1',
+    namedetails: '1',
+    'accept-language': 'ja',
+  });
+  const res = await fetch(`${NOMINATIM_API_URL}?${params}`, {
+    signal, headers: { 'Accept': 'application/json' },
+  });
+  if (res.status === 429) return { state: 'rate-limit', items: [] };
+  if (!res.ok) return { state: 'network-error', items: [] };
+  const raw = await res.json();
+  return {
+    state: 'success',
+    items: raw.map(it => ({
+      lat: parseFloat(it.lat),
+      lon: parseFloat(it.lon),
+      title: (it.namedetails && it.namedetails.name) || it.name || it.display_name.split(',')[0],
+      sub: it.display_name,
+    })),
+  };
+}
+
+async function gsiAddressSearch(q, signal) {
+  const res = await fetch(`${GSI_SEARCH_API_URL}?q=${encodeURIComponent(q)}`, {
+    signal, headers: { 'Accept': 'application/json' },
+  });
+  if (!res.ok) return { state: 'network-error', items: [] };
+  const raw = await res.json();
+  return {
+    state: 'success',
+    items: (Array.isArray(raw) ? raw : []).slice(0, 6).map(it => ({
+      lat: it.geometry.coordinates[1],
+      lon: it.geometry.coordinates[0],
+      title: it.properties.title,
+      sub: '住所検索 (国土地理院)',
+    })),
+  };
+}
 
 async function doSearch(q) {
   const cacheKey = q.replace(/\s+/g, ' ').trim().toLocaleLowerCase('ja-JP');
@@ -3584,24 +3650,32 @@ async function doSearch(q) {
   }, SEARCH_TIMEOUT_MS);
 
   try {
-    const params = new URLSearchParams({
-      q,
-      countrycodes: 'jp',
-      viewbox: TOKYO_SEARCH_VIEWBOX,
-      bounded: '0',
-      limit: '8',
-      format: 'json',
-      addressdetails: '1',
-      namedetails: '1',
-      'accept-language': 'ja',
-    });
-    const res = await fetch(`${NOMINATIM_API_URL}?${params}`, {
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' },
-    });
-    if (res.status === 429) return { state: 'rate-limit', items: [] };
-    if (!res.ok) return { state: 'network-error', items: [] };
-    const items = await res.json();
+    // 片方が落ちてももう片方の結果を出す (allSettled)
+    const [gsiRes, nomiRes] = await Promise.allSettled([
+      gsiAddressSearch(q, controller.signal),
+      nominatimSearch(q, controller.signal),
+    ]);
+    const gsi  = gsiRes.status === 'fulfilled' ? gsiRes.value : { state: 'network-error', items: [] };
+    const nomi = nomiRes.status === 'fulfilled' ? nomiRes.value : { state: 'network-error', items: [] };
+
+    // 両系統とも失敗した場合のみエラー扱い
+    if (!gsi.items.length && !nomi.items.length) {
+      if (didTimeout) return { state: 'timeout', items: [] };
+      if (nomi.state === 'rate-limit') return { state: 'rate-limit', items: [] };
+      if (gsi.state === 'network-error' && nomi.state === 'network-error') {
+        return { state: 'network-error', items: [] };
+      }
+    }
+
+    // 統合: 地理院住所を先頭、タイトル重複は除去
+    const seen = new Set();
+    const items = [...gsi.items, ...nomi.items].filter(it => {
+      const key = it.title.replace(/\s+/g, '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 10);
+
     searchCache.set(cacheKey, { savedAt: Date.now(), items });
     return { state: items.length ? 'success' : 'empty', items };
   } catch (e) {
@@ -3644,13 +3718,11 @@ function showSearchResults(items) {
   items.forEach(it => {
     const div = document.createElement('div');
     div.className = 'search-item';
-    const title = it.namedetails && it.namedetails.name ? it.namedetails.name : (it.name || it.display_name.split(',')[0]);
-    div.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="sub">${escapeHtml(it.display_name)}</div>`;
+    div.innerHTML = `<div class="title">${escapeHtml(it.title)}</div><div class="sub">${escapeHtml(it.sub)}</div>`;
     div.addEventListener('click', () => {
-      const ll = [parseFloat(it.lat), parseFloat(it.lon)];
-      gotoSearchResult(ll, title);
+      gotoSearchResult([it.lat, it.lon], it.title);
       searchResults.classList.remove('show');
-      searchInput.value = title;
+      searchInput.value = it.title;
     });
     searchResultsContent.appendChild(div);
   });
@@ -3739,6 +3811,20 @@ function showHint(msg, dur = 0) {
 // 起動
 // ============================================================
 renderTicks();
+buildDetailMapsList();
+
+// ウィンドウリサイズ追従。Leaflet 標準の resize 処理はデバウンスされるため、
+// リサイズ直後に内部サイズが古いまま描画され、現在地ピン・検索マーカー等が
+// 一瞬ずれて見える。ResizeObserver で即時 invalidateSize して追従させる。
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => {
+    map.invalidateSize({ animate: false });
+  }).observe(document.getElementById('map'));
+}
+// デスクトップ⇔モバイル境界 (720px) をまたいだときの UI 再センタリング
+window.addEventListener('resize', () => {
+  scrollActiveTickIntoView();
+});
 // URL ハッシュに状態があればそこから復元、なければ江戸末期スタート
 const restored = restoreFromHash();
 if (!restored || !eraA) {
