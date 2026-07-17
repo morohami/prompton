@@ -266,11 +266,11 @@
   {
     "id": "p1779734355097",
     "title": "東京 今昔マップ — Tokyo Through Time",
-    "description": "東京の現代地図・航空写真 (1936～最新2023年度)・1:3,000地形図 (1952-1994 / 8世代) を自由に組合せて重ね合わせ・スワイプ比較できる単一HTMLマップビューア。地理院タイル + 全国Q地図。2画面同期方式 (Leaflet 2 instance) で過去 vs 過去の比較にも対応。関東圏に範囲制限済み (将来全国版予定)。V2/V3では広重「名所江戸百景」全119点ピン (目録の季節で色分け・番号入り、NDLデジタルコレクションIIIF画像+視点座標・確度・出典つきモーダル、12点は古今写真スライダー)、江戸→現代を自動でスクラブするタイムラプス再生、ガイドツアー (家康入府〜現代を8章・史実メモ/留意点/出典つきで辿る「東京興亡史」ほか5本)、地形レイヤー (陰影起伏図・治水地形分類図の半透明重ね)、地理院APIによる住所検索、モバイル用ボトムシート式年代選択、PWA対応を追加。詳細地図8世代は📐ボタンに整理、浮世絵ピンは🖼ワンクリックON/OFF。",
+    "description": "東京の現代地図・航空写真 (1936～最新2023年度)・1:3,000地形図 (1952-1994 / 8世代) を自由に組合せて重ね合わせ・スワイプ比較できる単一HTMLマップビューア。地理院タイル + 全国Q地図。2画面同期方式 (Leaflet 2 instance) で過去 vs 過去の比較にも対応。関東圏に範囲制限済み (将来全国版予定)。V2/V3では浮世絵ピン付きPOIモーダル (古今写真の縦割りスライダー)、江戸→現代を自動でスクラブするタイムラプス再生、ガイドツアー (家康入府〜現代を8章・史実メモ/留意点/出典つきで辿る「東京興亡史」ほか5本)、地形レイヤー (陰影起伏図・治水地形分類図の半透明重ね)、地理院APIによる住所検索、モバイル用ボトムシート式年代選択、PWA対応を追加。詳細地図8世代は📐ボタンに整理、浮世絵ピンは🖼ワンクリックON/OFF。",
     "systemPrompt": "",
     "userPrompt": "東京の歴史的な地形図と航空写真を、現代地図と重ね合わせて自由に比較できる単一HTMLマップを作って。透過スライダーとスワイプ比較を両方持ち、任意のレイヤー × 任意のレイヤー (現代 vs 過去・過去 vs 過去) を比較できること。データソースは GSI 地理院タイル (現代地図・航空写真) と全国Q地図 (東京1:3,000地形図 8世代)。qchizu の URL パターンは実行時に自動検出する。UI は分かりやすく、下のレイヤー・上のレイヤーの 2 ドロップダウンに統一。",
     "context": "Single-file HTML, Leaflet 1.9.4 CDN. 2 synced Leaflet instances stacked with clip-path on top map for swipe compare. Mobile-first. V2でA/B選択中スロットをネオンピンクで強調。V3でPOIモーダル・ガイドツアー・タイムラプス・PWA基盤 (Service Workerはfile://では無効、ホスト後に有効化)を追加。V3.2: 東京興亡史ツアー (8章、ズームは時代レイヤー範囲に画面が収まる最小値を動的計算)、地形オーバーレイ (terrainPane z250)、住所検索 (GSI AddressSearch + Nominatim並行)、ResizeObserverリサイズ追従、ボタン列を役割別に再編 (🗺️/⛰SVG山/📐/🖼/📖)。Files: edo-konjaku-map-v2.html",
-    "model": "Claude Opus 4.7",
+    "model": "Other",
     "license": "CC0 — Public domain",
     "tags": [
       "map",
@@ -288,9 +288,31 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779734355097.jpg",
-    "thumbVer": 1784287203008,
+    "thumbVer": 1784283199498,
     "reproPrompt": "",
-    "devNotes": ""
+    "devNotes": "",
+    "versions": [
+      {
+        "v": 1,
+        "date": "2026-07-17",
+        "model": "Claude Opus 4.7",
+        "systemPrompt": "",
+        "userPrompt": "東京の歴史的な地形図と航空写真を、現代地図と重ね合わせて自由に比較できる単一HTMLマップを作って。透過スライダーとスワイプ比較を両方持ち、任意のレイヤー × 任意のレイヤー (現代 vs 過去・過去 vs 過去) を比較できること。データソースは GSI 地理院タイル (現代地図・航空写真) と全国Q地図 (東京1:3,000地形図 8世代)。qchizu の URL パターンは実行時に自動検出する。UI は分かりやすく、下のレイヤー・上のレイヤーの 2 ドロップダウンに統一。",
+        "context": "Single-file HTML, Leaflet 1.9.4 CDN. 2 synced Leaflet instances stacked with clip-path on top map for swipe compare. Mobile-first. V2でA/B選択中スロットをネオンピンクで強調。V3でPOIモーダル・ガイドツアー・タイムラプス・PWA基盤 (Service Workerはfile://では無効、ホスト後に有効化)を追加。V3.2: 東京興亡史ツアー (8章、ズームは時代レイヤー範囲に画面が収まる最小値を動的計算)、地形オーバーレイ (terrainPane z250)、住所検索 (GSI AddressSearch + Nominatim並行)、ResizeObserverリサイズ追従、ボタン列を役割別に再編 (🗺️/⛰SVG山/📐/🖼/📖)。Files: edo-konjaku-map-v2.html",
+        "variables": [],
+        "changelog": "Initial version."
+      },
+      {
+        "v": 2,
+        "date": "2026-07-17",
+        "model": "Other",
+        "systemPrompt": "",
+        "userPrompt": "東京の歴史的な地形図と航空写真を、現代地図と重ね合わせて自由に比較できる単一HTMLマップを作って。透過スライダーとスワイプ比較を両方持ち、任意のレイヤー × 任意のレイヤー (現代 vs 過去・過去 vs 過去) を比較できること。データソースは GSI 地理院タイル (現代地図・航空写真) と全国Q地図 (東京1:3,000地形図 8世代)。qchizu の URL パターンは実行時に自動検出する。UI は分かりやすく、下のレイヤー・上のレイヤーの 2 ドロップダウンに統一。",
+        "context": "Single-file HTML, Leaflet 1.9.4 CDN. 2 synced Leaflet instances stacked with clip-path on top map for swipe compare. Mobile-first. V2でA/B選択中スロットをネオンピンクで強調。V3でPOIモーダル・ガイドツアー・タイムラプス・PWA基盤 (Service Workerはfile://では無効、ホスト後に有効化)を追加。V3.2: 東京興亡史ツアー (8章、ズームは時代レイヤー範囲に画面が収まる最小値を動的計算)、地形オーバーレイ (terrainPane z250)、住所検索 (GSI AddressSearch + Nominatim並行)、ResizeObserverリサイズ追従、ボタン列を役割別に再編 (🗺️/⛰SVG山/📐/🖼/📖)。Files: edo-konjaku-map-v2.html",
+        "variables": [],
+        "changelog": "ガイドツアーの拡張：広重のすべての作品を追加。\nUIの変更\n地形図の追加"
+      }
+    ]
   },
   {
     "id": "p1779489296529",
