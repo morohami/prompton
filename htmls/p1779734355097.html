@@ -74,6 +74,74 @@
     margin-top: 7px; text-transform: uppercase; font-weight: 300;
   }
 
+  /* === 初回ロード画面 === */
+  .splash {
+    position: fixed; inset: 0; z-index: 5000;
+    background: var(--ink-deep);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 13px;
+    transition: opacity 0.6s ease;
+  }
+  .splash.hide { opacity: 0; pointer-events: none; }
+  .splash-mark {
+    width: 86px; height: 86px; border-radius: 50%;
+    border: 3px solid var(--vermillion);
+    display: flex; align-items: center; justify-content: center;
+    animation: splash-pulse 1.6s ease-in-out infinite;
+    margin-bottom: 6px;
+  }
+  .splash-mark span {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 44px; color: var(--cream); line-height: 1;
+  }
+  @keyframes splash-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(197, 79, 62, 0.35); }
+    50%      { box-shadow: 0 0 0 16px rgba(197, 79, 62, 0); }
+  }
+  .splash h2 {
+    font-family: "Shippori Mincho B1", serif;
+    font-size: 20px; font-weight: 500;
+    color: var(--cream); letter-spacing: 0.22em;
+  }
+  .splash-sub {
+    font-size: 10px; color: var(--cream-dim);
+    letter-spacing: 0.32em; text-transform: uppercase;
+  }
+  .splash-loading {
+    margin-top: 12px;
+    font-size: 11px; color: var(--cream-dim); letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .splash-loading::before {
+    content: '';
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid var(--line); border-top-color: var(--vermillion);
+    animation: spinner-rotate 0.9s linear infinite;
+  }
+  @keyframes spinner-rotate { to { transform: rotate(360deg); } }
+
+  /* === タイル読み込み中インジケータ === */
+  .tile-spinner {
+    position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
+    z-index: 900;
+    background: rgba(15, 17, 22, 0.85);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    color: var(--cream-dim);
+    font-size: 10px; letter-spacing: 0.08em;
+    padding: 5px 12px 5px 27px;
+    border-left: 2px solid var(--vermillion);
+    display: none;
+    pointer-events: none;
+  }
+  .tile-spinner::before {
+    content: '';
+    position: absolute; left: 9px; top: 50%; margin-top: -6px;
+    width: 11px; height: 11px; border-radius: 50%;
+    border: 2px solid var(--line); border-top-color: var(--vermillion);
+    animation: spinner-rotate 0.9s linear infinite;
+  }
+  .tile-spinner.show { display: block; }
+
   /* === Mobile hamburger (デスクトップでは非表示) === */
   .hamburger-btn, .mobile-menu { display: none; }
 
@@ -1699,6 +1767,17 @@
 
 <div id="map"></div>
 
+<!-- 初回ロード画面: 最初の時代レイヤーが描き終わるまで表示 -->
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-mark"><span>今</span></div>
+  <h2>東京 今昔マップ</h2>
+  <div class="splash-sub">Tokyo · Through Time</div>
+  <div class="splash-loading">地図を読み込んでいます…</div>
+</div>
+
+<!-- タイル読み込み中インジケータ (350ms以上かかるときだけ出す) -->
+<div class="tile-spinner" id="tileSpinner" aria-hidden="true">タイル読み込み中…</div>
+
 <div class="brand">
   <h1>東京 今昔マップ</h1>
   <div class="en">Tokyo · Through Time</div>
@@ -2177,6 +2256,33 @@ let currentBaseTheme = 'pale';
 try { currentBaseTheme = localStorage.getItem(BASE_THEME_KEY) || 'pale'; } catch (_) {}
 if (!BASE_THEMES[currentBaseTheme]) currentBaseTheme = 'pale';
 
+// タイル読み込み中インジケータ。350ms 以上かかる読み込みだけ表示して
+// キャッシュ命中時のチラつきを避ける。layer の remove でも確実に消す
+const tileSpinnerEl = document.getElementById('tileSpinner');
+const loadingTileLayers = new Set();
+let tileSpinnerTimer = null;
+function trackTileLoading(layer) {
+  layer.on('loading', () => {
+    loadingTileLayers.add(layer);
+    if (!tileSpinnerTimer && !tileSpinnerEl.classList.contains('show')) {
+      tileSpinnerTimer = setTimeout(() => {
+        tileSpinnerTimer = null;
+        if (loadingTileLayers.size) tileSpinnerEl.classList.add('show');
+      }, 350);
+    }
+  });
+  const done = () => {
+    loadingTileLayers.delete(layer);
+    if (!loadingTileLayers.size) {
+      if (tileSpinnerTimer) { clearTimeout(tileSpinnerTimer); tileSpinnerTimer = null; }
+      tileSpinnerEl.classList.remove('show');
+    }
+  };
+  layer.on('load', done);
+  layer.on('remove', done);
+  return layer;
+}
+
 let baseLayer = null;
 function applyBaseTheme(themeId) {
   const t = BASE_THEMES[themeId] || BASE_THEMES.pale;
@@ -2188,7 +2294,8 @@ function applyBaseTheme(themeId) {
     // 読み込み高速化: パン中も逐次読み込み + 画面外タイルを広めに保持
     updateWhenIdle: false,
     keepBuffer: 4,
-  }).addTo(map);
+  });
+  trackTileLoading(baseLayer).addTo(map);
   // CSS filter は pane に直接適用
   map.getPane('basePane').style.filter = t.filter || '';
   currentBaseTheme = themeId;
@@ -2348,6 +2455,7 @@ function makeLayer(era) {
       updateWhenIdle: false,
       keepBuffer: 4,
     });
+    trackTileLoading(layer);
     if (era.cat === 'topo') {
       let loadedTiles = 0;
       let failedTiles = 0;
@@ -2962,6 +3070,8 @@ const overlayLayers = {
   chisui: L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/lcmfc2/{z}/{x}/{y}.png', {
     pane: 'terrainPane', opacity: 0.5, minZoom: 9, maxNativeZoom: 16, maxZoom: 19, attribution: GSI }),
 };
+trackTileLoading(overlayLayers.hillshade);
+trackTileLoading(overlayLayers.chisui);
 
 function renderUkiyoeOverlay() {
   overlayLayers.ukiyoe.clearLayers();
@@ -4208,6 +4318,21 @@ if (!restored || !eraA) {
   eraA = findEra('edo_late'); // 江戸末期 1860 でスタート
 }
 applyState();
+
+// 初回ロード画面: 最初の時代レイヤーが描き終わったら退場 (最長6秒で強制退場)
+(function initSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  let hidden = false;
+  const hide = () => {
+    if (hidden) return;
+    hidden = true;
+    splash.classList.add('hide');
+    setTimeout(() => splash.remove(), 700);
+  };
+  if (layerA && layerA.once) layerA.once('load', hide);
+  setTimeout(hide, 6000);
+})();
 </script>
 </body>
 </html>
