@@ -122,7 +122,6 @@
   }
   .icon-btn:hover { color: var(--vermillion); border-color: var(--vermillion); }
   .icon-btn:disabled { opacity: 0.55; cursor: wait; }
-  .search-submit:hover { color: var(--gold); border-color: var(--gold); }
   .icon-btn.locating { color: var(--vermillion); animation: pulse 1s infinite; }
   .icon-btn.shared { color: var(--neon-pink); animation: pulse 0.4s ease; }
 
@@ -943,25 +942,27 @@
     min-width: 0;
   }
   .slot:hover { border-color: var(--cream-dim); background: rgba(15, 17, 22, 0.6); }
+  /* v3.5: ネオンピンクは「選択中 (次のクリックの反映先)」スロットだけに。
+     両方ピンクだとどちらを操作しているか分からない、という指摘への対応 */
   .slot.active-slot {
-    outline: 2px solid var(--vermillion);
-    outline-offset: 2px;
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 0 1px var(--neon-pink-soft), 0 0 18px var(--neon-pink-glow);
+    background: rgba(255, 46, 154, 0.06);
+    animation: neon-pulse 2.2s ease-in-out infinite;
   }
   .slot.active-slot::after {
     content: '選択中';
     margin-left: auto;
     font-size: 9px;
-    color: var(--vermillion);
+    color: var(--neon-pink);
     white-space: nowrap;
   }
   .slot.slot-a { border-left: 3px solid var(--cream); }
   .slot.slot-b { border-left: 3px solid var(--gold); }
-  /* v2: A/B が埋まっているスロットをネオンピンクで強調 */
-  .slot:not(.empty) {
-    border-color: var(--neon-pink);
-    box-shadow: 0 0 0 1px var(--neon-pink-soft), 0 0 18px var(--neon-pink-glow);
-    background: rgba(255, 46, 154, 0.06);
-    animation: neon-pulse 2.2s ease-in-out infinite;
+  /* 埋まっているが非選択のスロットは落ち着いた枠 */
+  .slot:not(.empty):not(.active-slot) {
+    border-color: var(--cream-dim);
+    background: rgba(15, 17, 22, 0.6);
   }
   @keyframes neon-pulse {
     0%, 100% { box-shadow: 0 0 0 1px var(--neon-pink-soft), 0 0 18px var(--neon-pink-glow); }
@@ -1440,17 +1441,20 @@
   }
   .mes-row:active { background: rgba(197, 79, 62, 0.18); }
   .mes-row.is-active { background: rgba(197, 79, 62, 0.18); border-left: 3px solid var(--vermillion); padding-left: 15px; }
-  /* v2: A/B 選択中の行はネオンピンクで強調 (左枠は A=cream / B=gold で識別) */
+  /* A/B の行: 左枠は A=cream / B=gold で識別。
+     ネオンピンクは「選択中スロット」の行 (.is-hot) だけに付ける */
   .mes-row.is-a {
-    background: rgba(255, 46, 154, 0.10);
+    background: rgba(15, 17, 22, 0.6);
     border-left: 3px solid var(--cream);
     padding-left: 15px;
-    box-shadow: inset 0 0 0 1px var(--neon-pink-soft), 0 0 16px var(--neon-pink-glow);
   }
   .mes-row.is-b {
-    background: rgba(255, 46, 154, 0.10);
+    background: rgba(15, 17, 22, 0.6);
     border-left: 3px solid var(--gold);
     padding-left: 15px;
+  }
+  .mes-row.is-hot {
+    background: rgba(255, 46, 154, 0.10);
     box-shadow: inset 0 0 0 1px var(--neon-pink-soft), 0 0 16px var(--neon-pink-glow);
   }
   .mes-row .dot {
@@ -1557,8 +1561,6 @@
     /* font-size 16px 未満だと iOS がフォーカス時に画面ごとズームするので 16px 固定 */
     .search-input { width: 100%; padding: 10px 16px 10px 36px; font-size: 16px; }
     .search-input-wrap::before { left: 14px; font-size: 13px; }
-    /* 検索実行はキーボードの Enter (enterkeyhint=search)。⌕ ボタンは畳んで幅を稼ぐ */
-    .search-submit { display: none; }
     .search-results { min-width: 0; width: calc(100vw - 16px); right: 0; max-width: none; }
 
     /* === 現在地: Google Maps と同じ右下のフローティング丸ボタン。
@@ -1667,15 +1669,20 @@
        📐詳細図は「時代を選ぶ」シートの詳細図カテゴリと重複、ⓘはハンバーガーへ移動 */
     #detailBtn, .info-btn { display: none; }
     .controls-row { gap: 6px 8px; flex-wrap: wrap; }
-    .ctrl-label { min-width: 28px; font-size: 11px; }
-    .slider-wrap { flex: 1 1 calc(100% - 40px); }
+    /* 1行目 = ラベル + スライダーで幅を使い切り、ボタンを必ず2行目へ落とす。
+       予約幅 64px は最長ラベル「B重ね」(約48px) を吸収する余裕込み */
+    .ctrl-label { flex: 0 0 auto; min-width: 0; font-size: 11px; }
+    .slider-wrap { flex: 1 1 calc(100% - 64px); }
+    .slider-val { min-width: 0; font-size: 10px; }
     .controls-row .btn-label { display: none; }
     .panel-icon-btn,
     .info-btn,
     .compare-btn {
       flex: 1 1 0;
-      min-width: 0;
-      padding: 10px 0;
+      min-width: 36px;
+      padding: 0;
+      height: 40px;
+      line-height: 40px;
       font-size: 15px;
       text-align: center;
     }
@@ -1708,7 +1715,6 @@
   <div class="search-input-wrap">
     <input type="text" class="search-input" id="searchInput" placeholder="住所・駅・地名を検索" enterkeyhint="search" />
   </div>
-  <button class="icon-btn search-submit" id="searchBtn" type="button" title="検索" aria-label="検索">⌕</button>
   <button class="icon-btn" id="locateBtn" title="現在地を表示"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 1.5 V4.5 M12 19.5 V22.5 M1.5 12 H4.5 M19.5 12 H22.5" stroke="currentColor" stroke-width="1.8"/></svg></button>
   <div class="search-results" id="searchResults">
     <div id="searchResultsContent" role="status" aria-live="polite"></div>
@@ -2179,6 +2185,9 @@ function applyBaseTheme(themeId) {
     attribution: GSI,
     maxZoom: 19,
     pane: 'basePane',
+    // 読み込み高速化: パン中も逐次読み込み + 画面外タイルを広めに保持
+    updateWhenIdle: false,
+    keepBuffer: 4,
   }).addTo(map);
   // CSS filter は pane に直接適用
   map.getPane('basePane').style.filter = t.filter || '';
@@ -2335,6 +2344,9 @@ function makeLayer(era) {
       attribution: eraAttribution(era),
       opacity: 0,
       className: 'era-overlay',
+      // 読み込み高速化: パン中も逐次読み込み + 画面外タイルを広めに保持
+      updateWhenIdle: false,
+      keepBuffer: 4,
     });
     if (era.cat === 'topo') {
       let loadedTiles = 0;
@@ -3395,8 +3407,8 @@ function renderMobileSheet() {
         cls += ' is-active';
         tag = '<span class="tag active-tag">表示中</span>';
       } else if (mode === 'compare') {
-        if (eraA && eraA.id === era.id) { cls += ' is-a'; tag = '<span class="tag a-tag">A</span>'; }
-        else if (eraB && eraB.id === era.id) { cls += ' is-b'; tag = '<span class="tag b-tag">B</span>'; }
+        if (eraA && eraA.id === era.id) { cls += ' is-a' + (activeSlot === 'a' ? ' is-hot' : ''); tag = '<span class="tag a-tag">A</span>'; }
+        else if (eraB && eraB.id === era.id) { cls += ' is-b' + (activeSlot === 'b' ? ' is-hot' : ''); tag = '<span class="tag b-tag">B</span>'; }
       }
       return `
         <div class="${cls}" data-era="${era.id}">
@@ -3906,7 +3918,6 @@ locateBtn.addEventListener('click', () => {
 // 住所・地名検索 (Nominatim)
 // ============================================================
 const searchInput = document.getElementById('searchInput');
-const searchBtn = document.getElementById('searchBtn');
 const searchResults = document.getElementById('searchResults');
 const searchResultsContent = document.getElementById('searchResultsContent');
 const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
@@ -3928,7 +3939,7 @@ async function nominatimSearch(q, signal) {
     q,
     countrycodes: 'jp',
     viewbox: TOKYO_SEARCH_VIEWBOX,
-    bounded: '0',
+    bounded: '1', // アプリは関東圏限定なので viewbox 外 (北海道等) の同名地は返さない
     limit: '8',
     format: 'json',
     addressdetails: '1',
@@ -4002,9 +4013,11 @@ async function doSearch(q) {
       }
     }
 
-    // 統合: 地理院住所を先頭、タイトル重複は除去
+    // 統合: 地理院住所を先頭、タイトル重複は除去。
+    // 地理院APIは全国を返すので、アプリの守備範囲 (関東圏) 外はここで落とす
     const seen = new Set();
     const items = [...gsi.items, ...nomi.items].filter(it => {
+      if (!KANTO_BOUNDS.contains([it.lat, it.lon])) return false;
       const key = it.title.replace(/\s+/g, '');
       if (seen.has(key)) return false;
       seen.add(key);
@@ -4085,11 +4098,9 @@ async function executeSearch() {
 
   lastSearchStartedAt = now;
   searchInProgress = true;
-  searchBtn.disabled = true;
   showSearchStatus('検索中…');
   const result = await doSearch(q);
   searchInProgress = false;
-  searchBtn.disabled = false;
 
   if (result.state === 'rate-limit') {
     showSearchStatus('検索回数の上限に達しました。しばらく待ってからお試しください');
@@ -4124,7 +4135,6 @@ searchInput.addEventListener('keydown', (e) => {
   e.preventDefault();
   executeSearch();
 });
-searchBtn.addEventListener('click', executeSearch);
 searchInput.addEventListener('focus', () => {
   if (searchResultsContent.innerHTML.trim()) searchResults.classList.add('show');
 });
