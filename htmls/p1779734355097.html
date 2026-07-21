@@ -2429,6 +2429,44 @@ function updateBoundsMask() {
   }).addTo(map);
 }
 
+// スロットのレイヤーを era に合わせる。
+// - 同じ era なら何もしない (以前は単一モードで毎回破棄→再生成しており、
+//   タイルが「毎回作り直される」ように見える主因だった)
+// - 別の era へは「新タイルが読み終わってから旧レイヤーを退場」させる
+//   クロスフェード。切替中の白抜け・タイルのバラバラなフェードインを無くす
+function setSlotLayer(slot, era) {
+  const cur = slot === 'a' ? layerA : layerB;
+  const key = era.url || era.affineImage;
+  const targetOpacity = () => (slot === 'a' ? (mode === 'single' ? opacity : 1) : blendAB);
+  if (cur && cur._eraKey === key) {
+    requestAnimationFrame(() => cur.setOpacity(targetOpacity()));
+    return;
+  }
+  const old = cur;
+  const oldAttr = slot === 'a' ? attrA : attrB;
+  const next = makeLayer(era);
+  const nextAttr = eraAttribution(era);
+  if (slot === 'a') { layerA = next; attrA = nextAttr; } else { layerB = next; attrB = nextAttr; }
+  next.addTo(map);
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    // 高速連打で既に別レイヤーへ交代していたら表示せず消えるだけ
+    const still = (slot === 'a' ? layerA : layerB) === next;
+    if (still) next.setOpacity(targetOpacity());
+    if (old) {
+      old.setOpacity(0);
+      setTimeout(() => {
+        map.removeLayer(old);
+        if (oldAttr) map.attributionControl.removeAttribution(oldAttr);
+      }, 350);
+    }
+  };
+  next.once('load', finish);          // 可視範囲のタイルが揃った瞬間に交代
+  setTimeout(finish, 2500);           // 保険 (AffineImageLayer は load を発火しない)
+}
+
 function applyState() {
   updateHash();
   setTimeout(() => checkBoundsHint && checkBoundsHint(), 0);
@@ -2436,11 +2474,7 @@ function applyState() {
   if (mode === 'single') {
     if (layerB) removeOverlay('b');
     if (eraHasLayer(eraA)) {
-      if (layerA) removeOverlay('a');
-      layerA = makeLayer(eraA);
-      attrA = eraAttribution(eraA);
-      layerA.addTo(map);
-      requestAnimationFrame(() => requestAnimationFrame(() => layerA && layerA.setOpacity(opacity)));
+      setSlotLayer('a', eraA);
     } else if (layerA) {
       removeOverlay('a');
     }
@@ -2449,24 +2483,12 @@ function applyState() {
     // (旧クロスフェードは両方とも半透明で、下の淡色地図が透けてしまい「選択していない地図が出る」と
     //  指摘された)
     if (eraHasLayer(eraA)) {
-      if (!layerA || layerA._eraKey !== (eraA.url || eraA.affineImage)) {
-        if (layerA) removeOverlay('a');
-        layerA = makeLayer(eraA);
-        attrA = eraAttribution(eraA);
-        layerA.addTo(map);
-      }
-      requestAnimationFrame(() => layerA && layerA.setOpacity(1));
+      setSlotLayer('a', eraA);
     } else if (layerA) {
       removeOverlay('a');
     }
     if (eraHasLayer(eraB)) {
-      if (!layerB || layerB._eraKey !== (eraB.url || eraB.affineImage)) {
-        if (layerB) removeOverlay('b');
-        layerB = makeLayer(eraB);
-        attrB = eraAttribution(eraB);
-        layerB.addTo(map);
-      }
-      requestAnimationFrame(() => layerB && layerB.setOpacity(blendAB));
+      setSlotLayer('b', eraB);
     } else if (layerB) {
       removeOverlay('b');
     }
