@@ -32,6 +32,7 @@
     <a data-nav="rankings" data-i18n="nav.rankings">Rankings</a>
     <a data-nav="playlists" data-i18n="nav.playlists">Playlists</a>
     <a data-nav="profile" data-i18n="nav.profile">Profile</a>
+    <button type="button" class="nav-search-toggle" data-nav="search" aria-label="Search" title="Search">⌕</button>
     <a id="themeToggle" class="nav-theme" data-i18n-title="nav.theme" title="Toggle theme" aria-label="Toggle theme">☀</a>
     <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="Settings">⚙</a>
     <!-- Drafts entry point (replaced the stories bar). A <button>, not <a>,
@@ -801,9 +802,23 @@ function renderSearchSuggest() {
       renderDetail(b.dataset.goId);
     }));
 }
+// Typing filters the gallery grid as well as filling the suggestion dropdown
+// (previously only the dropdown reacted, and the grid filtered later by
+// accident the first time the sort select was touched). Debounced; keeps the
+// scroll position so the page doesn't jump on every keystroke.
+let _searchRenderTimer = null;
 document.getElementById('searchInput').addEventListener('input', (e) => {
   currentSearch = e.target.value;
   renderSearchSuggest();
+  clearTimeout(_searchRenderTimer);
+  _searchRenderTimer = setTimeout(() => renderGallery({ keepScroll: true }), 140);
+});
+// On narrow screens the search row stays open only while it is in use.
+document.getElementById('searchInput').addEventListener('blur', () => {
+  setTimeout(() => {
+    const si = document.getElementById('searchInput');
+    if (si && !si.value.trim() && document.activeElement !== si) document.body.classList.remove('search-open');
+  }, 200);
 });
 document.getElementById('searchInput').addEventListener('focus', renderSearchSuggest);
 // ↑/↓/Enter/Esc navigation in the search-suggest dropdown.

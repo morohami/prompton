@@ -775,9 +775,10 @@ function renderRankings(metric) {
   showView('rankings');
 }
 
-function renderGallery() {
+function renderGallery(opts) {
+  const keepScroll = !!(opts && opts.keepScroll);
   setRoute('');
-  showView('gallery');
+  showView('gallery', keepScroll);
   renderTagChips();
   renderStoriesBar();
   // Everything in the manifest is published; unlisted entries are hidden
@@ -843,6 +844,11 @@ function renderGallery() {
       '<div class="greeting">' + greeting + ', ' + escapeHtml(youName === 'You' ? 'reader' : youName.split(' ')[0]) + '.</div>' +
       '<div class="greeting-sub">' +
         (FEATURES.spotlight ? 'Daily edition · Issue ' + getIssueNumber() : 'Your collection · ' + publicPrompts.length + ' prompton' + (publicPrompts.length === 1 ? '' : 's')) +
+      '</div>' +
+      // Phones hide the masthead links and the bottom tabs have no free slot.
+      '<div class="mobile-quicklinks">' +
+        '<button type="button" data-quick="rankings">' + escapeHtml(t('nav.rankings')) + '</button>' +
+        '<button type="button" data-quick="playlists">' + escapeHtml(t('nav.playlists')) + '</button>' +
       '</div>' +
 
       (FEATURES.spotlight && lead ? (
@@ -944,6 +950,11 @@ function renderGallery() {
       }));
     magazineEl.querySelectorAll('[data-go-profile]').forEach(a =>
       a.addEventListener('click', () => renderProfile(a.dataset.goProfile)));
+    magazineEl.querySelectorAll('[data-quick]').forEach(b =>
+      b.addEventListener('click', () => {
+        if (b.dataset.quick === 'rankings') renderRankings();
+        else renderPlaylists();
+      }));
     magazineEl.querySelectorAll('[data-go-sort]').forEach(a =>
       a.addEventListener('click', () => {
         currentSort = a.dataset.goSort;
@@ -976,10 +987,10 @@ function renderGallery() {
   if (currentSearch.trim()) {
     const q = currentSearch.toLowerCase();
     list = list.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.authorName.toLowerCase().includes(q) ||
-      (p.tags || []).some(t => t.toLowerCase().includes(q))
+      (p.title || '').toLowerCase().includes(q) ||
+      (p.description || '').toLowerCase().includes(q) ||
+      (p.authorName || '').toLowerCase().includes(q) ||
+      (p.tags || []).some(t => String(t).toLowerCase().includes(q))
     );
   }
   if (currentSort === 'new') list.sort((a,b) => b.date.localeCompare(a.date));
@@ -1073,7 +1084,7 @@ function renderGallery() {
   if (_issueCountEl) _issueCountEl.textContent = `${prompts.length} promptons in circulation`;
   // Lazy-mount the grid's iframe thumbnails — only what enters the viewport.
   mountAlbumThumbs(grid);
-  showView('gallery');
+  showView('gallery', keepScroll);
 }
 
 // ─── Compare mode (gallery) ───
@@ -1221,7 +1232,7 @@ function renderDetail(id, viewingVersionNum) {
 
     <div class="detail-grid">
       <div>
-        <div class="preview-wrap">
+        <div class="preview-wrap${p.thumb ? ' has-thumb' : ''}">
           <!-- No allow-same-origin: prompt HTML runs arbitrary JS; sharing the
                app origin would let it read localStorage (GitHub PAT). Opaque
                origin still loads static subresources and GitHub Pages sends
@@ -1504,9 +1515,27 @@ function renderDetail(id, viewingVersionNum) {
       const iframe = document.getElementById('detailPreviewIframe');
       if (!iframe) return;
       const req = iframe.requestFullscreen || iframe.webkitRequestFullscreen || iframe.msRequestFullscreen;
+      // On phones the live iframe is hidden behind the static thumbnail; bring
+      // it back for the duration of fullscreen (a display:none iframe can't
+      // go fullscreen) and restore the thumbnail when fullscreen ends.
+      const wrap = iframe.closest('.preview-wrap');
+      const hidden = wrap && wrap.classList.contains('has-thumb') && getComputedStyle(iframe).display === 'none';
+      const restore = () => { if (wrap) wrap.classList.remove('show-live'); };
+      if (hidden && req) {
+        wrap.classList.add('show-live');
+        const onFsChange = () => {
+          if (document.fullscreenElement || document.webkitFullscreenElement) return;
+          restore();
+          document.removeEventListener('fullscreenchange', onFsChange);
+          document.removeEventListener('webkitfullscreenchange', onFsChange);
+        };
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
+      }
       if (req) {
-        req.call(iframe).catch(err => {
+        Promise.resolve(req.call(iframe)).catch(err => {
           console.warn('Fullscreen denied — falling back to standalone tab:', err);
+          restore();
           // Fallback: open standalone in new tab
           const link = document.getElementById('openStandaloneLink');
           if (link && link.href) window.open(link.href, '_blank', 'noopener');

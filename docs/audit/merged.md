@@ -15,8 +15,8 @@
 | M03 | 詳細プレビュー iframe の sandbox に `allow-popups-to-escape-sandbox` | O#2 G#4 | 読解（コードで確認。攻撃は未再現） | `render.js` 1176：属性を削除 | B3 | 完了：詳細プレビューの sandbox は allow-scripts allow-popups allow-forms のみ（属性を確認） |
 | M05 | 東京今昔マップ：トップレベル最新（207,712B）が versions 最新 v2 で上書きされ、ダウンロード・比較が古い v2 | O#5 G#6 F6 | 再現（メモリ 171,691 文字 vs ファイル 174,977 文字） | `index.html`：`syncTopLevelFromLatest` は html を上書きしない（HTML は常にファイルから取る） | B1 | 完了：読込後の p.html が最新ファイルと一致（174,977 文字）を確認 |
 | M06 | 起動時に HTML 29本（5.3MB）を全部取得してから描画／同量を localStorage（5.24M 文字）に保存し 5MB 上限の99% | O#6 O#13 G#8 G#20 F | 再現（htmlBytes 5,275,416・localStorage 5,236,685） | `index.html`：manifest だけで描画、HTML はオンデマンド取得、localStorage はメタデータのみ | B3 | 完了：起動時の HTML 取得 29本→0本、localStorage の作品キャッシュ 5,236,685→35,318 文字、HTML は取得が必要な操作（ダウンロード・フォーク・版保存・容量表示）でオンデマンド取得。比較・md・サムネ代替表示も src で確認 |
-| M08 | スマホ詳細：オーバーレイの「全画面」「別タブで開く」が `pointer-events: none` のため押せず（後ろのサムネが受ける）、サムネ未生成作品は空枠 | G#1 | 再現（hit 要素が `IMG.preview-thumb-mobile`、`pe: none`、handoff は iframe 非表示で空） | `css/main.css`・`render.js` | B4 | |
-| M09 | 検索：≤900px で検索欄が非表示のままタブから出せない／PC でも入力で一覧が絞られない（並び替えで初めて絞られホーム行が消える）。`description` 欠落で例外の余地 | G#2 F8 | 再現 | `css`・`index.html`・`router.js`・`render.js` | B4 | |
+| M08 | スマホ詳細：オーバーレイの「全画面」「別タブで開く」が `pointer-events: none` のため押せず（後ろのサムネが受ける）、サムネ未生成作品は空枠 | G#1 | 再現（hit 要素が `IMG.preview-thumb-mobile`、`pe: none`、handoff は iframe 非表示で空） | `css/main.css`・`render.js` | B4 | 完了：375px で「全画面」「別タブで開く」の位置のタップ先がボタン自身に（以前は IMG）。全画面操作でライブ iframe が戻る動作は確認。サムネのない作品は iframe をそのまま表示。実機のタッチ操作・iOS 全画面は未確認 |
+| M09 | 検索：≤900px で検索欄が非表示のままタブから出せない／PC でも入力で一覧が絞られない（並び替えで初めて絞られホーム行が消える）。`description` 欠落で例外の余地 | G#2 F8 | 再現 | `css`・`index.html`・`router.js`・`render.js` | B4 | 完了：375px 下部タブ「検索」で検索行が出て入力で一覧が絞られ（26→1件）、空にするとホームへ戻る。768px は ⌕ ボタンで同様。PC 幅でも入力で絞り込み |
 | M10 | フォルダ型は `p.html` が空のため「フォーク」で 0 バイト、md 型は wrapper HTML が落ちる | G#7 F2 | 再現（フォルダ型 `p.html` 長 0 を確認） | `render.js`：ダウンロードと共通化（zip／raw md） | B2 | 完了：フォルダ型はzip(39,137B)・md型は生.md(15,688B)・フラットは最新(207,712B)。フォークも同じ中身を確認 |
 | M11 | フォーク用 `prompton_fork_parent` が投稿するまで残り、別の投稿が Fork 扱いになる | G#7 | 再現 | `render.js`・`router.js`：投稿画面を離れたら消す | B2 | 完了：フォーク後に別画面へ移ると親IDと入力欄が消えることを確認 |
 
@@ -27,7 +27,7 @@
 | M12 | 「別タブで開く」と全画面の逃げ先が `htmls/<id>.html` 固定でフォルダ型3件・md型1件は 404、過去版閲覧中も最新を開く。容量表示が「0.0 KB」 | O#8 G#10 F2 | 再現（standalone 404・caption 0.0 KB） | `render.js`・`index.html`：`promptHtmlPath` | B2 | 完了：prompton-app／_folder_demo／p1779770067635／prompton-handoff の別タブ先が全て200、過去版リンクは _v1 を指す。容量表示も修正 |
 | M13 | フォルダ型・md型でも「新バージョンを保存」が出て、実行すると空の `htmls/<id>.html` `_v1.html` を作る | G#11 F R2 | 読解（ボタン表示は再現） | `render.js`：フラット型のみ許可 | B2 | 完了：フォルダ型・md型では保存ボタンを出さず、関数側でも拒否（B1と合わせ確認） |
 | M14 | ドラフトの自動保存タイマーが削除・投稿で止まらず、消したドラフトが空タイトルで復活 | G#12 | 再現（`d_test:` が復活） | `render.js` | B5 | |
-| M15 | スマホ（≤680px）で Rankings / Playlists へ行く導線がない | G#13 | 再現（display:none、タブにもなし） | `render.js`・`css` | B4 | |
+| M15 | スマホ（≤680px）で Rankings / Playlists へ行く導線がない | G#13 | 再現（display:none、タブにもなし） | `render.js`・`css` | B4 | 完了：375px のホームに「ランキング」「プレイリスト」ボタン（44px 高）を追加し、押下で各画面へ遷移することを確認 |
 | M16 | 設定画面で言語ボタンを押すとギャラリーへ飛ぶ。`#/rankings/forks` は `#/rankings` に潰れる | G#14 F4 | 再現 | `index.html`・`render.js`：現在の hash で再描画 | B5 | |
 | M17 | 旧テーマの `color:#000` が濃赤背景に残る（設定の Save・Save tag config・Popular リボン等。コントラスト約2:1）。緑の `rgba(29,185,84)` も残る | G#15 | 再現（背景 rgb(140,21,21) に文字 rgb(0,0,0)）。`.btn.primary` の通常時は白で正常 | `css/main.css` | B5 | |
 | M18 | 画面遷移が `replaceState` のみで、戻るで離脱する | O#9 G#16 F7 | 再現 | `router.js` | B5 | |
@@ -52,7 +52,7 @@
 | M35 | 重複：詳細内の必須チェック／プロンプト組み立て／Claude.ai 起動が2重、manifest 読み書き6回、エスケープ関数2つ、CSS 重複 | O#28 G#32 F | 読解 | 共通化（manifest ヘルパーは M23、詳細内の重複は B7） | B7 | |
 | M36 | 設定画面が毎回 `/auth/me` を 404 で叩き、訪問者に内部向け文言 | O#29 G#33 F | 再現 | `index.html` | B6 | |
 | M37 | `#/upload` ルートがなくリロードでギャラリーに戻る。存在しない `#/p/<id>` が無言でギャラリーへ | O#30 G#34 | 読解（ルート表にない） | `router.js` | B5 | |
-| M38 | タップ領域が 44px 未満（テーマ・設定 28×28 など） | O#31 G#35 | 再現（28×28） | `css` | B4 | |
+| M38 | タップ領域が 44px 未満（テーマ・設定 28×28 など） | O#31 G#35 | 再現（28×28） | `css` | B4 | 完了：375px でテーマ・設定 44×44、SHOW ALL 83×44、下部タブ 94×52 を計測 |
 | M40 | 細部：`prompton-app` に `fileList` なし、`data-author` が未エスケープ、削除確認文がフォルダ型・md型でも `.html` 固定 | O#26 O#34 O#35 G#36 | 読解 | `manifest.json`・`render.js` | B7 | |
 | M41 | `HANDOFF.md` が「No known open bugs / 2026-07-16」のまま | 全報告 | — | 最後に更新 | 最終 | |
 

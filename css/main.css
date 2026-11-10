@@ -4385,3 +4385,45 @@
    PAT + repo are configured. Visitors are read-only, so publish entry points
    (drafts, share, mobile FAB) stay hidden for them. */
 body:not(.is-owner) .owner-only { display: none !important; }
+
+/* ─── Mobile detail preview ───
+   The live iframe is hidden behind the static thumbnail only when a
+   thumbnail exists (otherwise the preview would be an empty frame), and the
+   Fullscreen / Open-standalone overlay must actually receive taps: its base
+   rule is pointer-events:none until :hover, which touch screens never fire. */
+body.mobile-app #view-detail .preview-wrap iframe { display: block; }
+body.mobile-app #view-detail .preview-wrap.has-thumb:not(.show-live) iframe { display: none; }
+body.mobile-app #view-detail .preview-wrap.show-live .preview-thumb-mobile { display: none; }
+body.mobile-app #view-detail .preview-wrap .preview-overlay { opacity: 1; pointer-events: auto; }
+
+/* ─── Search on narrow screens ───
+   ≤900px the masthead hides the inline search (to keep brand + actions on
+   one row). The bottom-tab "Search" (phones) and the ⌕ button (tablets) set
+   body.search-open, which shows it as its own full-width row. */
+.nav-actions .nav-search-toggle { display: none; }
+@media (max-width: 900px) {
+  body:not(.mobile-app) .nav-actions .nav-search-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  body.search-open header.masthead { flex-wrap: wrap; row-gap: 10px; }
+  body.search-open .masthead .masthead-search { display: block; order: 3; flex: 1 1 100%; width: 100%; }
+}
+.nav-actions .nav-search-toggle { background: none; border: 0; font-family: inherit; font-size: 20px; line-height: 1; padding: 6px 10px; color: var(--text-muted); cursor: pointer; user-select: none; }
+
+/* ─── Phone quick links (Rankings / Playlists) ───
+   Phones hide the masthead links and the bottom tabs have no slot for them. */
+.mobile-quicklinks { display: none; }
+body.mobile-app .mobile-quicklinks { display: flex; gap: 10px; margin: 2px 0 18px; flex-wrap: wrap; }
+.mobile-quicklinks button {
+  background: transparent; color: var(--text); border: 1px solid var(--border);
+  border-radius: 999px; padding: 10px 18px; min-height: 44px;
+  font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.mobile-quicklinks button:hover { border-color: var(--text); }
+
+/* ─── Touch targets (≥44px) on phones ─── */
+body.mobile-app .nav-actions .nav-settings,
+body.mobile-app .nav-actions .nav-theme {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; padding: 0;
+}
+body.mobile-app .row-header .show-all { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; }
+body.mobile-app .bottom-tab-nav .bt-item { min-height: 52px; justify-content: center; }

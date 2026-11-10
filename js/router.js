@@ -4,7 +4,7 @@
 // renderSettings, renderCompare, prompts, toast.
 
 // ─── Routing ───
-function showView(name) {
+function showView(name, keepScroll) {
   // Leaving the share form with a Fork half-prepared: forget the parent and
   // blank the pre-filled form (see resetUploadForm in js/upload.js).
   if (name !== 'upload') {
@@ -14,7 +14,7 @@ function showView(name) {
   }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
-  window.scrollTo({top:0, behavior:'instant'});
+  if (!keepScroll) window.scrollTo({top:0, behavior:'instant'});
 }
 document.querySelectorAll('[data-nav]').forEach(el => {
   el.addEventListener('click', (e) => {
@@ -26,6 +26,9 @@ document.querySelectorAll('[data-nav]').forEach(el => {
     if (target === 'rankings') renderRankings();
     if (target === 'playlists') renderPlaylists();
     if (target === 'search') {
+      // ≤900px the inline search is hidden by default; search-open shows it
+      // as its own row (see "Search on narrow screens" in css/main.css).
+      document.body.classList.add('search-open');
       renderGallery();
       const s = document.getElementById('searchInput');
       if (s) { setTimeout(() => { s.focus(); s.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }
