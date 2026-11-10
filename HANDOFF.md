@@ -6,7 +6,23 @@
 **Dev server**: name `prompton`, port 3459, via the Browser-pane preview tool
 (`preview_start {name:"prompton"}`). Script: `C:\Users\松村峻長\.claude\serve-prompton.ps1`.
 
-_Last updated: 2026-07-16. No known open bugs. Working tree clean, local = origin/main._
+_Last updated: 2026-11-11 (full audit + fixes, see `docs/audit/merged.md`).
+No known open bugs in the audited list — every item is either fixed, partially
+fixed with the remainder named below, or waiting on an owner decision._
+
+**Owner decisions still open** (details + recommendations in
+`docs/audit/merged.md` → "owner 判断待ち"): PAT storage location / shared
+`github.io` origin (J1) · Fourier work's license + tracking tags (J2) · sample
+promptons p001–p009 and fake authors (J3) · vendor/model names on card ribbons
+(J4) · delete `_folder_demo` + `htmls/_md_demo.md` (J5) · `tiles/saigai`
+(764 files, no reference found) (J6) · visitor votes (J7) · 東京今昔マップ
+`versions` registration (J8) · PNG PWA icons (J9) · follow buttons that never
+persist (J10).
+
+**Partially done:** i18n (main UI strings are keyed; toasts, compare page,
+editor forms and playlist/draft modals are still English) · dead code (spotlight/
+trending stay behind `FEATURES`; ~55 unused CSS classes remain) · duplicate CSS
+selectors · parent fork counts are local-only.
 
 ---
 
@@ -38,6 +54,9 @@ _Last updated: 2026-07-16. No known open bugs. Working tree clean, local = origi
   (which holds the GitHub PAT). Gallery thumbs were already opaque.
   A prompton that itself uses localStorage will throw inside previews —
   known trade-off; standalone/fullscreen open unsandboxed in a new tab.
+- The detail preview iframe is `allow-scripts allow-popups allow-forms` —
+  **never add `allow-popups-to-escape-sandbox`** (a prompton's `window.open`
+  would then land in an unsandboxed same-origin tab that can read the PAT).
 - **PAT field is `type="text"` + `-webkit-text-security` mask** with a
   表示/隠す toggle (`25b5b43`). Never change it back to `type=password` —
   iOS Safari's strong-password overlay made the field completely
@@ -56,13 +75,14 @@ _Last updated: 2026-07-16. No known open bugs. Working tree clean, local = origi
 
 | Wave | Highlights | Commits |
 |---|---|---|
+| Audit & fixes (2026-11-11) | Three independent audit reports merged into `docs/audit/merged.md`, fixed in 7 batches (B1–B7, one commit each): visitors no longer see owner UI or unlisted promptons; download/fork/standalone links are layout-aware; manifest/profile writes refuse to overwrite an unparsable file; no HTML prefetch at boot (localStorage 5.2MB → 35KB); `allow-popups-to-escape-sandbox` removed; phone detail overlay/search/Rankings+Playlists links; history entries + `#/upload`; i18n of main UI; OG pages for every prompton + `og:image`; thumbnail workflow now serves over HTTP (prompton-app thumb fixed) and diffs the whole push. Commits `cf92289` … B7 | `cf92289`–`86f998c` |
 | Thumbnail fixes | **`.nojekyll` added — never remove it** (GitHub Pages' default Jekyll build silently drops underscore-prefixed paths; `_folder_demo`/`_md_demo` 404ed on live because of it). Broken-thumb rescue: capture-phase error listener swaps a failed `img.thumb-img` for the live iframe preview (prompt id recovered from the URL). 調整さん pair's jpgs finally generated (a past session had hand-written thumb fields without files). Fourier title cleaned of literal directional entities | `f46f3dc`, `cc9630d` |
 | Prompton on Prompton | `prompton-app` showcase: framed iframe of `../../`, handoff embedded via `handoffFile` (see Showcase section) | `9b69488` |
 | md promptons + visibility | `format:"md"` — .md files as first-class promptons (raw on `p.mdSource`, monospace wrapper on `p.html`, download serves raw .md). Optional `file` field points at any repo path (root HANDOFF.md is served this way — no drifting copies). `visibility:"unlisted"` hides from gallery/rankings/search/profile/playlists for visitors; owner sees all with an Unlisted ribbon; direct URLs still work (public repo = obscurity, not secrecy). Metadata editor gained a Visibility select | `d72b7f9`, `3a37bd7` |
 | Per-prompton handoffs | Each prompton can carry a "resume here" markdown (user's idea: Prompton itself needs handoffs). Sidecar `htmls/<id>_handoff.md` (flat) / `htmls/<id>/HANDOFF.md` (folder); only `handoffVer` in the manifest; detail page 引き継ぎ section with owner inline editor + 「AI用にコピー」 composing title + live URL + page URL + body for pasting into a fresh AI session. Empty save deletes the sidecar. Delete flow cleans it up. Note: editing a folder-layout handoff re-triggers the thumbnails workflow (harmless; could exclude .md later) | (after `39ee3c4`) |
 | Multi-AI neutral copy | Title/ledes "made with AI", paste button → 会話から貼り付け, model default + picker option "AI" | (after `f667aa0`) |
 | prompton framing | All UI copy: prompt→prompton where it means the work; prompt kept for prompt-text UI | `f667aa0` |
-| Stories bar removed | Drafts moved to masthead 下書き button (count badge) + dropdown: ＋新規 + saved drafts, 3-file chip for multi-file drafts. `renderStoriesBar()` keeps its name but now renders the dropdown | `bcd211e` |
+| Stories bar removed | Drafts moved to masthead 下書き button (count badge) + dropdown: ＋新規 + saved drafts, 3-file chip for multi-file drafts. `renderDraftsMenu()` (was `renderStoriesBar`) renders the dropdown | `bcd211e` |
 | PAT field fix | iOS strong-password overlay bug; masked text input + toggle; fine-grained token hint | `25b5b43` |
 | 3-tab draft editor | HTML/CSS/JS tabs; css/js content ⇒ folder publish with `<link>`/`<script>` auto-injection (no double-inject); paste routes fences by language; drafts schema +css/js; folder delete support | `a453b9a` |
 | iframe sandbox hardening | allow-same-origin dropped everywhere prompton HTML renders | `e1035c9` |
@@ -83,7 +103,10 @@ annotations, etc.) — don't be surprised by non-app commits in the log.
 ### Two prompton layouts
 
 - **flat** (default, no manifest flag): `htmls/<id>.html`, self-contained.
-  Pre-fetched in `fetchSeed()`, previewed via `iframe.srcdoc`.
+  NOT pre-fetched any more (2026-11): previews use `iframe.src`
+  (`promptPreviewAttrs`); code that needs the source text calls
+  `ensurePromptHtml()` (js/render.js), which fetches on demand. Only md
+  promptons are loaded at boot (preview wrapper).
 - **folder** (`"layout": "folder"`): `htmls/<id>/index.html` + `style.css`
   + `app.js` (+ future `lib/`, `assets/`). NOT pre-fetched; every preview
   uses `iframe.src` so relative subresources resolve. Versions:
@@ -111,8 +134,14 @@ annotations, etc.) — don't be surprised by non-app commits in the log.
 
 - Bootstrap try/catch hardened; hash routes; `isOwner()` = PAT+repo in
   `prompton_sync_v1`; i18n `t()` TDZ-safe, `i18n/{en,ja}.json`;
-  `body.mobile-app` via matchMedia 680px; SW **v8** network-first for
-  shell/JSON, cache-first for htmls/thumbs; OG cards at `p/<id>/index.html`;
+  `body.mobile-app` via matchMedia 680px; SW **v9** network-first for
+  shell/JSON/htmls, cache-first for thumbs (old `?v=` entries pruned); OG
+  cards at `p/<id>/index.html` (with `og:image` → `thumbs/<id>.jpg`);
+  `localStorage` (`promptshare_v4`) caches **metadata only** — never put
+  `html`/`mdSource` back into it (5MB quota is shared with sibling sites);
+  `body.is-owner` (set by `updateSyncBadge`) shows `.owner-only` controls;
+  user navigation pushes history entries (`setRoute`), `#/upload` is an
+  owner-only route;
   OAuth backend (`functions/`, `OAUTH_SETUP.md`) written but NOT deployed —
   it's the foundation for the Cloudflare work-version plan below.
 
@@ -186,7 +215,8 @@ js/github.js              +pushFolderPromptToGitHub, folder-aware delete
    GitHub Pages. ~half a day. See OAUTH_SETUP.md.
 4. **Folder-layout version editor** — "Save new version" currently
    flat-only.
-5. Delete `_folder_demo` once a real folder prompton is published.
+5. Delete `_folder_demo` (its condition — a real folder prompton exists — is
+   met; waiting on the owner, see J5) and the orphan `htmls/_md_demo.md`.
 
 ---
 
@@ -205,6 +235,13 @@ js/github.js              +pushFolderPromptToGitHub, folder-aware delete
 - The user's other AI sessions push to this repo concurrently (user
   promptons, metadata edits). Always `pull --rebase --autostash` (the
   working tree often has their unstaged WIP — leave it alone).
+- **Line endings:** the working tree has CRLF (`core.autocrlf=true`) while the
+  index is LF. Multi-line search/replace scripts must normalise `\r\n` first,
+  and Perl `-pi` one-liners must not touch non-ASCII text without `-CSD` +
+  `use utf8` (it silently double-encodes — that mangled both locale files once
+  and was reverted from git). Edit tool / UTF-8-aware scripts are safe.
+- **Visitor vs owner:** the default handle is `you` for everyone, so never use
+  `author === ownerHandle()` as an ownership test — use `isOwner()`.
 - **PowerShell is the reliable shell.** In the last session the Bash
   tool's coreutils (`mkdir`, `cat`, `gh`…) intermittently vanished from
   PATH. Use the PowerShell tool for git/gh.
