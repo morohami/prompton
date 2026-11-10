@@ -36,8 +36,8 @@
     <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="Settings">⚙</a>
     <!-- Drafts entry point (replaced the stories bar). A <button>, not <a>,
          so the mobile-app CSS that hides masthead anchors leaves it alone. -->
-    <button type="button" class="nav-drafts" id="draftsMenuBtn" data-i18n="nav.drafts">下書き</button>
-    <button class="btn-upload" data-nav="upload" data-i18n="nav.share">＋ Share a prompton</button>
+    <button type="button" class="nav-drafts owner-only" id="draftsMenuBtn" data-i18n="nav.drafts">下書き</button>
+    <button class="btn-upload owner-only" data-nav="upload" data-i18n="nav.share">＋ Share a prompton</button>
   </nav>
   <div class="drafts-menu" id="draftsMenu" aria-hidden="true"></div>
 </header>
@@ -146,17 +146,8 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
           <div class="field-row">
             <div class="field">
               <label>Model used</label>
-              <select name="model">
-                <!-- Neutral first option so no vendor becomes the implicit default. -->
-                <option>AI</option>
-                <option>Claude Opus 4.7</option>
-                <option>Claude Sonnet 4.6</option>
-                <option>GPT-4o</option>
-                <option>GPT-5</option>
-                <option>Gemini 2.5 Pro</option>
-                <option>DeepSeek V3</option>
-                <option>Other</option>
-              </select>
+              <!-- Options are filled from MODEL_OPTIONS (js/render.js) at boot. -->
+              <select name="model"><option>AI</option></select>
             </div>
             <div class="field">
               <label>License</label>
@@ -175,7 +166,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       </details>
 
       <div class="submit-row">
-        <span class="storage-note">Saved locally · No backend</span>
+        <span class="storage-note">Publishes to your GitHub repo · connect it in ⚙ Settings</span>
         <button type="submit" class="btn primary big">Publish prompton →</button>
       </div>
     </form>
@@ -296,7 +287,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
   <button type="button" data-nav="search" data-tab="search" class="bt-item" aria-label="Search">
     <span class="bt-label" data-i18n="mobile.search">Search</span>
   </button>
-  <button type="button" data-nav="upload" class="bt-item bt-fab" aria-label="Share">
+  <button type="button" data-nav="upload" class="bt-item bt-fab owner-only" aria-label="Share">
     <span class="bt-fab-inner">＋</span>
   </button>
   <button type="button" data-nav="favorites" data-tab="favorites" class="bt-item" aria-label="Favorites">
@@ -643,14 +634,18 @@ function toggleFavorite(id) {
 }
 
 // ─── Versioning helpers ───
-function syncTopLevelFromLatest(p) {
+// keepHtml: at boot the top-level file (htmls/<id>.html) is the canonical
+// latest HTML — it can be newer than versions[last] (edits made outside the
+// version editor), so boot must not overwrite it with the version snapshot.
+// saveNewVersion() omits the flag: a freshly saved version IS the latest.
+function syncTopLevelFromLatest(p, keepHtml) {
   if (!p.versions || !p.versions.length) return;
   const latest = p.versions[p.versions.length - 1];
   p.systemPrompt = latest.systemPrompt;
   p.userPrompt = latest.userPrompt;
   p.context = latest.context;
   p.model = latest.model;
-  p.html = latest.html;
+  if (!keepHtml) p.html = latest.html;
   p.date = latest.date;
   if (latest.variables !== undefined) p.variables = latest.variables;
 }
@@ -1646,13 +1641,17 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   try {
     prompts = Array.isArray(seedPrompts) ? JSON.parse(JSON.stringify(seedPrompts)) : [];
     profiles = (seedProfiles && typeof seedProfiles === 'object') ? JSON.parse(JSON.stringify(seedProfiles)) : {};
-    prompts.forEach(p => { if (p && p.versions && p.versions.length) syncTopLevelFromLatest(p); });
+    prompts.forEach(p => { if (p && p.versions && p.versions.length) syncTopLevelFromLatest(p, true); });
     if (typeof deriveCuratedTags === 'function') tagConfig.curated = deriveCuratedTags();
   } catch (e) {
     console.warn('Data hydration failed:', e);
     prompts = []; profiles = {};
   }
   try { updateSyncBadge(); } catch (e) { console.warn('updateSyncBadge failed:', e); }
+  try {
+    const modelSel = document.querySelector('#uploadForm select[name="model"]');
+    if (modelSel) modelSel.innerHTML = modelOptionsHtml('AI');
+  } catch (e) { console.warn('model select fill failed:', e); }
   try { window._uploadTagPicker = mountTagPicker('uploadTagPicker', []); } catch (e) { console.warn('tag picker mount failed:', e); }
   try { await i18nReady; } catch (e) { /* localized strings will fall back to keys */ }
   try { if (!handleCompareHash()) renderGallery(); }

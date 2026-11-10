@@ -4379,3 +4379,9 @@
     font-size: 13px;
     text-align: center;
   }
+
+/* ─── Owner-only controls ───
+   body.is-owner is toggled by updateSyncBadge() (js/github.js) whenever a
+   PAT + repo are configured. Visitors are read-only, so publish entry points
+   (drafts, share, mobile FAB) stay hidden for them. */
+body:not(.is-owner) .owner-only { display: none !important; }

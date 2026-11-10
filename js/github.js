@@ -28,8 +28,11 @@ function saveSyncConfig(cfg) {
 }
 function updateSyncBadge() {
   const cfg = getSyncConfig();
+  const connected = !!(cfg.pat && cfg.repo);
   const a = document.querySelector('.nav-settings');
-  if (a) a.classList.toggle('connected', !!(cfg.pat && cfg.repo));
+  if (a) a.classList.toggle('connected', connected);
+  // Visitors (no PAT) get a read-only UI: CSS hides `.owner-only` unless this is set.
+  if (document.body) document.body.classList.toggle('is-owner', connected);
 }
 // True when a PAT + repo are configured — i.e. this browser can write to the collection.
 // In this single-tenant repo, holding the PAT means you own everything in it.
@@ -551,3 +554,6 @@ async function pushFolderPromptToGitHub(prompt) {
     else seedPrompts.unshift(copy);
   }
 }
+
+// Apply the owner/visitor UI state immediately (before the async boot finishes).
+try { updateSyncBadge(); } catch (e) {}

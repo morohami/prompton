@@ -10,10 +10,10 @@
 
 | # | 内容 | 報告 | 再現 | 直し方・触るファイル | バッチ | 状態 |
 |---|---|---|---|---|---|---|
-| M01 | unlisted の `prompton-handoff`・`_folder_demo` が訪問者のホーム「Made for you」に出る | O#4 G#5 F1 | 再現 | `render.js` の抽出に `isListed` | B1 | |
-| M02 | 訪問者の既定ハンドル `you` が owner の author と一致し、訪問者に「新バージョンを保存」「プロフィール編集」、プレイリスト編集、投稿 UI（下書き・＋Share・FAB）が出る。ホームの「Made for you」も訪問者に出る | O#3 G#5 F R3 O#22 G#28 | 再現 | `render.js`・`github.js`・`index.html`・`css`：owner 判定は `isOwner()` のみ。`body.is-owner` で投稿 UI を出し分け | B1 | |
+| M01 | unlisted の `prompton-handoff`・`_folder_demo` が訪問者のホーム「Made for you」に出る | O#4 G#5 F1 | 再現 | `render.js` の抽出に `isListed` | B1 | 完了：訪問者で行から消えたことを PC・スマホ幅で確認 |
+| M02 | 訪問者の既定ハンドル `you` が owner の author と一致し、訪問者に「新バージョンを保存」「プロフィール編集」、プレイリスト編集、投稿 UI（下書き・＋Share・FAB）が出る。ホームの「Made for you」も訪問者に出る | O#3 G#5 F R3 O#22 G#28 | 再現 | `render.js`・`github.js`・`index.html`・`css`：owner 判定は `isOwner()` のみ。`body.is-owner` で投稿 UI を出し分け | B1 | 完了：訪問者は保存・編集・投稿・プレイリスト作成が非表示、ダミー PAT の owner では表示（PC・スマホ幅で確認） |
 | M03 | 詳細プレビュー iframe の sandbox に `allow-popups-to-escape-sandbox` | O#2 G#4 | 読解（コードで確認。攻撃は未再現） | `render.js` 1176：属性を削除 | B3 | |
-| M05 | 東京今昔マップ：トップレベル最新（207,712B）が versions 最新 v2 で上書きされ、ダウンロード・比較が古い v2 | O#5 G#6 F6 | 再現（メモリ 171,691 文字 vs ファイル 174,977 文字） | `index.html`：`syncTopLevelFromLatest` は html を上書きしない（HTML は常にファイルから取る） | B1 | |
+| M05 | 東京今昔マップ：トップレベル最新（207,712B）が versions 最新 v2 で上書きされ、ダウンロード・比較が古い v2 | O#5 G#6 F6 | 再現（メモリ 171,691 文字 vs ファイル 174,977 文字） | `index.html`：`syncTopLevelFromLatest` は html を上書きしない（HTML は常にファイルから取る） | B1 | 完了：読込後の p.html が最新ファイルと一致（174,977 文字）を確認 |
 | M06 | 起動時に HTML 29本（5.3MB）を全部取得してから描画／同量を localStorage（5.24M 文字）に保存し 5MB 上限の99% | O#6 O#13 G#8 G#20 F | 再現（htmlBytes 5,275,416・localStorage 5,236,685） | `index.html`：manifest だけで描画、HTML はオンデマンド取得、localStorage はメタデータのみ | B3 | |
 | M08 | スマホ詳細：オーバーレイの「全画面」「別タブで開く」が `pointer-events: none` のため押せず（後ろのサムネが受ける）、サムネ未生成作品は空枠 | G#1 | 再現（hit 要素が `IMG.preview-thumb-mobile`、`pe: none`、handoff は iframe 非表示で空） | `css/main.css`・`render.js` | B4 | |
 | M09 | 検索：≤900px で検索欄が非表示のままタブから出せない／PC でも入力で一覧が絞られない（並び替えで初めて絞られホーム行が消える）。`description` 欠落で例外の余地 | G#2 F8 | 再現 | `css`・`index.html`・`router.js`・`render.js` | B4 | |
@@ -31,7 +31,7 @@
 | M16 | 設定画面で言語ボタンを押すとギャラリーへ飛ぶ。`#/rankings/forks` は `#/rankings` に潰れる | G#14 F4 | 再現 | `index.html`・`render.js`：現在の hash で再描画 | B5 | |
 | M17 | 旧テーマの `color:#000` が濃赤背景に残る（設定の Save・Save tag config・Popular リボン等。コントラスト約2:1）。緑の `rgba(29,185,84)` も残る | G#15 | 再現（背景 rgb(140,21,21) に文字 rgb(0,0,0)）。`.btn.primary` の通常時は白で正常 | `css/main.css` | B5 | |
 | M18 | 画面遷移が `replaceState` のみで、戻るで離脱する | O#9 G#16 F7 | 再現 | `router.js` | B5 | |
-| M19 | モデルの選択肢が3か所に重複し、`Claude Sonnet 4.5` がなく、編集フォームを開くと「AI」に変わる | O#10 G#17 F3 | 再現 | 共通定数＋現在値を保持 | B1 | |
+| M19 | モデルの選択肢が3か所に重複し、`Claude Sonnet 4.5` がなく、編集フォームを開くと「AI」に変わる | O#10 G#17 F3 | 再現 | 共通定数＋現在値を保持 | B1 | 完了：編集フォームが Claude Sonnet 4.5 を保持、共有フォームの選択肢8件を確認 |
 | M20 | OG ページが7作品で欠落、2件はタイトルが古い、全件 `og:image` なし | O#11 G#18 F | 再現（照合） | `p/*/index.html` 生成、`github.js` に og:image | B7 | |
 | M21 | プロフィール「公開」タブがサムネ画像でなく iframe 17個（srcdoc 4.6MB） | O#12 G#19 F9 | 再現 | `render.js` | B3 | |
 | M22 | `thumbs/prompton-app.jpg` が額縁だけの白紙。`generate-thumbs.mjs` が `git diff HEAD~1 HEAD` で複数コミット push を取りこぼし、md 未対応 | O#14 G#21 | 再現（画像確認）＋読解 | `.github/` | B7 | |
@@ -40,7 +40,7 @@
 | M25 | 日本語モードに英語の直書きが多数。比較ボタンが英語に化ける。PAT「表示/隠す」は逆 | O#15 G#24 F | 再現 | `i18n/*.json`・`render.js`・`index.html` | B6 | |
 | M26 | 呼称：`Publish prompt`、`recipes for AI`、`PromptShare`、旧説明文 | O#16 O#17 G#25 F | 再現 | `upload.js`・`manifest.webmanifest`・`profiles.json` | B6 | |
 | M29 | キーボード操作：カード・ナビが `div`/href なし `<a>`、iframe に `title` なし、サムネ `alt` 空 | O#23 G#27 | 読解（両報告は DOM 計測） | `render.js`・`index.html` | B6 | |
-| M30 | 訪問者の投稿・投票・プレイリスト操作は「Saved locally」と出るが次回起動で消える | O#22 G#28 F5 | 読解 | M02 の owner 限定表示で解消。残る文言は修正 | B1 | |
+| M30 | 訪問者の投稿・投票・プレイリスト操作は「Saved locally」と出るが次回起動で消える | O#22 G#28 F5 | 読解 | M02 の owner 限定表示で解消。残る文言は修正 | B1 | 一部完了：訪問者の投稿 UI・プレイリスト編集を隠し、投稿画面の文言を修正。投票は J7 |
 | M31 | 自分のプロフィールを編集しても GitHub に保存されず、リロードで元に戻る（owner でも） | F5 | 読解（保存処理が存在しない） | `render.js`・`github.js` | B3 | |
 
 ### 低

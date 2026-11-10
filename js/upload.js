@@ -7,6 +7,8 @@
 // renderGallery.
 
 // ─── Upload form ───
+// (The model <select> is filled from MODEL_OPTIONS in the inline bootstrap —
+// escapeHtml isn't defined yet when this file first executes.)
 const fileDrop = document.getElementById('fileDrop');
 const htmlFile = document.getElementById('htmlFile');
 let uploadedHtml = '';

@@ -15,6 +15,20 @@ function thumbUrl(p) {
   return p.thumbVer ? `${p.thumb}?v=${p.thumbVer}` : p.thumb;
 }
 
+// ─── Model choices ─────────────────────────────────────────────────────
+// Single source of truth for every model <select> (share form, metadata
+// editor, version editor). Neutral "AI" first so no vendor is the implicit
+// default. A value that is not in the list (older promptons use e.g.
+// "Claude Sonnet 4.5") is kept as its own option so opening an editor never
+// silently rewrites the stored model.
+const MODEL_OPTIONS = ['AI', 'Claude Opus 4.7', 'Claude Sonnet 4.6', 'GPT-4o', 'GPT-5', 'Gemini 2.5 Pro', 'DeepSeek V3', 'Other'];
+function modelOptionsHtml(current) {
+  const list = MODEL_OPTIONS.slice();
+  if (current && list.indexOf(current) < 0) list.push(current);
+  const sel = current || 'AI';
+  return list.map(m => '<option' + (m === sel ? ' selected' : '') + '>' + escapeHtml(m) + '</option>').join('');
+}
+
 // ─── Multi-file prompt support ─────────────────────────────────────────
 // A prompt's HTML can live in one of two layouts:
 //
@@ -491,9 +505,9 @@ function renderPlaylists() {
     <p class="lede">${escapeHtml(t('playlists.lede'))}</p>
     <div class="playlist-grid">
       ${tiles || `<div class="empty-state">${escapeHtml(t('playlists.empty'))}</div>`}
-      <button type="button" class="playlist-tile new-pl" id="newPlaylistBtn">
+      ${isOwner() ? `<button type="button" class="playlist-tile new-pl" id="newPlaylistBtn">
         <div class="pl-name">+ ${escapeHtml(t('playlists.new'))}</div>
-      </button>
+      </button>` : ''}
     </div>
   `;
   el.querySelectorAll('[data-pl-id]').forEach(a =>
@@ -515,7 +529,7 @@ function renderPlaylistDetail(plId) {
     .filter(Boolean);
   const color = pl.color || '#8C1515';
   const me_h = ownerHandle();
-  const canEdit = pl.owner === me_h;
+  const canEdit = pl.owner === me_h && isOwner();
   el.innerHTML = `
     <div class="playlist-header" style="border-left:4px solid ${escapeAttr(color)}">
       <h1>${escapeHtml(pl.name)}</h1>
@@ -741,7 +755,10 @@ function renderGallery() {
 
     // "Made for you" = prompts you authored (yours, including remixes)
     const me_h = ownerHandle();
-    const yourForks = prompts.filter(p => p.author === me_h);
+    // Owner-only row. Visitors share the default handle 'you' with the owner's
+    // works, so without the isOwner() gate they saw the owner's promptons as
+    // "made for you" (including unlisted ones — hence the isListed filter too).
+    const yourForks = isOwner() ? prompts.filter(p => p.author === me_h && isListed(p)) : [];
     // "By <top author>" = prompts from author with most published
     const authorCounts = {};
     publicPrompts.forEach(p => { authorCounts[p.author] = (authorCounts[p.author] || 0) + 1; });
@@ -1103,8 +1120,9 @@ function renderDetail(id, viewingVersionNum) {
     }
   }
 
-  const isYours = p.author === ownerHandle();
-  const canSaveNewVersion = (isYours || isOwner()) && !isViewingPast;
+  // Owner-only, flat single-file promptons only (the version flow writes
+  // htmls/<id>.html + _v<n>.html; folder/md layouts have no such files).
+  const canSaveNewVersion = isOwner() && !isViewingPast && p.layout !== 'folder' && p.format !== 'md';
 
   // Auto-detect undeclared {{TOKEN}} variables in the prompt text. Any token
   // that appears in systemPrompt/userPrompt/context but isn't in view.variables
@@ -1157,7 +1175,7 @@ function renderDetail(id, viewingVersionNum) {
         <button class="btn secondary" id="copyPromptTopBtn" title="Copy the full prompt to clipboard">${escapeHtml(t('detail.copy'))}</button>
         <button class="btn secondary" id="downloadBtn">${escapeHtml(t('detail.download'))}</button>
         <button class="btn secondary ${isFavorited(p.id) ? 'on' : ''}" id="favoriteBtn" title="Favorite (private, this device only)">${escapeHtml(isFavorited(p.id) ? t('detail.favorited') : t('detail.favorite'))}</button>
-        <button class="btn secondary" id="addToPlaylistBtn" title="Add to playlist">${escapeHtml(t('detail.playlist'))}</button>
+        ${isOwner() ? `<button class="btn secondary" id="addToPlaylistBtn" title="Add to playlist">${escapeHtml(t('detail.playlist'))}</button>` : ''}
         <button class="btn secondary" id="shareBtn" title="Share this prompton">${escapeHtml(t('detail.share'))}</button>
         <button class="btn secondary" id="forkBtn">${escapeHtml(t('detail.fork'))}</button>
         ${parent ? `<button class="btn secondary" id="compareOriginalBtn">${escapeHtml(t('detail.compareOriginal'))}</button>` : ''}
@@ -1873,8 +1891,7 @@ function openVersionEditor(promptId) {
       <div class="field">
         <label>Model</label>
         <select name="model">
-          ${['AI','Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other']
-            .map(m => `<option ${m === baseModel ? 'selected' : ''}>${m}</option>`).join('')}
+          ${modelOptionsHtml(baseModel)}
         </select>
       </div>
       <div class="field">
@@ -1945,7 +1962,6 @@ function openMetadataEditor(promptId) {
   if (!p) return;
   const mount = document.getElementById('versionEditorMount');
   if (!mount) return;
-  const modelOpts = ['AI','Claude Opus 4.7','Claude Sonnet 4.6','GPT-4o','GPT-5','Gemini 2.5 Pro','DeepSeek V3','Other'];
   mount.innerHTML = `
     <div class="version-editor" id="metadataEditor">
       <h2>Edit metadata</h2>
@@ -1977,7 +1993,7 @@ function openMetadataEditor(promptId) {
       <div class="field">
         <label>Model</label>
         <select name="model">
-          ${modelOpts.map(m => `<option ${m === p.model ? 'selected' : ''}>${m}</option>`).join('')}
+          ${modelOptionsHtml(p.model)}
         </select>
       </div>
       <div class="field">
@@ -2235,6 +2251,9 @@ function renderProfile(handle, tab) {
   const mine = prompts.filter(p => p.author === handle && isListed(p));
   const me_h = ownerHandle();
   const isYou = handle === me_h;
+  // A visitor's default handle is 'you' too (same as the owner's author id),
+  // so only a connected owner may edit that profile or see its private email.
+  const canEditProfile = isYou && isOwner();
   const youFollow = !isYou && isFollowing(me_h, handle);
   const totalDl = mine.reduce((s, p) => s + (p.downloads || 0), 0);
   const totalFk = mine.reduce((s, p) => s + (p.forks || 0), 0);
@@ -2257,13 +2276,13 @@ function renderProfile(handle, tab) {
           <div class="profile-meta">
             ${profile.location ? `<span>· ${escapeHtml(profile.location)}</span>` : ''}
             ${profile.website ? `<span>↗ <a href="${escapeAttr(websiteHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteDisplay)}</a></span>` : ''}
-            ${isYou && profile.email ? `<span>✉ ${escapeHtml(profile.email)}</span>` : ''}
+            ${canEditProfile && profile.email ? `<span>✉ ${escapeHtml(profile.email)}</span>` : ''}
             <span>· Joined ${formatDate(profile.joined)}</span>
           </div>
         </div>
         <div class="profile-actions">
           ${isYou
-            ? '<button class="btn secondary" id="editProfileBtn">✎ Edit profile</button>'
+            ? (canEditProfile ? '<button class="btn secondary" id="editProfileBtn">✎ Edit profile</button>' : '')
             : '<button class="btn ' + (youFollow ? 'secondary' : 'primary') + '" id="followBtn">' + (youFollow ? '✓ Following' : '+ Follow') + '</button>'}
         </div>
       </div>
