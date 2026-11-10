@@ -9,11 +9,12 @@
 //     the same file instead of piling up
 //   - Bypass GitHub API requests entirely (writes must always hit the network)
 
-const VERSION = 'prompton-v9';
+const VERSION = 'prompton-v10';
 const SHELL = [
   './', './index.html', './404.html',
   './manifest.json', './profiles.json', './tags.json', './playlists.json',
   './manifest.webmanifest', './icons/icon.svg', './icons/maskable.svg',
+  './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png',
   // Split CSS / JS modules — precache so the shell renders styled even on
   // first paint and so offline visits don't lose layout.
   './css/main.css',

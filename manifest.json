@@ -59,36 +59,6 @@
     "variables": []
   },
   {
-    "id": "_folder_demo",
-    "layout": "folder",
-    "title": "Folder layout demo (multi-file)",
-    "description": "マルチファイル(index.html + style.css + app.js)構造で配信される最初のテストprompt。iframe.src経由でhtmls/_folder_demo/index.htmlが読み込まれ、サイドファイルが相対パスで解決されることを確認するためのデモ。",
-    "systemPrompt": "",
-    "userPrompt": "Demonstrate the new folder-layout prompt scheme: single index.html linking out to sibling style.css and app.js, served from htmls/<id>/.",
-    "context": "Internal infrastructure test. layout: 'folder' flag in manifest tells the bootstrap to skip pre-fetching .html and tells iframe builders to use src= instead of srcdoc=.",
-    "model": "AI",
-    "license": "CC0 — Public domain",
-    "tags": [
-      "meta",
-      "infra",
-      "multi-file"
-    ],
-    "tag": "meta",
-    "author": "you",
-    "authorName": "You",
-    "date": "2026-05-27",
-    "downloads": 0,
-    "forks": 0,
-    "parentId": null,
-    "usage": [],
-    "variables": [],
-    "thumb": "thumbs/_folder_demo.jpg",
-    "thumbVer": 1794332348886,
-    "reproPrompt": "",
-    "devNotes": "",
-    "visibility": "unlisted"
-  },
-  {
     "id": "p1779823200000",
     "title": "藩境界プラグイン — 幕末日本（218藩）",
     "description": "CODH 幕末期近世村領域データセット（CC BY-SA 4.0）から Voronoi 分割→領分で dissolve して生成した、慶応3-4年（1867-68）時点の藩境界 GeoJSON。218藩を内蔵し、4種プリセット（戊辰戦争主要藩・外様大藩・幕府関係領・全藩）、藩名検索、クリックで領域 fitBounds。Leaflet 1.9.4 + 地理院淡色地図。単一 HTML（810KB）に GeoJSON 全文をインライン埋込しているため file:// でもサーバ不要で動く。",
@@ -247,13 +217,14 @@
   {
     "id": "p1779746643461",
     "title": "Fourier: Making Waves",
-    "description": "",
+    "description": "Saved copy of the PhET simulation \"Fourier: Making Waves\" (PhET Interactive Simulations, University of Colorado Boulder, https://phet.colorado.edu). Not made with AI. Analytics scripts were removed from this copy.",
     "systemPrompt": "",
-    "userPrompt": "n",
+    "userPrompt": "(Not an AI-made work — a saved copy of a PhET simulation, kept for reference.)",
     "context": "",
-    "model": "Claude Opus 4.7",
-    "license": "CC0 — Public domain",
-    "tags": [],
+    "model": "Other",
+    "license": "© PhET Interactive Simulations, University of Colorado Boulder — see https://phet.colorado.edu/en/licensing (this 2026-04-23 build is newer than the CC BY 4.0 notice; license unconfirmed)",
+    "visibility": "unlisted",
+    "tags": ["physics", "simulation", "phet"],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -573,6 +544,7 @@
   },
   {
     "id": "p001",
+    "sample": true,
     "title": "Weekly meal planner with grocery roll-up",
     "description": "A 7-day Mediterranean meal plan that auto-generates a consolidated shopping list.",
     "author": "mira_tanaka",
@@ -629,6 +601,7 @@
   },
   {
     "id": "p002",
+    "sample": true,
     "title": "Retro terminal revenue dashboard",
     "description": "Dark, monospaced KPI cards with a sparkline — feels like a Bloomberg terminal.",
     "author": "tomas_lind",
@@ -661,6 +634,7 @@
   },
   {
     "id": "p003",
+    "sample": true,
     "title": "Heartfelt thank-you letter (handwritten feel)",
     "description": "Generates a warm, specific thank-you letter that doesn't sound AI-written.",
     "author": "eleanor_rosa",
@@ -780,6 +754,7 @@
   },
   {
     "id": "p004",
+    "sample": true,
     "title": "Wordle clone — finished puzzle showcase",
     "description": "A playable-feeling Wordle layout. Great template for any 5×6 guessing game.",
     "author": "kenji_arai",
@@ -809,6 +784,7 @@
   },
   {
     "id": "p005",
+    "sample": true,
     "title": "JLPT vocabulary flashcards — SRS layout",
     "description": "A spaced-repetition study card with reading, gloss, and Again/Hard/Good buttons.",
     "author": "mira_tanaka",
@@ -861,6 +837,7 @@
   },
   {
     "id": "p006",
+    "sample": true,
     "title": "30-day habit tracker — quiet edition",
     "description": "A serene, paper-feeling habit grid. No streaks. No notifications. Just a record.",
     "author": "eleanor_rosa",
@@ -891,6 +868,7 @@
   },
   {
     "id": "p007",
+    "sample": true,
     "title": "Nonna's lemon cake — recipe card",
     "description": "Italian-grandmother-energy recipe card with double-rule headers and italic title.",
     "author": "tomas_lind",
@@ -920,6 +898,7 @@
   },
   {
     "id": "p008",
+    "sample": true,
     "title": "履歴書 — Japanese resume template",
     "description": "A faithful Rirekisho table layout for job applications in Japan.",
     "author": "kenji_arai",
@@ -952,6 +931,7 @@
   },
   {
     "id": "p009",
+    "sample": true,
     "title": "Professional thank-you note (business tone)",
     "description": "A fork of Eleanor's letter prompt, tuned for post-meeting business thank-yous.",
     "author": "tomas_lind",

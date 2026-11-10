@@ -10,14 +10,18 @@ _Last updated: 2026-11-11 (full audit + fixes, see `docs/audit/merged.md`).
 No known open bugs in the audited list — every item is either fixed, partially
 fixed with the remainder named below, or waiting on an owner decision._
 
-**Owner decisions still open** (details + recommendations in
-`docs/audit/merged.md` → "owner 判断待ち"): PAT storage location / shared
-`github.io` origin (J1) · Fourier work's license + tracking tags (J2) · sample
-promptons p001–p009 and fake authors (J3) · vendor/model names on card ribbons
-(J4) · delete `_folder_demo` + `htmls/_md_demo.md` (J5) · `tiles/saigai`
-(764 files, no reference found) (J6) · visitor votes (J7) · 東京今昔マップ
-`versions` registration (J8) · PNG PWA icons (J9) · follow buttons that never
-persist (J10).
+**Owner decisions** (see `docs/audit/merged.md` → "owner 判断への対応"):
+done as recommended — Fourier is now unlisted with honest metadata and its
+analytics scripts removed (J2; PhET's CC BY 4.0 notice only covers builds
+before 2026-03-29, this copy is 2026-04-23) · sample promptons p001–p009 are
+`sample: true` (ribbon "Sample", excluded from rankings, counts shown as 0)
+(J3) · no model names on cards (J4) · `_folder_demo` and `_md_demo.md` deleted
+(J5) · PNG icons added (J9) · follow UI hidden behind `FEATURES.social` (J10).
+**Still open:** PAT storage / shared `github.io` origin — real fix is the
+Cloudflare work version (J1) · `tiles/saigai` (763 tiles, nothing in the repo
+references it — likely staged for a later 東京被災マップ step; ask that
+session before deleting) (J6) · visitor votes: keep or drop (J7) · 東京今昔マップ
+`versions` registration / metadata (J8).
 
 **Partially done:** i18n (main UI strings are keyed; toasts, compare page,
 editor forms and playlist/draft modals are still English) · dead code (spotlight/
@@ -186,9 +190,6 @@ frame again) is stopped by the browser's same-URL ancestor-frame guard.
 
 ```
 htmls/<id>/…              folder-layout promptons (index.html + sidecars)
-htmls/_folder_demo/       3-file infra demo — delete once a real folder
-                          prompton exists (also drop its manifest entry,
-                          thumbs/_folder_demo.jpg, p/_folder_demo/)
 js/render.js              +promptHtmlPath/promptPreviewAttrs, drafts menu,
                           3-tab modal, owner-action ordering
 js/github.js              +pushFolderPromptToGitHub, folder-aware delete
@@ -215,8 +216,7 @@ js/github.js              +pushFolderPromptToGitHub, folder-aware delete
    GitHub Pages. ~half a day. See OAUTH_SETUP.md.
 4. **Folder-layout version editor** — "Save new version" currently
    flat-only.
-5. Delete `_folder_demo` (its condition — a real folder prompton exists — is
-   met; waiting on the owner, see J5) and the orphan `htmls/_md_demo.md`.
+5. ~~Delete `_folder_demo`~~ — done 2026-11-11 (with the orphan `_md_demo.md`).
 
 ---
 
@@ -224,7 +224,7 @@ js/github.js              +pushFolderPromptToGitHub, folder-aware delete
 
 - **`.nojekyll` at repo root is load-bearing.** Without it GitHub Pages
   runs Jekyll and silently drops every underscore-prefixed path
-  (`htmls/_folder_demo/`, `thumbs/_folder_demo.jpg`, `htmls/_md_demo.md`).
+  (e.g. a past `htmls/_folder_demo/`).
   Never delete it; prefer non-underscore ids for new promptons anyway.
 - **Thumbnails workflow races**: the workflow rebases before pushing, and
   a concurrent user push that touches manifest.json or the same thumb

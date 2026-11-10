@@ -8,7 +8,7 @@
      theme-color also tints the mobile browser chrome and the iOS notch area. -->
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
-<link rel="apple-touch-icon" href="icons/icon.svg" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
 <meta name="theme-color" content="#8C1515" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0e1014" media="(prefers-color-scheme: dark)" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -358,6 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
 const FEATURES = {
   spotlight: false,   // big "Today's Lead" hero
   trending: false,    // "Trending today" album row
+  social: false,      // follow buttons + followers/following. Off: follows were never saved
+                      // anywhere (profiles are re-read from profiles.json on every load).
 };
 
 // ─── Seed data (loaded from manifest.json + htmls/*.html at boot) ───
@@ -1652,6 +1654,10 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
     prompts = Array.isArray(seedPrompts) ? JSON.parse(JSON.stringify(seedPrompts)) : [];
     profiles = (seedProfiles && typeof seedProfiles === 'object') ? JSON.parse(JSON.stringify(seedProfiles)) : {};
     prompts.forEach(p => { if (p && p.versions && p.versions.length) syncTopLevelFromLatest(p, true); });
+    // Sample promptons (manifest `sample: true`) ship with made-up download/fork
+    // counts; never display or sort by them.
+    prompts.forEach(p => { if (p && p.sample) { p.downloads = 0; p.forks = 0; } });
+
     if (typeof deriveCuratedTags === 'function') tagConfig.curated = deriveCuratedTags();
   } catch (e) {
     console.warn('Data hydration failed:', e);

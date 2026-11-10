@@ -596,7 +596,7 @@ function renderPlaylistDetail(plId) {
         : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>`;
       card.innerHTML = `
         <div class="thumb-wrap">${thumbInner}</div>
-        <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
+        <div class="meta-top"><span>${formatDate(p.date)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
         <div class="by">by <span data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span></div>
       `;
@@ -717,7 +717,8 @@ function renderRankings(metric) {
   setRoute(metric === 'forks' ? 'rankings/forks' : 'rankings');
   const el = document.getElementById('rankingsContent');
   if (!el) return;
-  const all = prompts.filter(isListed);
+  // Sample promptons (manifest `sample: true`) carry made-up numbers: keep them out of rankings.
+  const all = prompts.filter(p => isListed(p) && !p.sample);
   const sorted = all.sort((a, b) => (b[metric] || 0) - (a[metric] || 0));
   const top = sorted.slice(0, 30);
   const totalDl = all.reduce((s, p) => s + (p.downloads || 0), 0);
@@ -1013,8 +1014,11 @@ function renderGallery(opts) {
     const ribbonClass = p.forks > 50 ? 'tomato' : '';
     // Owner-only visibility marker beats everything else — you need to see
     // at a glance which of your promptons visitors can't.
+    // Model names (Claude / GPT …) are factual detail-page info, not card chrome:
+    // the ribbon only carries status (unlisted / sample / popular / fork / md).
     const ribbonText = p.visibility === 'unlisted' ? t('ui.ribbonUnlisted')
-      : (p.forks > 50 ? t('ui.ribbonPopular') : (p.parentId ? t('ui.ribbonFork') : (p.format === 'md' ? 'MD' : p.model.split(' ')[0])));
+      : (p.sample ? t('ui.ribbonSample')
+      : (p.forks > 50 ? t('ui.ribbonPopular') : (p.parentId ? t('ui.ribbonFork') : (p.format === 'md' ? 'MD' : ''))));
     const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} ${escapeHtml(t('ui.knobs'))}</span>` : '';
     const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
     const thumbInner = p.thumb
@@ -1023,13 +1027,12 @@ function renderGallery(opts) {
     const favOn = isFavorited(p.id);
     card.innerHTML = `
       <div class="thumb-wrap">
-        <span class="ribbon ${ribbonClass}">${ribbonText}</span>
+        ${ribbonText ? `<span class="ribbon ${ribbonClass}">${escapeHtml(ribbonText)}</span>` : ''}
         ${thumbInner}
         <button type="button" class="fav-btn ${favOn ? 'on' : ''}" data-fav-id="${p.id}" aria-label="Favorite" title="Favorite">${favOn ? '♥' : '♡'}</button>
       </div>
       <div class="meta-top">
         <span>${formatDate(p.date)}</span>
-        <span>${p.model}</span>
       </div>
       <h3>${escapeHtml(p.title)}</h3>
       <div class="by">by <span data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span></div>
@@ -2317,7 +2320,7 @@ function renderProfile(handle, tab) {
         <div class="profile-actions">
           ${isYou
             ? (canEditProfile ? '<button class="btn secondary" id="editProfileBtn">' + escapeHtml(t('ui.editProfile')) + '</button>' : '')
-            : '<button class="btn ' + (youFollow ? 'secondary' : 'primary') + '" id="followBtn">' + escapeHtml(youFollow ? t('ui.following') : t('ui.follow')) + '</button>'}
+            : !FEATURES.social ? '' : '<button class="btn ' + (youFollow ? 'secondary' : 'primary') + '" id="followBtn">' + escapeHtml(youFollow ? t('ui.following') : t('ui.follow')) + '</button>'}
         </div>
       </div>
 
@@ -2335,14 +2338,14 @@ function renderProfile(handle, tab) {
           <div class="num">${formatNum(totalDl)}</div>
           <div class="lbl">${escapeHtml(t('profile.downloads'))}</div>
         </div>`}
-        <button type="button" class="stat-card ${activeTab === 'followers' ? 'active' : ''}" data-tab="followers">
+        ${FEATURES.social ? `<button type="button" class="stat-card ${activeTab === 'followers' ? 'active' : ''}" data-tab="followers">
           <div class="num">${profile.followers.length}</div>
           <div class="lbl">${escapeHtml(t('profile.followers'))}</div>
         </button>
         <button type="button" class="stat-card ${activeTab === 'following' ? 'active' : ''}" data-tab="following">
           <div class="num">${profile.following.length}</div>
           <div class="lbl">${escapeHtml(t('profile.following'))}</div>
-        </button>
+        </button>` : ''}
         <div class="stat-card non-tab">
           <div class="num">${formatNum(totalFk)}</div>
           <div class="lbl">${escapeHtml(t('profile.forks'))}</div>
@@ -2398,7 +2401,7 @@ function renderProfileTab(handle, tab) {
         : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1" loading="lazy"></iframe>`;
       card.innerHTML = `
         <div class="thumb-wrap">${thumbInner}</div>
-        <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
+        <div class="meta-top"><span>${formatDate(p.date)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
         <div class="stats">
           <span><b>${formatNum(p.downloads)}</b> ${escapeHtml(t('ui.downloads'))}</span>
@@ -2437,7 +2440,7 @@ function renderProfileTab(handle, tab) {
         : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>`;
       card.innerHTML = `
         <div class="thumb-wrap">${thumbInner}</div>
-        <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
+        <div class="meta-top"><span>${formatDate(p.date)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
         <div class="by">by <span data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span></div>
       `;
