@@ -246,8 +246,8 @@ function renderTagCurationPanel() {
   // the upload tag picker reads from a clean, alias-normalized list.
   tagConfig.curated = derived;
   curatedHost.innerHTML = derived.length
-    ? derived.map(t => `<span class="tag-pill" title="Used by ${counts[t] || 0} prompt${counts[t] === 1 ? '' : 's'}">${escapeHtml(t)} <span class="chip-count" style="opacity:.6;font-size:11px;margin-left:4px">${counts[t] || 0}</span></span>`).join('')
-    : '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No tags yet — tag a prompt to see it here.</span>';
+    ? derived.map(t => `<span class="tag-pill" title="Used by ${counts[t] || 0} prompton${counts[t] === 1 ? '' : 's'}">${escapeHtml(t)} <span class="chip-count" style="opacity:.6;font-size:11px;margin-left:4px">${counts[t] || 0}</span></span>`).join('')
+    : '<span style="color:var(--text-muted);font-style:italic;font-size:12px">No tags yet — tag a prompton to see it here.</span>';
 
   const aliasHost = document.getElementById('aliasList');
   if (!aliasHost) return;

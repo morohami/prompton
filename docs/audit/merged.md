@@ -37,9 +37,9 @@
 | M22 | `thumbs/prompton-app.jpg` が額縁だけの白紙。`generate-thumbs.mjs` が `git diff HEAD~1 HEAD` で複数コミット push を取りこぼし、md 未対応 | O#14 G#21 | 再現（画像確認）＋読解 | `.github/` | B7 | |
 | M23 | 削除が md 型・フォルダ型の深い階層に未対応。メタ更新が `mdSource` 等を manifest に混入。manifest の JSON 解析失敗時に `[]` で上書き（5か所） | G#22 O#20 F R1 | 読解 | `github.js`：共通ヘルパーに集約 | B2 | 完了：manifest/profiles が壊れていれば書き込まず中止、メタ更新で thumb/thumbVer/votes を保持し mdSource・html を除外、md参照ファイルは削除せず、フォルダ削除は再帰（通信を差し替えたテストで確認）。実GitHubへの書き込みは未実施 |
 | M24 | Service Worker が `htmls/` をキャッシュ優先で古い HTML を返し、`thumbs/?v=` が溜まる | O#21 G#23 | 読解 | `sw.js` | B3 | 完了：SW を v9 に。htmls はネットワーク優先、サムネは同一ファイルの古い ?v= を削除（キャッシュ名と取得経路を確認）。更新直後の実機での古い版の消え方は未確認 |
-| M25 | 日本語モードに英語の直書きが多数。比較ボタンが英語に化ける。PAT「表示/隠す」は逆 | O#15 G#24 F | 再現 | `i18n/*.json`・`render.js`・`index.html` | B6 | |
-| M26 | 呼称：`Publish prompt`、`recipes for AI`、`PromptShare`、旧説明文 | O#16 O#17 G#25 F | 再現 | `upload.js`・`manifest.webmanifest`・`profiles.json` | B6 | |
-| M29 | キーボード操作：カード・ナビが `div`/href なし `<a>`、iframe に `title` なし、サムネ `alt` 空 | O#23 G#27 | 読解（両報告は DOM 計測） | `render.js`・`index.html` | B6 | |
+| M25 | 日本語モードに英語の直書きが多数。比較ボタンが英語に化ける。PAT「表示/隠す」は逆 | O#15 G#24 F | 再現 | `i18n/*.json`・`render.js`・`index.html` | B6 | 一部完了：ホーム（挨拶・各行・見出し）、カード、詳細の見出しとボタン、比較トグル（英語に化けなくなった）、ランキング、検索、プロフィール、投稿フォームの主要文言、設定の説明・ボタン、PAT 表示/隠すを ja/en に（375px で両言語を確認、キーは ja/en とも80件で一致）。通知（トースト）・比較画面・編集フォーム・プレイリスト/ドラフトのモーダルの英語は未対応 |
+| M26 | 呼称：`Publish prompt`、`recipes for AI`、`PromptShare`、旧説明文 | O#16 O#17 G#25 F | 再現 | `upload.js`・`manifest.webmanifest`・`profiles.json` | B6 | 完了：Publish prompton / promptons、webmanifest の名前と説明、profiles.json の @you の自己紹介、コード先頭のコメントを修正（localStorage のキー名 promptshare_* は移行の手間があるので据え置き。見本ユーザーのメール @promptshare.example は J3 の見本データなので据え置き） |
+| M29 | キーボード操作：カード・ナビが `div`/href なし `<a>`、iframe に `title` なし、サムネ `alt` 空 | O#23 G#27 | 読解（両報告は DOM 計測） | `render.js`・`index.html` | B6 | 一部完了：カード・ナビ・戻るリンクが Tab で移動でき Enter/Space で開く（375px で動作確認）、プレビュー iframe に title。サムネ img の alt は隣の作品名と重複するため空のまま（カード側に aria-label）。スクリーンリーダー実機は未確認 |
 | M30 | 訪問者の投稿・投票・プレイリスト操作は「Saved locally」と出るが次回起動で消える | O#22 G#28 F5 | 読解 | M02 の owner 限定表示で解消。残る文言は修正 | B1 | 一部完了：訪問者の投稿 UI・プレイリスト編集を隠し、投稿画面の文言を修正。投票は J7 |
 | M31 | 自分のプロフィールを編集しても GitHub に保存されず、リロードで元に戻る（owner でも） | F5 | 読解（保存処理が存在しない） | `render.js`・`github.js` | B3 | 完了：プロフィール編集（と名前変更）が profiles.json と manifest の authorName に1コミットで保存される（通信を差し替えたテストで確認。email は公開リポジトリなので送らない）。実GitHubへの書き込みは未実施 |
 
@@ -50,7 +50,7 @@
 | M32 | `functions/`（未デプロイ）：`ALLOWED_USERS` 未設定で全員許可、`functions/` への書き込みを弾かない、ログアウトが GET 可 | G#29 | 読解 | `functions/` | B7 | |
 | M34 | 未使用コード（空関数・spotlight/trending・`getMostProlificAuthor` 等）、未使用 i18n キー 12、未使用 CSS 約55クラス | O#27 G#31 F | 照合 | 削除 | B7 | |
 | M35 | 重複：詳細内の必須チェック／プロンプト組み立て／Claude.ai 起動が2重、manifest 読み書き6回、エスケープ関数2つ、CSS 重複 | O#28 G#32 F | 読解 | 共通化（manifest ヘルパーは M23、詳細内の重複は B7） | B7 | |
-| M36 | 設定画面が毎回 `/auth/me` を 404 で叩き、訪問者に内部向け文言 | O#29 G#33 F | 再現 | `index.html` | B6 | |
+| M36 | 設定画面が毎回 `/auth/me` を 404 で叩き、訪問者に内部向け文言 | O#29 G#33 F | 再現 | `index.html` | B6 | 完了：設定画面を開いても /auth/me を呼ばず（0回）、パネルは非表示（バックエンド導入時は AUTH_BACKEND_ENABLED を true に） |
 | M37 | `#/upload` ルートがなくリロードでギャラリーに戻る。存在しない `#/p/<id>` が無言でギャラリーへ | O#30 G#34 | 読解（ルート表にない） | `router.js` | B5 | 完了：/upload ルートは owner のみ開き訪問者はギャラリーへ。存在しない /p/<id> と不明な hash は通知を出してギャラリーへ |
 | M38 | タップ領域が 44px 未満（テーマ・設定 28×28 など） | O#31 G#35 | 再現（28×28） | `css` | B4 | 完了：375px でテーマ・設定 44×44、SHOW ALL 83×44、下部タブ 94×52 を計測 |
 | M40 | 細部：`prompton-app` に `fileList` なし、`data-author` が未エスケープ、削除確認文がフォルダ型・md型でも `.html` 固定 | O#26 O#34 O#35 G#36 | 読解 | `manifest.json`・`render.js` | B7 | |

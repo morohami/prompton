@@ -590,6 +590,7 @@ function renderPlaylistDetail(plId) {
     inPlaylist.forEach(p => {
       const card = document.createElement('div');
       card.className = 'card';
+      card.tabIndex = 0; card.setAttribute('role', 'link'); card.setAttribute('aria-label', p.title || '');
       const thumbInner = p.thumb
         ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
         : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>`;
@@ -726,11 +727,11 @@ function renderRankings(metric) {
   el.innerHTML = `
     <div class="rankings-wrap">
       <h1><em>${escapeHtml(t('rankings.title'))}</em></h1>
-      <p class="lede">Top promptons by ${metric}. Updated live from the manifest.</p>
+      <p class="lede">${escapeHtml(t('ui.topByMetric', { metric: t('ui.' + metric) }))}</p>
       <div class="ranking-totals">
-        <div><div class="num">${formatNum(totalDl)}</div><div class="lbl">Total downloads</div></div>
-        <div><div class="num">${formatNum(totalFk)}</div><div class="lbl">Total forks</div></div>
-        <div><div class="num">${all.length}</div><div class="lbl">Promptons</div></div>
+        <div><div class="num">${formatNum(totalDl)}</div><div class="lbl">${escapeHtml(t('ui.totalDownloads'))}</div></div>
+        <div><div class="num">${formatNum(totalFk)}</div><div class="lbl">${escapeHtml(t('ui.totalForks'))}</div></div>
+        <div><div class="num">${all.length}</div><div class="lbl">${escapeHtml(t('ui.promptonsLabel'))}</div></div>
       </div>
       <div class="ranking-toggle">
         <button type="button" class="${metric === 'downloads' ? 'active' : ''}" data-rank="downloads">${escapeHtml(t('rankings.downloadsBtn'))}</button>
@@ -752,14 +753,14 @@ function renderRankings(metric) {
             </div>
             <div class="rank-metric">
               <div class="num">${formatNum(primary)}</div>
-              <div class="lbl">${metric}</div>
+              <div class="lbl">${escapeHtml(t('ui.' + metric))}</div>
             </div>
             <div class="rank-metric secondary">
               <div class="num">${formatNum(other)}</div>
-              <div class="lbl">${labelOther}</div>
+              <div class="lbl">${escapeHtml(t('ui.' + labelOther))}</div>
             </div>
           </li>`;
-        }).join('') || '<li class="empty-state">No promptons yet.</li>'}
+        }).join('') || '<li class="empty-state">' + escapeHtml(t('ui.noPromptonsYet')) + '</li>'}
       </ol>
     </div>
   `;
@@ -815,16 +816,16 @@ function renderGallery(opts) {
 
     const greeting = (() => {
       const h = new Date().getHours();
-      if (h < 5) return 'Good night';
-      if (h < 12) return 'Good morning';
-      if (h < 18) return 'Good afternoon';
-      return 'Good evening';
+      if (h < 5) return t('ui.greetNight');
+      if (h < 12) return t('ui.greetMorning');
+      if (h < 18) return t('ui.greetAfternoon');
+      return t('ui.greetEvening');
     })();
     const youName = getProfile(me_h).name;
 
 
     const albumCardHtml = (p) =>
-      '<div class="album-card" data-news-go="' + p.id + '">' +
+      '<div class="album-card" role="link" tabindex="0" aria-label="' + escapeAttr(p.title) + '" data-news-go="' + p.id + '">' +
         '<div class="album-thumb">' +
           (p.thumb
             ? '<img class="thumb-img" loading="lazy" decoding="async" src="' + escapeAttr(thumbUrl(p)) + '" alt="">'
@@ -844,9 +845,9 @@ function renderGallery(opts) {
     ).slice(0, 30);
 
     magazineEl.innerHTML =
-      '<div class="greeting">' + greeting + ', ' + escapeHtml(youName === 'You' ? 'reader' : youName.split(' ')[0]) + '.</div>' +
+      '<div class="greeting">' + escapeHtml(t('ui.greetFmt', { greeting: greeting, name: youName === 'You' ? t('ui.reader') : youName.split(' ')[0] })) + '</div>' +
       '<div class="greeting-sub">' +
-        (FEATURES.spotlight ? 'Daily edition · Issue ' + getIssueNumber() : 'Your collection · ' + publicPrompts.length + ' prompton' + (publicPrompts.length === 1 ? '' : 's')) +
+        (FEATURES.spotlight ? 'Daily edition · Issue ' + getIssueNumber() : escapeHtml(t('ui.collection', { n: publicPrompts.length, unit: t(publicPrompts.length === 1 ? 'ui.unitOne' : 'ui.unitMany') }))) +
       '</div>' +
       // Phones hide the masthead links and the bottom tabs have no free slot.
       '<div class="mobile-quicklinks">' +
@@ -878,8 +879,8 @@ function renderGallery(opts) {
       (recentlyAdded.length ? (
         '<div class="row-section">' +
           '<div class="row-header">' +
-            '<h2>Recently added</h2>' +
-            '<a class="show-all" data-go-sort="new">Show all</a>' +
+            '<h2>' + escapeHtml(t('ui.recent')) + '</h2>' +
+            '<a class="show-all" data-go-sort="new">' + escapeHtml(t('ui.showAll')) + '</a>' +
           '</div>' +
           '<div class="row-scroll">' + recentlyAdded.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -889,7 +890,7 @@ function renderGallery(opts) {
         '<div class="row-section">' +
           '<div class="row-header">' +
             '<h2>Trending today</h2>' +
-            '<a class="show-all" data-go-sort="forks">Show all</a>' +
+            '<a class="show-all" data-go-sort="forks">' + escapeHtml(t('ui.showAll')) + '</a>' +
           '</div>' +
           '<div class="row-scroll">' + trending.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -898,8 +899,8 @@ function renderGallery(opts) {
       (yourForks.length ? (
         '<div class="row-section">' +
           '<div class="row-header">' +
-            '<h2><em>Made for you</em></h2>' +
-            '<a class="show-all" data-go-profile="' + me_h + '">Show all</a>' +
+            '<h2><em>' + escapeHtml(t('ui.madeForYou')) + '</em></h2>' +
+            '<a class="show-all" data-go-profile="' + me_h + '">' + escapeHtml(t('ui.showAll')) + '</a>' +
           '</div>' +
           '<div class="row-scroll">' + yourForks.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -908,8 +909,8 @@ function renderGallery(opts) {
       (featuredAuthorPrompts.length ? (
         '<div class="row-section">' +
           '<div class="row-header">' +
-            '<h2 data-author="' + featuredAuthor + '">By ' + escapeHtml(featuredAuthorName) + '</h2>' +
-            '<a class="show-all" data-go-profile="' + featuredAuthor + '">Show all</a>' +
+            '<h2 data-author="' + featuredAuthor + '">' + escapeHtml(t('ui.byAuthor', { name: featuredAuthorName })) + '</h2>' +
+            '<a class="show-all" data-go-profile="' + featuredAuthor + '">' + escapeHtml(t('ui.showAll')) + '</a>' +
           '</div>' +
           '<div class="row-scroll">' + featuredAuthorPrompts.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -972,7 +973,7 @@ function renderGallery(opts) {
     // browsers from spinning up at once.
     mountAlbumThumbs(magazineEl);
 
-    archiveEl.innerHTML = '<div class="archive-header"><h2>All promptons</h2><p>The full library — search, filter, and sort below.</p></div>';
+    archiveEl.innerHTML = '<div class="archive-header"><h2>' + escapeHtml(t('ui.archiveTitle')) + '</h2><p>' + escapeHtml(t('ui.archiveLede')) + '</p></div>';
   } else {
     magazineEl.innerHTML = '';
     archiveEl.innerHTML = '';
@@ -1003,18 +1004,19 @@ function renderGallery(opts) {
   const grid = document.getElementById('cardGrid');
   grid.innerHTML = '';
   if (!list.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:60px;text-align:center;font-family:Fraunces,serif;font-style:italic;font-size:22px;color:var(--ink-soft)">Nothing matches — try a different search.</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:60px;text-align:center;font-family:Fraunces,serif;font-style:italic;font-size:22px;color:var(--ink-soft)">${escapeHtml(t('ui.noMatch'))}</div>`;
     return;
   }
   list.forEach(p => {
     const card = document.createElement('div');
     card.className = 'card';
+    card.tabIndex = 0; card.setAttribute('role', 'link'); card.setAttribute('aria-label', p.title || '');
     const ribbonClass = p.forks > 50 ? 'tomato' : '';
     // Owner-only visibility marker beats everything else — you need to see
     // at a glance which of your promptons visitors can't.
-    const ribbonText = p.visibility === 'unlisted' ? 'Unlisted'
-      : (p.forks > 50 ? 'Popular' : (p.parentId ? 'Fork' : (p.format === 'md' ? 'MD' : p.model.split(' ')[0])));
-    const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} knobs</span>` : '';
+    const ribbonText = p.visibility === 'unlisted' ? t('ui.ribbonUnlisted')
+      : (p.forks > 50 ? t('ui.ribbonPopular') : (p.parentId ? t('ui.ribbonFork') : (p.format === 'md' ? 'MD' : p.model.split(' ')[0])));
+    const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} ${escapeHtml(t('ui.knobs'))}</span>` : '';
     const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
     const thumbInner = p.thumb
       ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
@@ -1033,8 +1035,8 @@ function renderGallery(opts) {
       <h3>${escapeHtml(p.title)}</h3>
       <div class="by">by <span data-author="${p.author}">${escapeHtml(p.authorName)}</span></div>
       <div class="stats">
-        <span><b>${formatNum(p.downloads)}</b> downloads</span>
-        <span><b>${p.forks}</b> forks</span>
+        <span><b>${formatNum(p.downloads)}</b> ${escapeHtml(t('ui.downloads'))}</span>
+        <span><b>${p.forks}</b> ${escapeHtml(t('ui.forks'))}</span>
         ${versionBadge}
         ${knobsBadge}
       </div>
@@ -1063,7 +1065,7 @@ function renderGallery(opts) {
           compareMode = false;
           compareSelection = [];
           const toggle = document.getElementById('compareToggle');
-          if (toggle) { toggle.classList.remove('active'); toggle.textContent = '⇄ Compare'; }
+          if (toggle) { toggle.classList.remove('active'); toggle.textContent = '⇄ ' + t('filter.compare'); }
           const gridEl = document.getElementById('cardGrid');
           if (gridEl) gridEl.classList.remove('compare-mode');
           renderCompare(sel[0], sel[1], null);
@@ -1101,9 +1103,9 @@ function updateComparePill() {
   }
   pill.classList.add('show');
   pill.setAttribute('aria-hidden', 'false');
-  pill.querySelector('.count').textContent = compareSelection.length + ' of 2 selected';
+  pill.querySelector('.count').textContent = t('ui.selectedOf2', { n: compareSelection.length });
   goBtn.disabled = compareSelection.length !== 2;
-  goBtn.textContent = compareSelection.length === 2 ? 'Compare now →' : 'Pick ' + (2 - compareSelection.length) + ' more';
+  goBtn.textContent = compareSelection.length === 2 ? t('ui.compareNow') : t('ui.pickMore', { n: 2 - compareSelection.length });
 }
 function clearCompareSelection() {
   compareSelection = [];
@@ -1114,7 +1116,7 @@ document.getElementById('compareToggle').addEventListener('click', () => {
   compareMode = !compareMode;
   const toggle = document.getElementById('compareToggle');
   toggle.classList.toggle('active', compareMode);
-  toggle.textContent = compareMode ? '⇄ Cancel compare' : '⇄ Compare';
+  toggle.textContent = '⇄ ' + t(compareMode ? 'ui.compareCancel' : 'filter.compare');
   const grid = document.getElementById('cardGrid');
   if (grid) grid.classList.toggle('compare-mode', compareMode);
   if (!compareMode) clearCompareSelection();
@@ -1129,7 +1131,7 @@ document.getElementById('compareGoBtn').addEventListener('click', () => {
   compareSelection = [];
   const toggle = document.getElementById('compareToggle');
   toggle.classList.remove('active');
-  toggle.textContent = '⇄ Compare';
+  toggle.textContent = '⇄ ' + t('filter.compare');
   const grid = document.getElementById('cardGrid');
   if (grid) grid.classList.remove('compare-mode');
   updateComparePill();
@@ -1252,26 +1254,26 @@ function renderDetail(id, viewingVersionNum) {
           </div>
         </div>
         <div class="preview-caption">
-          <span>↑ Live preview · <span id="previewSizeLabel">…</span></span>
+          <span>${escapeHtml(t('ui.livePreview'))} · <span id="previewSizeLabel">…</span></span>
           <span>${escapeHtml(p.license)}</span>
         </div>
 
         ${hasVersions ? renderVersionTimeline(p, viewing) : ''}
 
         <div class="meta-block" style="margin-top:30px">
-          <h2>Description</h2>
+          <h2>${escapeHtml(t('ui.descriptionH'))}</h2>
           <p style="font-size:16px;line-height:1.6">${escapeHtml(p.description)}</p>
         </div>
 
         ${p.reproPrompt ? `
         <div class="meta-block">
-          <h2>How to reproduce</h2>
+          <h2>${escapeHtml(t('ui.reproduceH'))}</h2>
           <pre class="repro-block">${escapeHtml(p.reproPrompt)}</pre>
         </div>` : ''}
 
         ${p.devNotes ? `
         <div class="meta-block">
-          <h2>Development notes</h2>
+          <h2>${escapeHtml(t('ui.devNotesH'))}</h2>
           <div class="dev-notes">${escapeHtml(p.devNotes).replace(/\n/g, '<br>')}</div>
         </div>` : ''}
 
@@ -1294,35 +1296,35 @@ function renderDetail(id, viewingVersionNum) {
         </div>` : ''}
 
         <div class="meta-block">
-          <h2>Tags</h2>
+          <h2>${escapeHtml(t('ui.tagsH'))}</h2>
           <div class="tag-list">${normalizeTagList(p.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
         </div>
 
         ${children.length || parent ? `
         <div class="fork-tree">
-          <h2>Fork tree</h2>
+          <h2>${escapeHtml(t('ui.forkTreeH'))}</h2>
           ${parent ? `<div class="fork-item" data-prompt="${parent.id}"><span class="arrow">↰</span> <span class="fork-title">${escapeHtml(parent.title)}</span> <span class="fork-author">by ${escapeHtml(parent.authorName)}</span><span class="compare-link" data-compare-pair="${parent.id},${p.id}" title="Compare with this version">⇄</span></div>` : ''}
           ${children.map(c => `<div class="fork-item" data-prompt="${c.id}"><span class="arrow">↳</span> <span class="fork-title">${escapeHtml(c.title)}</span> <span class="fork-author">by ${escapeHtml(c.authorName)}</span><span class="compare-link" data-compare-pair="${p.id},${c.id}" title="Compare with this version">⇄</span></div>`).join('')}
-          ${!children.length && !parent ? '<div class="empty-fork">No forks yet — be the first.</div>' : ''}
+          ${!children.length && !parent ? '<div class="empty-fork">' + escapeHtml(t('ui.noForks')) + '</div>' : ''}
         </div>` : `
         <div class="fork-tree">
-          <h2>Fork tree</h2>
-          <div class="empty-fork">No forks yet — be the first.</div>
+          <h2>${escapeHtml(t('ui.forkTreeH'))}</h2>
+          <div class="empty-fork">${escapeHtml(t('ui.noForks'))}</div>
         </div>`}
       </div>
 
       <div>
         <div class="anatomy">
-          <h2>Prompt Anatomy</h2>
-          ${view.systemPrompt ? `<div class="block"><div class="block-label"><span class="label-text">System prompt</span><button type="button" class="block-copy" data-copy-section="systemPrompt" title="Copy this section">⎘ Copy</button></div><pre data-template="systemPrompt">${renderTemplate(view.systemPrompt, view.variables)}</pre></div>` : ''}
-          <div class="block"><div class="block-label"><span class="label-text">User instruction</span><button type="button" class="block-copy" data-copy-section="userPrompt" title="Copy this section">⎘ Copy</button></div><pre data-template="userPrompt">${renderTemplate(view.userPrompt, view.variables)}</pre></div>
-          ${view.context ? `<div class="block"><div class="block-label"><span class="label-text">Context / data</span><button type="button" class="block-copy" data-copy-section="context" title="Copy this section">⎘ Copy</button></div><pre data-template="context">${renderTemplate(view.context, view.variables)}</pre></div>` : ''}
+          <h2>${escapeHtml(t('ui.anatomyH'))}</h2>
+          ${view.systemPrompt ? `<div class="block"><div class="block-label"><span class="label-text">${escapeHtml(t('ui.systemPrompt'))}</span><button type="button" class="block-copy" data-copy-section="systemPrompt" title="Copy this section">⎘ Copy</button></div><pre data-template="systemPrompt">${renderTemplate(view.systemPrompt, view.variables)}</pre></div>` : ''}
+          <div class="block"><div class="block-label"><span class="label-text">${escapeHtml(t('ui.userInstruction'))}</span><button type="button" class="block-copy" data-copy-section="userPrompt" title="Copy this section">⎘ Copy</button></div><pre data-template="userPrompt">${renderTemplate(view.userPrompt, view.variables)}</pre></div>
+          ${view.context ? `<div class="block"><div class="block-label"><span class="label-text">${escapeHtml(t('ui.contextData'))}</span><button type="button" class="block-copy" data-copy-section="context" title="Copy this section">⎘ Copy</button></div><pre data-template="context">${renderTemplate(view.context, view.variables)}</pre></div>` : ''}
         </div>
 
         ${view.variables && view.variables.length ? `
         <div class="personalize" id="personalizePanel">
-          <h2>Make it yours.</h2>
-          <div class="tagline">Tweak the knobs the author left out — the prompt updates live.</div>
+          <h2>${escapeHtml(t('ui.makeItYours'))}</h2>
+          <div class="tagline">${escapeHtml(t('ui.makeItYoursSub'))}</div>
           ${view.variables.map(v => {
             const isLong = (v.default || '').length > 60;
             const tag = isLong ? 'textarea' : 'input';
@@ -1335,17 +1337,17 @@ function renderDetail(id, viewingVersionNum) {
             </div>`;
           }).join('')}
           <div class="actions">
-            <button class="btn-copy" id="copyPromptBtn">⎘ Copy personalized prompt</button>
+            <button class="btn-copy" id="copyPromptBtn">${escapeHtml(t('ui.copyPersonalized'))}</button>
             <button class="btn-claude" id="openClaudeBtn">↗ Open in Claude.ai</button>
-            <button class="btn-reset" id="resetVarsBtn">Reset to defaults</button>
-            <button class="btn-clear" id="clearVarsBtn" style="display:none">× Clear my values</button>
+            <button class="btn-reset" id="resetVarsBtn">${escapeHtml(t('ui.resetDefaults'))}</button>
+            <button class="btn-clear" id="clearVarsBtn" style="display:none">${escapeHtml(t('ui.clearMine'))}</button>
             <span class="status" id="copyStatus">✓ Copied</span>
           </div>
         </div>` : ''}
 
         ${p.usage && p.usage.length ? `
         <div class="usage">
-          <h2>Usage Instructions</h2>
+          <h2>${escapeHtml(t('ui.usageH'))}</h2>
           <ol>${p.usage.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
         </div>` : ''}
       </div>
@@ -1426,6 +1428,7 @@ function renderDetail(id, viewingVersionNum) {
   // versions); flat prompts keep the legacy htmls/<id>.html path.
   const previewIframe = document.getElementById('detailPreviewIframe');
   if (previewIframe) {
+    previewIframe.title = (p.title || '') + ' - live preview';
     if (p.format === 'md') {
       // Raw .md via src= would render unstyled plain text; use the
       // wrapper built at fetch time instead.
@@ -1920,7 +1923,7 @@ function renderVersionTimeline(p, viewing) {
   }).join('');
   return `
     <div class="version-timeline">
-      <h2>Version History</h2>
+      <h2>${escapeHtml(t('ui.versionHistoryH'))}</h2>
       <div class="version-list">${nodes}</div>
     </div>
   `;
@@ -2356,13 +2359,13 @@ function renderProfile(handle, tab) {
             ${profile.location ? `<span>· ${escapeHtml(profile.location)}</span>` : ''}
             ${profile.website ? `<span>↗ <a href="${escapeAttr(websiteHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteDisplay)}</a></span>` : ''}
             ${canEditProfile && profile.email ? `<span>✉ ${escapeHtml(profile.email)}</span>` : ''}
-            <span>· Joined ${formatDate(profile.joined)}</span>
+            <span>· ${escapeHtml(t('ui.joined'))} ${formatDate(profile.joined)}</span>
           </div>
         </div>
         <div class="profile-actions">
           ${isYou
-            ? (canEditProfile ? '<button class="btn secondary" id="editProfileBtn">✎ Edit profile</button>' : '')
-            : '<button class="btn ' + (youFollow ? 'secondary' : 'primary') + '" id="followBtn">' + (youFollow ? '✓ Following' : '+ Follow') + '</button>'}
+            ? (canEditProfile ? '<button class="btn secondary" id="editProfileBtn">' + escapeHtml(t('ui.editProfile')) + '</button>' : '')
+            : '<button class="btn ' + (youFollow ? 'secondary' : 'primary') + '" id="followBtn">' + escapeHtml(youFollow ? t('ui.following') : t('ui.follow')) + '</button>'}
         </div>
       </div>
 
@@ -2425,7 +2428,7 @@ function renderProfileTab(handle, tab) {
   if (tab === 'published') {
     const mine = prompts.filter(p => p.author === handle && isListed(p));
     if (!mine.length) {
-      el.innerHTML = '<div class="empty-state">No prompts published yet.</div>';
+      el.innerHTML = '<div class="empty-state">No promptons published yet.</div>';
       return;
     }
     el.innerHTML = '<div class="grid" id="profileGrid"></div>';
@@ -2433,7 +2436,8 @@ function renderProfileTab(handle, tab) {
     mine.forEach(p => {
       const card = document.createElement('div');
       card.className = 'card';
-      const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} knobs</span>` : '';
+      card.tabIndex = 0; card.setAttribute('role', 'link'); card.setAttribute('aria-label', p.title || '');
+      const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} ${escapeHtml(t('ui.knobs'))}</span>` : '';
       const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
       // Use the generated thumbnail (one small JPG) like the gallery does;
       // a live iframe per card cost ~10MB and hundreds of requests here.
@@ -2445,8 +2449,8 @@ function renderProfileTab(handle, tab) {
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
         <div class="stats">
-          <span><b>${formatNum(p.downloads)}</b> downloads</span>
-          <span><b>${p.forks}</b> forks</span>
+          <span><b>${formatNum(p.downloads)}</b> ${escapeHtml(t('ui.downloads'))}</span>
+          <span><b>${p.forks}</b> ${escapeHtml(t('ui.forks'))}</span>
           ${versionBadge}${knobsBadge}
         </div>
       `;
@@ -2475,6 +2479,7 @@ function renderProfileTab(handle, tab) {
     mineFavs.forEach(p => {
       const card = document.createElement('div');
       card.className = 'card';
+      card.tabIndex = 0; card.setAttribute('role', 'link'); card.setAttribute('aria-label', p.title || '');
       const thumbInner = p.thumb
         ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
         : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>`;
@@ -2507,7 +2512,7 @@ function renderUserList(handles, emptyMsg) {
         '<div class="user-handle">@' + escapeHtml(h) + (bioPreview ? ' · ' + escapeHtml(bioPreview) : '') + '</div>' +
       '</div>' +
       (isMe ? '<span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em">YOU</span>' :
-        '<button class="btn-follow ' + (youFollow ? 'following' : '') + '" data-follow="' + escapeAttr(h) + '">' + (youFollow ? '✓ Following' : '+ Follow') + '</button>') +
+        '<button class="btn-follow ' + (youFollow ? 'following' : '') + '" data-follow="' + escapeAttr(h) + '">' + escapeHtml(youFollow ? t('ui.following') : t('ui.follow')) + '</button>') +
     '</div>';
   }).join('') + '</div>';
 }

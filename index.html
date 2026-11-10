@@ -23,18 +23,18 @@
 <body>
 
 <header class="masthead">
-  <a class="brand" data-nav="gallery">Prompton</a>
+  <a class="brand" role="button" tabindex="0" data-nav="gallery">Prompton</a>
   <div class="masthead-search search-wrap">
     <input type="text" class="search" id="searchInput" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search…" autocomplete="off" />
     <div class="search-suggest" id="searchSuggest" role="listbox" aria-label="Suggestions"></div>
   </div>
   <nav class="nav-actions">
-    <a data-nav="rankings" data-i18n="nav.rankings">Rankings</a>
-    <a data-nav="playlists" data-i18n="nav.playlists">Playlists</a>
-    <a data-nav="profile" data-i18n="nav.profile">Profile</a>
+    <a role="button" tabindex="0" data-nav="rankings" data-i18n="nav.rankings">Rankings</a>
+    <a role="button" tabindex="0" data-nav="playlists" data-i18n="nav.playlists">Playlists</a>
+    <a role="button" tabindex="0" data-nav="profile" data-i18n="nav.profile">Profile</a>
     <button type="button" class="nav-search-toggle" data-nav="search" aria-label="Search" title="Search">⌕</button>
-    <a id="themeToggle" class="nav-theme" data-i18n-title="nav.theme" title="Toggle theme" aria-label="Toggle theme">☀</a>
-    <a data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="Settings">⚙</a>
+    <a id="themeToggle" role="button" tabindex="0" class="nav-theme" data-i18n-title="nav.theme" title="Toggle theme" aria-label="Toggle theme">☀</a>
+    <a role="button" tabindex="0" data-nav="settings" class="nav-settings" data-i18n-title="nav.settings" title="Settings">⚙</a>
     <!-- Drafts entry point (replaced the stories bar). A <button>, not <a>,
          so the mobile-app CSS that hides masthead anchors leaves it alone. -->
     <button type="button" class="nav-drafts owner-only" id="draftsMenuBtn" data-i18n="nav.drafts">下書き</button>
@@ -65,32 +65,32 @@
 
 <!-- ════════ DETAIL ════════ -->
 <section class="view" id="view-detail">
-  <span class="back-link" data-nav="gallery">← Back to gallery</span>
+  <span class="back-link" role="link" tabindex="0" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div id="detailContent"></div>
 </section>
 
 <!-- ════════ RANKINGS ════════ -->
 <section class="view" id="view-rankings">
-  <span class="back-link" data-nav="gallery">← Back to gallery</span>
+  <span class="back-link" role="link" tabindex="0" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div id="rankingsContent"></div>
 </section>
 
 <!-- ════════ UPLOAD ════════ -->
 <section class="view" id="view-upload">
-  <span class="back-link" data-nav="gallery">← Back to gallery</span>
+  <span class="back-link" role="link" tabindex="0" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div class="upload-wrap">
-    <h1>Share <em>prompton</em>.</h1>
-    <p class="lede">Drop your HTML, paste the prompt that made it. Or drop several files at once for a bulk publish.</p>
+    <h1 data-i18n-html="ui.uploadTitle">Share <em>prompton</em>.</h1>
+    <p class="lede" data-i18n="ui.uploadLede">Drop your HTML, paste the prompt that made it. Or drop several files at once for a bulk publish.</p>
 
     <form id="uploadForm">
 
       <!-- 1. HTML file(s) -->
       <div class="upload-block">
-        <label class="upload-label">Your HTML output <span class="req">*</span></label>
-        <p class="upload-help">Drop one file for the full single-prompton flow, or drop multiple to bulk-publish them in a single commit.</p>
+        <label class="upload-label" data-i18n-html="ui.uploadHtmlLabel">Your HTML output <span class="req">*</span></label>
+        <p class="upload-help" data-i18n="ui.uploadHtmlHelp">Drop one file for the full single-prompton flow, or drop multiple to bulk-publish them in a single commit.</p>
         <label class="file-drop large" id="fileDrop">
-          <div class="drop-title" id="dropTitle">Drop .html here</div>
-          <div class="drop-hint" id="dropHint">
+          <div class="drop-title" id="dropTitle" data-i18n="ui.dropTitle">Drop .html here</div>
+          <div class="drop-hint" id="dropHint" data-i18n-html="ui.dropHint">
             click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>
           </div>
           <input type="file" name="htmlFile" accept=".html,text/html" multiple style="display:none" id="htmlFile" />
@@ -107,8 +107,8 @@
 
       <!-- 2. Prompt -->
       <div class="upload-block" id="promptBlock">
-        <label class="upload-label">The prompt <span class="req">*</span></label>
-        <p class="upload-help">Paste whatever you sent to the AI. If you used <code>[SYSTEM]</code> / <code>[USER]</code> / <code>[CONTEXT]</code> blocks, we'll split them automatically. Otherwise it all goes into the User instruction.</p>
+        <label class="upload-label" data-i18n-html="ui.promptLabel">The prompt <span class="req">*</span></label>
+        <p class="upload-help" data-i18n-html="ui.promptHelp">Paste whatever you sent to the AI. If you used <code>[SYSTEM]</code> / <code>[USER]</code> / <code>[CONTEXT]</code> blocks, we'll split them automatically. Otherwise it all goes into the User instruction.</p>
         <textarea name="quickPrompt" id="quickPromptField" placeholder="Paste your prompt here…
 
 Example:
@@ -122,14 +122,14 @@ Generate a weekly meal planner for a {{DIET}} diet."></textarea>
 
       <!-- 3. Title -->
       <div class="upload-block" id="titleBlock">
-        <label class="upload-label">Title <span class="req">*</span></label>
-        <p class="upload-help">A short name for this prompton. Auto-filled when you drop the HTML.</p>
+        <label class="upload-label" data-i18n-html="ui.titleLabel">Title <span class="req">*</span></label>
+        <p class="upload-help" data-i18n="ui.titleHelp">A short name for this prompton. Auto-filled when you drop the HTML.</p>
         <input type="text" name="title" id="titleInput" placeholder="e.g. Weekly meal planner with grocery list" />
       </div>
 
       <!-- Advanced (collapsed) -->
       <details class="upload-advanced" id="uploadAdvanced">
-        <summary>▾ Advanced — variables, model, license, tags, description</summary>
+        <summary data-i18n="ui.advancedSummary">▾ Advanced — variables, model, license, tags, description</summary>
         <div class="advanced-fields">
           <div class="field">
             <label>Description <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(optional)</span></label>
@@ -167,8 +167,8 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
       </details>
 
       <div class="submit-row">
-        <span class="storage-note">Publishes to your GitHub repo · connect it in ⚙ Settings</span>
-        <button type="submit" class="btn primary big">Publish prompton →</button>
+        <span class="storage-note" data-i18n="ui.storageNote">Publishes to your GitHub repo · connect it in ⚙ Settings</span>
+        <button type="submit" class="btn primary big" data-i18n="ui.publish">Publish prompton →</button>
       </div>
     </form>
   </div>
@@ -176,13 +176,13 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
 <!-- ════════ PROFILE ════════ -->
 <section class="view" id="view-profile">
-  <span class="back-link" data-nav="gallery">← Back to gallery</span>
+  <span class="back-link" role="link" tabindex="0" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div id="profileContent"></div>
 </section>
 
 <!-- ════════ PLAYLISTS ════════ -->
 <section class="view" id="view-playlists">
-  <span class="back-link" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
+  <span class="back-link" role="link" tabindex="0" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div id="playlistsContent"></div>
 </section>
 
@@ -191,12 +191,12 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
 <!-- ════════ SETTINGS ════════ -->
 <section class="view" id="view-settings">
-  <span class="back-link" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
+  <span class="back-link" role="link" tabindex="0" data-nav="gallery" data-i18n="settings.back">← Back to gallery</span>
   <div class="settings-wrap">
     <h1 data-i18n-html="settings.ghTitle">Sync with <em>GitHub</em>.</h1>
-    <p class="lede">Your collection lives in a GitHub repo. New uploads are committed via the GitHub API using a Personal Access Token (PAT) you supply here. Read access stays public — only you can write.</p>
+    <p class="lede" data-i18n="ui.settingsLede">Your collection lives in a GitHub repo. New uploads are committed via the GitHub API using a Personal Access Token (PAT) you supply here. Read access stays public — only you can write.</p>
 
-    <div class="tag-curation" id="oauthPanel">
+    <div class="tag-curation" id="oauthPanel" hidden>
       <h2 data-i18n="settings.signIn">Sign in with GitHub</h2>
       <p class="lede" data-i18n="settings.signInHint">When the OAuth backend is deployed (see OAUTH_SETUP.md), sign in to write without a personal token. Falls back to PAT mode below if unavailable.</p>
       <div class="settings-status" id="authStatus" style="margin-bottom:10px"></div>
@@ -208,36 +208,36 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
     <form id="settingsForm">
       <div class="settings-field">
-        <label>Repository <span class="hint">user/repo — where the collection is stored</span></label>
+        <label data-i18n-html="ui.repoLabel">Repository <span class="hint">user/repo — where the collection is stored</span></label>
         <input type="text" name="repo" id="syncRepo" placeholder="morohami/prompton" autocomplete="off" />
       </div>
       <div class="settings-field">
-        <label>Branch <span class="hint">usually "main"</span></label>
+        <label data-i18n-html="ui.branchLabel">Branch <span class="hint">usually "main"</span></label>
         <input type="text" name="branch" id="syncBranch" placeholder="main" autocomplete="off" />
       </div>
       <div class="settings-field">
-        <label>Personal Access Token <span class="hint">Fine-grained · Contents: Read and write · this repo only. Stored only in your browser.</span></label>
+        <label data-i18n-html="ui.patLabel">Personal Access Token <span class="hint">Fine-grained · Contents: Read and write · this repo only. Stored only in your browser.</span></label>
         <!-- Deliberately NOT type="password": Safari/iOS treats password inputs
              as signup fields and covers them with the "strong password" overlay,
              which blocks typing and pasting entirely. A text input masked via
              -webkit-text-security dodges every password-manager behavior. -->
         <div class="masked-input-wrap">
           <input type="text" name="gh_token" id="syncPat" class="masked-input" placeholder="github_pat_..." autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" />
-          <button type="button" class="btn-text" id="syncPatToggle" aria-label="Show token">表示</button>
+          <button type="button" class="btn-text" id="syncPatToggle" aria-label="Show token" data-i18n="ui.show">表示</button>
         </div>
         <div class="hint" style="margin-top:6px">Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> — Repository access: <em>Only select repositories</em> → this repo · Permissions: <em>Contents → Read and write</em>.</div>
       </div>
       <div class="settings-actions">
-        <button type="button" id="syncTestBtn" class="btn-secondary">Test connection</button>
-        <button type="submit" class="btn-primary">Save</button>
-        <button type="button" id="syncClearBtn" class="btn-text">Clear stored token</button>
+        <button type="button" id="syncTestBtn" class="btn-secondary" data-i18n="settings.testConn">Test connection</button>
+        <button type="submit" class="btn-primary" data-i18n="settings.save">Save</button>
+        <button type="button" id="syncClearBtn" class="btn-text" data-i18n="settings.clearToken">Clear stored token</button>
       </div>
       <div class="settings-status" id="syncStatus"></div>
     </form>
 
     <div class="tag-curation" id="tagCurationPanel">
       <h2 data-i18n="settings.tagTitle">Tag curation</h2>
-      <p class="lede">Tags come from your promptons. The list below is the union of every tag attached to a prompton, after normalization through the alias map. Add aliases below to fold variants like <code>ai</code> → <code>AI</code> together.</p>
+      <p class="lede" data-i18n-html="ui.tagLede">Tags come from your promptons. The list below is the union of every tag attached to a prompton, after normalization through the alias map. Add aliases below to fold variants like <code>ai</code> → <code>AI</code> together.</p>
       <div class="settings-field">
         <label>Tags in use <span class="hint">Auto-derived from promptons on save — no manual entry</span></label>
         <div class="tag-list" id="curatedTagList"></div>
@@ -308,7 +308,7 @@ Then reference {{DIET}} or {{CALORIES}} in your prompt above." style="min-height
 
 <script>
 /* ════════════════════════════════════════════════════════
-   PromptShare prototype — single-file, localStorage-backed
+   Prompton app — data comes from manifest.json, localStorage is only an offline cache
    ════════════════════════════════════════════════════════ */
 
 // ─── Theme (light / dark) ───
@@ -769,7 +769,7 @@ function renderSearchSuggest() {
     return haystack.indexOf(q) >= 0;
   }).slice(0, 8);
   if (!matches.length) {
-    host.innerHTML = '<div class="search-suggest-empty">No matches.</div>';
+    host.innerHTML = '<div class="search-suggest-empty">' + escapeHtml(t('ui.noMatches')) + '</div>';
     host.classList.add('open');
     searchSuggestIndex = -1;
     return;
@@ -1059,7 +1059,7 @@ function renderCompare(idLeft, idRight, returnTo) {
   const pLeft = resolvePromptRef(idLeft);
   const pRight = resolvePromptRef(idRight);
   if (!pLeft || !pRight) {
-    toast('Could not find prompts to compare.');
+    toast('Could not find promptons to compare.');
     renderGallery();
     return;
   }
@@ -1139,7 +1139,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side left">
         <div class="side-label">${leftLabel}</div>
         <div class="preview-wrap">
-          <iframe${promptPreviewAttrs(pLeft, pLeft._versionViewed)} sandbox="allow-scripts"></iframe>
+          <iframe title="${escapeAttr(pLeft.title)}"${promptPreviewAttrs(pLeft, pLeft._versionViewed)} sandbox="allow-scripts"></iframe>
         </div>
         <h3>${escapeHtml(pLeft.title)}</h3>
         <div class="meta">by ${escapeHtml(pLeft.authorName)} · ${formatDate(pLeft.date)} · ${escapeHtml(pLeft.model)}</div>
@@ -1148,7 +1148,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side right">
         <div class="side-label">${rightLabel}</div>
         <div class="preview-wrap">
-          <iframe${promptPreviewAttrs(pRight, pRight._versionViewed)} sandbox="allow-scripts"></iframe>
+          <iframe title="${escapeAttr(pRight.title)}"${promptPreviewAttrs(pRight, pRight._versionViewed)} sandbox="allow-scripts"></iframe>
         </div>
         <h3>${escapeHtml(pRight.title)}</h3>
         <div class="meta">by ${escapeHtml(pRight.authorName)} · ${formatDate(pRight.date)} · ${escapeHtml(pRight.model)}</div>
@@ -1201,29 +1201,29 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="stats-compare-side">
         <div class="stat-pair">
           <div class="num ${dlWinner === 'left' ? 'winner' : ''}">${formatNum(pLeft.downloads)}</div>
-          <div class="lbl">Downloads</div>
+          <div class="lbl">${escapeHtml(t('profile.downloads'))}</div>
         </div>
         <div class="stat-pair">
           <div class="num ${fkWinner === 'left' ? 'winner' : ''}">${pLeft.forks}</div>
-          <div class="lbl">Forks</div>
+          <div class="lbl">${escapeHtml(t('profile.forks'))}</div>
         </div>
         <div class="stat-pair">
           <div class="num tiny">${formatDate(pLeft.date)}</div>
-          <div class="lbl">Created</div>
+          <div class="lbl">${escapeHtml(t('ui.created'))}</div>
         </div>
       </div>
       <div class="stats-compare-side">
         <div class="stat-pair">
           <div class="num ${dlWinner === 'right' ? 'winner' : ''}">${formatNum(pRight.downloads)}</div>
-          <div class="lbl">Downloads</div>
+          <div class="lbl">${escapeHtml(t('profile.downloads'))}</div>
         </div>
         <div class="stat-pair">
           <div class="num ${fkWinner === 'right' ? 'winner' : ''}">${pRight.forks}</div>
-          <div class="lbl">Forks</div>
+          <div class="lbl">${escapeHtml(t('profile.forks'))}</div>
         </div>
         <div class="stat-pair">
           <div class="num tiny">${formatDate(pRight.date)}</div>
-          <div class="lbl">Created</div>
+          <div class="lbl">${escapeHtml(t('ui.created'))}</div>
         </div>
       </div>
     </div>
@@ -1320,7 +1320,14 @@ function checkUndeclaredVars() {
 // Fetch the auth status from the OAuth backend (if deployed) and reflect it
 // in the Settings panel. Graceful no-op when /auth/me 404s — most local
 // dev environments don't run the Functions.
+// The OAuth backend (functions/, OAUTH_SETUP.md) is written but not deployed.
+// Until it is, don't probe /auth/me (a guaranteed 404 on every Settings visit)
+// or show visitors a panel about it. Flip this when the backend goes live.
+const AUTH_BACKEND_ENABLED = false;
 async function refreshAuthStatus() {
+  const panel = document.getElementById('oauthPanel');
+  if (panel) panel.hidden = !AUTH_BACKEND_ENABLED;
+  if (!AUTH_BACKEND_ENABLED) return;
   const status = document.getElementById('authStatus');
   const signInLink = document.getElementById('signInLink');
   const signOutBtn = document.getElementById('signOutBtn');
@@ -1388,7 +1395,7 @@ document.querySelectorAll('.lang-btn').forEach(b => {
 document.getElementById('syncPatToggle').addEventListener('click', (e) => {
   const pat = document.getElementById('syncPat');
   const revealed = pat.classList.toggle('revealed');
-  e.currentTarget.textContent = revealed ? '隠す' : '表示';
+  e.currentTarget.textContent = t(revealed ? 'ui.hide' : 'ui.show');
 });
 document.getElementById('settingsForm').addEventListener('submit', (e) => {
   e.preventDefault();

@@ -130,8 +130,8 @@ function enterBulkMode() {
   const ids = ['promptBlock', 'titleBlock', 'uploadAdvanced', 'htmlPreview'];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
   document.getElementById('bulkQueue').style.display = '';
-  document.getElementById('dropTitle').textContent = 'Bulk mode — drop more .html files to add';
-  document.getElementById('dropHint').innerHTML = 'click to browse · drag &amp; drop · titles edit below';
+  document.getElementById('dropTitle').textContent = t('ui.bulkTitle');
+  document.getElementById('dropHint').innerHTML = t('ui.bulkHint');
   fileDrop.classList.add('has-file');
 }
 function exitBulkMode() {
@@ -141,8 +141,8 @@ function exitBulkMode() {
   });
   document.getElementById('bulkQueue').style.display = 'none';
   document.getElementById('bulkQueue').innerHTML = '';
-  document.getElementById('dropTitle').textContent = 'Drop .html here';
-  document.getElementById('dropHint').innerHTML = 'click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>';
+  document.getElementById('dropTitle').textContent = t('ui.dropTitle');
+  document.getElementById('dropHint').innerHTML = t('ui.dropHint');
   fileDrop.classList.remove('has-file');
   updateBulkSubmit();
 }
@@ -170,9 +170,9 @@ function updateBulkSubmit() {
   const btn = document.querySelector('#uploadForm button[type="submit"]');
   if (!btn) return;
   if (bulkQueue.length) {
-    btn.textContent = `Publish ${bulkQueue.length} prompt${bulkQueue.length === 1 ? '' : 's'} →`;
+    btn.textContent = t('ui.publishN', { n: bulkQueue.length });
   } else {
-    btn.textContent = 'Publish prompt →';
+    btn.textContent = t('ui.publish');
   }
 }
 
@@ -353,8 +353,8 @@ function resetUploadForm() {
   if (window._uploadTagPicker) window._uploadTagPicker.setTags([]);
   uploadedHtml = '';
   fileDrop.classList.remove('has-file');
-  document.getElementById('dropTitle').textContent = 'Drop .html here';
-  document.getElementById('dropHint').innerHTML = 'click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>';
+  document.getElementById('dropTitle').textContent = t('ui.dropTitle');
+  document.getElementById('dropHint').innerHTML = t('ui.dropHint');
   document.getElementById('htmlPreview').style.display = 'none';
   document.getElementById('undeclaredWarning').style.display = 'none';
   const adv = document.querySelector('.upload-advanced');
@@ -409,7 +409,7 @@ async function submitBulkUpload(formEl) {
   files.push({ path: 'manifest.json', content: JSON.stringify(nextManifest, null, 2) });
 
   try {
-    await ghBulkCommit(files, 'Prompton: bulk upload ' + newPrompts.length + ' prompts');
+    await ghBulkCommit(files, 'Prompton: bulk upload ' + newPrompts.length + ' promptons');
   } catch (err) {
     console.error('Bulk commit failed:', err);
     toast('Bulk commit failed: ' + err.message);
@@ -424,9 +424,9 @@ async function submitBulkUpload(formEl) {
   saveData(prompts);
   bulkQueue.length = 0;
   exitBulkMode();
-  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Publish prompt →'; }
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('ui.publish'); }
   // The Thumbnails workflow will pick up htmls/* changes from the bulk commit
   // and patch thumb fields into the manifest within ~30-60s.
-  toast(`✓ Published ${newPrompts.length} prompts · thumbnails generating on GitHub.`);
+  toast(`✓ Published ${newPrompts.length} promptons · thumbnails generating on GitHub.`);
   renderGallery();
 }

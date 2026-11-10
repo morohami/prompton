@@ -4428,3 +4428,6 @@ body.mobile-app .nav-actions .nav-theme {
 }
 body.mobile-app .row-header .show-all { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; }
 body.mobile-app .bottom-tab-nav .bt-item { min-height: 52px; justify-content: center; }
+
+/* Hidden attribute must win over component display rules. */
+[hidden] { display: none !important; }

@@ -1,7 +1,7 @@
 {
-  "name": "Prompton — recipes for AI",
+  "name": "Prompton — live promptons, made with AI",
   "short_name": "Prompton",
-  "description": "Prompts you can actually cook with. Every HTML, every prompt — browse the gallery, fork, make it better, share.",
+  "description": "Live promptons made with AI — browse the gallery, fork, make it better, share.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

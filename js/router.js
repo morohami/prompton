@@ -160,3 +160,16 @@ function setRoute(path) {
   } catch (e) { location.hash = target; }
 }
 window.addEventListener('hashchange', () => { if (!handleHashRoute()) routeNotFound(); });
+
+// ─── Keyboard activation ───
+// Cards, masthead links and back links are click-handled <div>/<a>/<span>
+// elements (tabindex="0" + a role). Browsers only synthesize a click from
+// Enter/Space for real buttons and links, so do it here.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target;
+  if (!el || !el.matches || !el.matches('[role="link"][tabindex], [role="button"][tabindex]')) return;
+  if (el.tagName === 'BUTTON' || (el.tagName === 'A' && el.getAttribute('href'))) return;
+  e.preventDefault();
+  el.click();
+});
