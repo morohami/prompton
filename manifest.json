@@ -29,7 +29,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/prompton-app.jpg",
-    "thumbVer": 1784190725058
+    "thumbVer": 1794332346344
   },
   {
     "id": "prompton-handoff",
@@ -83,7 +83,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/_folder_demo.jpg",
-    "thumbVer": 1784132577092,
+    "thumbVer": 1794332348886,
     "reproPrompt": "",
     "devNotes": "",
     "visibility": "unlisted"
@@ -117,7 +117,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779823200000.jpg",
-    "thumbVer": 1779823303259
+    "thumbVer": 1794332352102
   },
   {
     "id": "p1779823200001",
@@ -148,7 +148,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779823200001.jpg",
-    "thumbVer": 1779825253170,
+    "thumbVer": 1794332354990,
     "reproPrompt": "",
     "devNotes": ""
   },
@@ -179,7 +179,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779797611652.jpg",
-    "thumbVer": 1779859588247
+    "thumbVer": 1794332357823
   },
   {
     "id": "p1779770067635",
@@ -214,7 +214,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779770067635.jpg",
-    "thumbVer": 1784222130618
+    "thumbVer": 1794332360437
   },
   {
     "id": "p1779770067636",
@@ -242,7 +242,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779770067636.jpg",
-    "thumbVer": 1784195851506
+    "thumbVer": 1794332363269
   },
   {
     "id": "p1779746643461",
@@ -264,7 +264,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779746643461.jpg",
-    "thumbVer": 1779771024376
+    "thumbVer": 1794332367502
   },
   {
     "id": "p1779734355097",
@@ -291,7 +291,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779734355097.jpg",
-    "thumbVer": 1784612008327,
+    "thumbVer": 1794332372778,
     "reproPrompt": "",
     "devNotes": "",
     "versions": [
@@ -337,7 +337,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779489296529.jpg",
-    "thumbVer": 1779738119730
+    "thumbVer": 1794332375338
   },
   {
     "id": "p1779487555469",
@@ -359,7 +359,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779487555469.jpg",
-    "thumbVer": 1779738117035
+    "thumbVer": 1794332378424
   },
   {
     "id": "p1779487217532",
@@ -389,7 +389,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779487217532.jpg",
-    "thumbVer": 1779738113614
+    "thumbVer": 1794332381186
   },
   {
     "id": "p1779555000001",
@@ -417,7 +417,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779555000001.jpg",
-    "thumbVer": 1779738122345
+    "thumbVer": 1794332384435
   },
   {
     "id": "p1779555000003",
@@ -443,7 +443,7 @@
     "reproPrompt": "",
     "devNotes": "",
     "thumb": "thumbs/p1779555000003.jpg",
-    "thumbVer": 1779738125661
+    "thumbVer": 1794332387378
   },
   {
     "id": "p1779555000004",
@@ -473,7 +473,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779555000004.jpg",
-    "thumbVer": 1779738130051
+    "thumbVer": 1794332392105
   },
   {
     "id": "p1779555000005",
@@ -517,7 +517,7 @@
     "reproPrompt": "",
     "devNotes": "",
     "thumb": "thumbs/p1779555000005.jpg",
-    "thumbVer": 1779738132816
+    "thumbVer": 1794332395021
   },
   {
     "id": "p1779555000007",
@@ -547,7 +547,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779555000007.jpg",
-    "thumbVer": 1779738135998
+    "thumbVer": 1794332397806
   },
   {
     "id": "p1779462705263",
@@ -569,7 +569,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779462705263.jpg",
-    "thumbVer": 1779738105394
+    "thumbVer": 1794332400434
   },
   {
     "id": "p001",
@@ -625,7 +625,7 @@
     "forks": 47,
     "parentId": null,
     "thumb": "thumbs/p001.jpg",
-    "thumbVer": 1779738082480
+    "thumbVer": 1794332402968
   },
   {
     "id": "p002",
@@ -657,7 +657,7 @@
     "coverEligible": true,
     "editorsNote": "Tomas proves dashboards don't have to look like they were designed by a committee. The retro terminal aesthetic isn't just nostalgic — the thin display weights and cyan accent make the numbers genuinely scannable. Thirty-one forks and counting.",
     "thumb": "thumbs/p002.jpg",
-    "thumbVer": 1779738085015
+    "thumbVer": 1794332405518
   },
   {
     "id": "p003",
@@ -776,7 +776,7 @@
       }
     ],
     "thumb": "thumbs/p003.jpg",
-    "thumbVer": 1779738087545
+    "thumbVer": 1794332408051
   },
   {
     "id": "p004",
@@ -805,7 +805,7 @@
     "forks": 19,
     "parentId": null,
     "thumb": "thumbs/p004.jpg",
-    "thumbVer": 1779738090078
+    "thumbVer": 1794332410584
   },
   {
     "id": "p005",
@@ -857,7 +857,7 @@
     "coverEligible": true,
     "editorsNote": "A study-tool prompt that respects the learner's time. Mira stripped away every animation that delays a review cycle and built the progress bar to feel honest, not gamified. Sixty-two forks so far, spanning Korean, Mandarin, and even GRE vocabulary.",
     "thumb": "thumbs/p005.jpg",
-    "thumbVer": 1779738092611
+    "thumbVer": 1794332413117
   },
   {
     "id": "p006",
@@ -887,7 +887,7 @@
     "forks": 24,
     "parentId": "p005",
     "thumb": "thumbs/p006.jpg",
-    "thumbVer": 1779738095145
+    "thumbVer": 1794332415651
   },
   {
     "id": "p007",
@@ -916,7 +916,7 @@
     "forks": 11,
     "parentId": null,
     "thumb": "thumbs/p007.jpg",
-    "thumbVer": 1779738097678
+    "thumbVer": 1794332418184
   },
   {
     "id": "p008",
@@ -948,7 +948,7 @@
     "coverEligible": true,
     "editorsNote": "A bilingual cover entry that shows the platform's range. Kenji's Rirekisho template follows the exact table conventions Japanese employers expect — right down to the furigana row and photo placeholder. Thirty-eight forks, mostly from job-seekers prepping for spring hiring.",
     "thumb": "thumbs/p008.jpg",
-    "thumbVer": 1779738100211
+    "thumbVer": 1794332420717
   },
   {
     "id": "p009",
@@ -1006,6 +1006,6 @@
     "forks": 8,
     "parentId": "p003",
     "thumb": "thumbs/p009.jpg",
-    "thumbVer": 1779738102744
+    "thumbVer": 1794332423250
   }
 ]
