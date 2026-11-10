@@ -923,6 +923,11 @@ function mountAlbumThumbs(scope) {
   }
 }
 
+// Layout-aware standalone URL for a prompton id (flat .html, folder index, md).
+function standaloneUrlFor(id) {
+  const p = prompts.find(x => x && x.id === id);
+  return p ? promptHtmlPath(p) : 'htmls/' + encodeURIComponent(id) + '.html';
+}
 // Find the iframe inside the same .album-thumb as `btn` and put it fullscreen.
 // Falls back to opening the standalone htmls/<id>.html page if the browser
 // won't allow fullscreen (e.g. iOS Safari on a non-secure context).
@@ -931,17 +936,17 @@ function requestFullscreenForCard(btn) {
   const card = btn.closest('.album-card');
   const iframe = card && card.querySelector('iframe');
   if (!iframe) {
-    window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
+    window.open(standaloneUrlFor(id), '_blank', 'noopener');
     return;
   }
   const req = iframe.requestFullscreen || iframe.webkitRequestFullscreen || iframe.msRequestFullscreen;
   if (!req) {
-    window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
+    window.open(standaloneUrlFor(id), '_blank', 'noopener');
     return;
   }
   req.call(iframe).catch(err => {
     console.warn('Fullscreen denied, opening standalone:', err);
-    window.open('htmls/' + encodeURIComponent(id) + '.html', '_blank', 'noopener');
+    window.open(standaloneUrlFor(id), '_blank', 'noopener');
   });
 }
 // Always render full numbers with locale-aware thousand separators. No

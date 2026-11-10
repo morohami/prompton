@@ -104,6 +104,49 @@ async function ghDeleteFile(path, message, sha) {
     body: JSON.stringify({ message: message, branch: cfg.branch, sha: sha })
   });
 }
+// ─── manifest.json helpers ───
+// Every writer used to repeat "GET manifest → JSON.parse (fall back to [] on
+// failure) → edit → PUT". A parse failure silently became an empty list, and
+// the next PUT then wiped every prompton from the repo. These helpers refuse
+// to continue when the live manifest can't be read as an array.
+async function readManifestFromGitHub() {
+  const cfg = getSyncConfig();
+  const raw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch || 'main'));
+  let manifest;
+  try { manifest = JSON.parse(b64ToUtf8(raw.content || '')); }
+  catch (e) { throw new Error('manifest.json on GitHub could not be parsed — aborted so it is not overwritten.'); }
+  if (!Array.isArray(manifest)) throw new Error('manifest.json on GitHub is not a plain list — aborted so it is not overwritten.');
+  return { manifest: manifest, sha: raw.sha };
+}
+// Read → mutate → PUT. `mutate(manifest)` edits the array in place (or
+// returns a replacement). Returns the manifest that was written.
+async function mutateManifestOnGitHub(mutate, message) {
+  const live = await readManifestFromGitHub();
+  const next = mutate(live.manifest) || live.manifest;
+  await ghPutFile('manifest.json', JSON.stringify(next, null, 2), message, live.sha);
+  return next;
+}
+// The manifest entry for a prompton: metadata only. Strips everything that is
+// derived at runtime (html, md source, transient sidecar sources) so it never
+// leaks into manifest.json.
+function manifestMeta(prompt) {
+  const meta = JSON.parse(JSON.stringify(prompt));
+  delete meta.html;
+  delete meta.files;
+  delete meta.mdSource;
+  if (meta.versions) meta.versions = meta.versions.map(v => { const c = Object.assign({}, v); delete c.html; return c; });
+  return meta;
+}
+// Fields another writer owns: the Thumbnails workflow (thumb, thumbVer) and
+// the visitor-vote counter. A metadata edit must not clobber them with this
+// browser's stale in-memory copy.
+const MANIFEST_FOREIGN_FIELDS = ['thumb', 'thumbVer', 'votes'];
+function mergeMetaIntoEntry(remoteEntry, meta) {
+  const out = Object.assign({}, meta);
+  if (remoteEntry) MANIFEST_FOREIGN_FIELDS.forEach(k => { if (remoteEntry[k] !== undefined) out[k] = remoteEntry[k]; });
+  return out;
+}
+
 // Generate the static OG/Twitter-card page that lives at p/<id>/index.html.
 // Crawlers (LINE/X/Discord/Slack) read the meta tags from the initial HTML;
 // human visitors get a JS redirect to the SPA detail view.
@@ -167,10 +210,27 @@ async function deleteOGPageFromGitHub(prompt) {
   if (sha) await ghDeleteFile(path, 'Prompton: remove OG card for ' + prompt.id, sha);
 }
 
+// Delete every file under a repo directory, descending into subdirectories
+// (git has no directory objects, and the Contents API lists one level only).
+async function ghDeleteDirRecursive(dir) {
+  const cfg = getSyncConfig();
+  let listing;
+  try { listing = await ghFetch('/contents/' + dir + '?ref=' + encodeURIComponent(cfg.branch || 'main')); }
+  catch (e) { return; /* directory absent — nothing to delete */ }
+  if (!Array.isArray(listing)) listing = [listing];
+  for (const f of listing) {
+    if (f.type === 'dir') await ghDeleteDirRecursive(f.path);
+    else if (f.type === 'file' && f.sha) await ghDeleteFile(f.path, 'Prompton: delete ' + f.path, f.sha);
+  }
+}
+
 async function deletePromptFromGitHub(prompt) {
   // 1. Delete the HTML file(s). Flat prompts: htmls/<id>.html (+ version
   //    files). Folder prompts: every file under htmls/<id>/ (+ version
   //    folders) — git has no directory objects, so we list and delete each.
+  // Validate the live manifest BEFORE deleting anything, so a manifest we
+  // can't rewrite doesn't leave us with files gone but the entry still listed.
+  await readManifestFromGitHub();
   if (prompt.layout === 'folder') {
     const dirs = ['htmls/' + prompt.id];
     if (prompt.versions && prompt.versions.length) {
@@ -179,17 +239,14 @@ async function deletePromptFromGitHub(prompt) {
         dirs.push('htmls/' + prompt.id + '_v' + vNum);
       });
     }
-    const cfgDel = getSyncConfig();
-    for (const dir of dirs) {
-      let listing = [];
-      try { listing = await ghFetch('/contents/' + dir + '?ref=' + encodeURIComponent(cfgDel.branch)); }
-      catch (e) { continue; /* folder absent — nothing to delete */ }
-      if (!Array.isArray(listing)) listing = [listing];
-      for (const f of listing) {
-        if (f.type === 'file' && f.sha) {
-          await ghDeleteFile(f.path, 'Prompton: delete ' + f.path, f.sha);
-        }
-      }
+    for (const dir of dirs) await ghDeleteDirRecursive(dir);
+  } else if (prompt.format === 'md') {
+    // md promptons live at htmls/<id>.md — unless `file` points at a shared
+    // repo document (e.g. the root HANDOFF.md), which must never be deleted.
+    if (!prompt.file) {
+      const mdPath = 'htmls/' + prompt.id + '.md';
+      const mdSha = await ghGetSha(mdPath);
+      if (mdSha) await ghDeleteFile(mdPath, 'Prompton: delete ' + mdPath, mdSha);
     }
   } else {
     const htmlPaths = ['htmls/' + prompt.id + '.html'];
@@ -216,14 +273,7 @@ async function deletePromptFromGitHub(prompt) {
     if (tSha) await ghDeleteFile(thumbPath, 'Prompton: delete ' + thumbPath, tSha);
   } catch (e) { /* best effort */ }
   // 2. Remove from manifest.json and re-PUT
-  const cfg = getSyncConfig();
-  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-  const manText = b64ToUtf8(manRaw.content);
-  let manifest;
-  try { manifest = JSON.parse(manText); }
-  catch (e) { manifest = []; }
-  const next = manifest.filter(p => p.id !== prompt.id);
-  await ghPutFile('manifest.json', JSON.stringify(next, null, 2), 'Prompton: remove ' + prompt.id, manRaw.sha);
+  await mutateManifestOnGitHub(m => m.filter(p => p.id !== prompt.id), 'Prompton: remove ' + prompt.id);
   // 3. Sync in-memory seedPrompts so subsequent renders match
   if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
     const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
@@ -260,19 +310,14 @@ async function pushHandoffToGitHub(prompt, text) {
 
 // Update only the manifest entry for an existing prompt — HTML files are untouched.
 async function updatePromptMetadataOnGitHub(prompt) {
-  const cfg = getSyncConfig();
-  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-  const manText = b64ToUtf8(manRaw.content);
-  let manifest;
-  try { manifest = JSON.parse(manText); }
-  catch (e) { manifest = []; }
-  const meta = JSON.parse(JSON.stringify(prompt));
-  delete meta.html;
-  if (meta.versions) meta.versions = meta.versions.map(v => { const c = {...v}; delete c.html; return c; });
-  const idx = manifest.findIndex(p => p.id === prompt.id);
-  if (idx >= 0) manifest[idx] = meta;
-  else manifest.unshift(meta);
-  await ghPutFile('manifest.json', JSON.stringify(manifest, null, 2), 'Prompton: edit metadata for ' + prompt.id, manRaw.sha);
+  const meta = manifestMeta(prompt);
+  await mutateManifestOnGitHub(manifest => {
+    const idx = manifest.findIndex(p => p.id === prompt.id);
+    // Merge into the LIVE entry so thumb/thumbVer/votes written by other
+    // sessions or the Thumbnails workflow since page load survive the edit.
+    if (idx >= 0) manifest[idx] = mergeMetaIntoEntry(manifest[idx], meta);
+    else manifest.unshift(meta);
+  }, 'Prompton: edit metadata for ' + prompt.id);
   if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
     const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
     if (sIdx >= 0) seedPrompts[sIdx] = JSON.parse(JSON.stringify(prompt));
@@ -287,19 +332,16 @@ async function updatePromptMetadataOnGitHub(prompt) {
 // bumps just the `downloads` field for this prompt, PUTs it back. Best-effort
 // — failures don't undo the local increment.
 async function bumpDownloadCountOnGitHub(prompt) {
-  const cfg = getSyncConfig();
-  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-  const manText = b64ToUtf8(manRaw.content);
-  let manifest;
-  try { manifest = JSON.parse(manText); }
-  catch (e) { return; }
-  const idx = manifest.findIndex(p => p.id === prompt.id);
-  if (idx < 0) return;
-  manifest[idx].downloads = (manifest[idx].downloads || 0) + 1;
-  await ghPutFile('manifest.json', JSON.stringify(manifest, null, 2), 'Prompton: +1 download for ' + prompt.id, manRaw.sha);
-  if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+  let newCount = null;
+  await mutateManifestOnGitHub(manifest => {
+    const idx = manifest.findIndex(p => p.id === prompt.id);
+    if (idx < 0) return;
+    manifest[idx].downloads = (manifest[idx].downloads || 0) + 1;
+    newCount = manifest[idx].downloads;
+  }, 'Prompton: +1 download for ' + prompt.id);
+  if (newCount !== null && typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
     const s = seedPrompts.find(x => x.id === prompt.id);
-    if (s) s.downloads = manifest[idx].downloads;
+    if (s) s.downloads = newCount;
   }
 }
 
@@ -388,6 +430,17 @@ async function ghBulkCommit(files, message) {
   return newCommit;
 }
 
+// profiles.json — same refuse-to-overwrite rule as the manifest helpers.
+async function readProfilesFromGitHub() {
+  const cfg = getSyncConfig();
+  const raw = await ghFetch('/contents/profiles.json?ref=' + encodeURIComponent(cfg.branch || 'main'));
+  let profiles;
+  try { profiles = JSON.parse(b64ToUtf8(raw.content || '')); }
+  catch (e) { throw new Error('profiles.json on GitHub could not be parsed — aborted so it is not overwritten.'); }
+  if (!profiles || typeof profiles !== 'object' || Array.isArray(profiles)) throw new Error('profiles.json on GitHub is not an object — aborted so it is not overwritten.');
+  return profiles;
+}
+
 // ─── Owner handle rename ───
 // Validate a proposed new handle. Returns null if OK or an error string.
 // Rules: lowercase alphanumeric + . _ -, 3–20 chars, no collision with another
@@ -437,13 +490,8 @@ async function renameOwnerHandle(oldHandle, newHandle) {
   const cfg = getSyncConfig();
   const branch = cfg.branch || 'main';
   // Pull the live versions to avoid clobbering any drift since last load.
-  const profilesRaw = await ghFetch('/contents/profiles.json?ref=' + encodeURIComponent(branch));
-  const manifestRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(branch));
-  let liveProfiles, liveManifest;
-  try { liveProfiles = JSON.parse(b64ToUtf8(profilesRaw.content)) || {}; }
-  catch (e) { liveProfiles = {}; }
-  try { liveManifest = JSON.parse(b64ToUtf8(manifestRaw.content)) || []; }
-  catch (e) { liveManifest = []; }
+  const liveProfiles = await readProfilesFromGitHub();
+  const { manifest: liveManifest } = await readManifestFromGitHub();
   if (liveProfiles[oldHandle]) {
     liveProfiles[newHandle] = Object.assign({}, liveProfiles[oldHandle], { handle: newHandle });
     delete liveProfiles[oldHandle];
@@ -494,20 +542,12 @@ async function pushPromptToGitHub(prompt) {
   // 1b. The Thumbnails workflow takes care of `thumbs/<id>.jpg` and stamps
   //     `thumb` + `thumbVer` into the manifest on the next push to htmls/**.
   // 2. Update manifest.json — read fresh then append/replace this prompt
-  const cfg = getSyncConfig();
-  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-  const manText = b64ToUtf8(manRaw.content);
-  let manifest;
-  try { manifest = JSON.parse(manText); }
-  catch (e) { manifest = []; }
-  // Strip html field from the prompt before storing in manifest
-  const meta = JSON.parse(JSON.stringify(prompt));
-  delete meta.html;
-  if (meta.versions) meta.versions = meta.versions.map(v => { const c = {...v}; delete c.html; return c; });
-  const existingIdx = manifest.findIndex(p => p.id === prompt.id);
-  if (existingIdx >= 0) manifest[existingIdx] = meta;
-  else manifest.unshift(meta);
-  await ghPutFile('manifest.json', JSON.stringify(manifest, null, 2), 'Prompton: update manifest for ' + prompt.id, manRaw.sha);
+  const meta = manifestMeta(prompt);
+  await mutateManifestOnGitHub(manifest => {
+    const existingIdx = manifest.findIndex(p => p.id === prompt.id);
+    if (existingIdx >= 0) manifest[existingIdx] = mergeMetaIntoEntry(manifest[existingIdx], meta);
+    else manifest.unshift(meta);
+  }, 'Prompton: update manifest for ' + prompt.id);
   // Keep the in-memory seedPrompts in sync so reloads see the same view
   if (typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
     const sIdx = seedPrompts.findIndex(p => p.id === prompt.id);
@@ -532,16 +572,10 @@ async function pushFolderPromptToGitHub(prompt) {
   if (sidecars.css && sidecars.css.trim()) files.push({ path: dir + 'style.css', content: sidecars.css });
   if (sidecars.js && sidecars.js.trim()) files.push({ path: dir + 'app.js', content: sidecars.js });
   // Manifest: read fresh, replace/insert this prompt's meta (sans html/files).
-  const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-  let manifest;
-  try { manifest = JSON.parse(b64ToUtf8(manRaw.content)); }
-  catch (e) { manifest = []; }
-  const meta = JSON.parse(JSON.stringify(prompt));
-  delete meta.html;
-  delete meta.files;
-  if (meta.versions) meta.versions = meta.versions.map(v => { const c = {...v}; delete c.html; return c; });
+  const { manifest } = await readManifestFromGitHub();
+  const meta = manifestMeta(prompt);
   const existingIdx = manifest.findIndex(p => p.id === prompt.id);
-  if (existingIdx >= 0) manifest[existingIdx] = meta;
+  if (existingIdx >= 0) manifest[existingIdx] = mergeMetaIntoEntry(manifest[existingIdx], meta);
   else manifest.unshift(meta);
   files.push({ path: 'manifest.json', content: JSON.stringify(manifest, null, 2) });
   files.push({ path: 'p/' + prompt.id + '/index.html', content: generateOGPageHtml(prompt) });

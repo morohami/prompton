@@ -338,19 +338,28 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     toast('Saved locally · "' + newPrompt.title + '" (configure GitHub in ⚙ Settings to publish)');
   }
 
-  e.target.reset();
+  resetUploadForm();
+  renderDetail(newPrompt.id);
+});
+
+// Clear the share form back to its blank state (also drops a pending Fork
+// parent). Called after a publish and when the user leaves the form with a
+// fork half-prepared (showView in js/router.js), so a pre-filled "(remix)"
+// form can't turn an unrelated later upload into a Fork.
+function resetUploadForm() {
+  const form = document.getElementById('uploadForm');
+  if (form) form.reset();
   try { sessionStorage.removeItem('prompton_fork_parent'); } catch (e) {}
   if (window._uploadTagPicker) window._uploadTagPicker.setTags([]);
   uploadedHtml = '';
   fileDrop.classList.remove('has-file');
   document.getElementById('dropTitle').textContent = 'Drop .html here';
-  document.getElementById('dropHint').textContent = 'or click to browse';
+  document.getElementById('dropHint').innerHTML = 'click to browse<span class="sep">·</span>drag &amp; drop<span class="sep">·</span>or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>';
   document.getElementById('htmlPreview').style.display = 'none';
   document.getElementById('undeclaredWarning').style.display = 'none';
   const adv = document.querySelector('.upload-advanced');
   if (adv) adv.open = false;
-  renderDetail(newPrompt.id);
-});
+}
 
 // Bulk submit — Tree API single commit for all htmls + OG pages + manifest,
 // then a second commit for thumbs once they finish rendering.
@@ -381,12 +390,9 @@ async function submitBulkUpload(formEl) {
     html: cleanupHtml(q.html)
   }));
 
-  let manSha = null, manifest = [];
+  let manifest = [];
   try {
-    const cfg = getSyncConfig();
-    const manRaw = await ghFetch('/contents/manifest.json?ref=' + encodeURIComponent(cfg.branch));
-    manSha = manRaw.sha;
-    manifest = JSON.parse(b64ToUtf8(manRaw.content)) || [];
+    manifest = (await readManifestFromGitHub()).manifest;
   } catch (err) {
     toast('Failed to read manifest: ' + err.message);
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }

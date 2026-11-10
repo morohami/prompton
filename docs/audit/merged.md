@@ -17,15 +17,15 @@
 | M06 | 起動時に HTML 29本（5.3MB）を全部取得してから描画／同量を localStorage（5.24M 文字）に保存し 5MB 上限の99% | O#6 O#13 G#8 G#20 F | 再現（htmlBytes 5,275,416・localStorage 5,236,685） | `index.html`：manifest だけで描画、HTML はオンデマンド取得、localStorage はメタデータのみ | B3 | |
 | M08 | スマホ詳細：オーバーレイの「全画面」「別タブで開く」が `pointer-events: none` のため押せず（後ろのサムネが受ける）、サムネ未生成作品は空枠 | G#1 | 再現（hit 要素が `IMG.preview-thumb-mobile`、`pe: none`、handoff は iframe 非表示で空） | `css/main.css`・`render.js` | B4 | |
 | M09 | 検索：≤900px で検索欄が非表示のままタブから出せない／PC でも入力で一覧が絞られない（並び替えで初めて絞られホーム行が消える）。`description` 欠落で例外の余地 | G#2 F8 | 再現 | `css`・`index.html`・`router.js`・`render.js` | B4 | |
-| M10 | フォルダ型は `p.html` が空のため「フォーク」で 0 バイト、md 型は wrapper HTML が落ちる | G#7 F2 | 再現（フォルダ型 `p.html` 長 0 を確認） | `render.js`：ダウンロードと共通化（zip／raw md） | B2 | |
-| M11 | フォーク用 `prompton_fork_parent` が投稿するまで残り、別の投稿が Fork 扱いになる | G#7 | 再現 | `render.js`・`router.js`：投稿画面を離れたら消す | B2 | |
+| M10 | フォルダ型は `p.html` が空のため「フォーク」で 0 バイト、md 型は wrapper HTML が落ちる | G#7 F2 | 再現（フォルダ型 `p.html` 長 0 を確認） | `render.js`：ダウンロードと共通化（zip／raw md） | B2 | 完了：フォルダ型はzip(39,137B)・md型は生.md(15,688B)・フラットは最新(207,712B)。フォークも同じ中身を確認 |
+| M11 | フォーク用 `prompton_fork_parent` が投稿するまで残り、別の投稿が Fork 扱いになる | G#7 | 再現 | `render.js`・`router.js`：投稿画面を離れたら消す | B2 | 完了：フォーク後に別画面へ移ると親IDと入力欄が消えることを確認 |
 
 ### 中
 
 | # | 内容 | 報告 | 再現 | 直し方・触るファイル | バッチ | 状態 |
 |---|---|---|---|---|---|---|
-| M12 | 「別タブで開く」と全画面の逃げ先が `htmls/<id>.html` 固定でフォルダ型3件・md型1件は 404、過去版閲覧中も最新を開く。容量表示が「0.0 KB」 | O#8 G#10 F2 | 再現（standalone 404・caption 0.0 KB） | `render.js`・`index.html`：`promptHtmlPath` | B2 | |
-| M13 | フォルダ型・md型でも「新バージョンを保存」が出て、実行すると空の `htmls/<id>.html` `_v1.html` を作る | G#11 F R2 | 読解（ボタン表示は再現） | `render.js`：フラット型のみ許可 | B2 | |
+| M12 | 「別タブで開く」と全画面の逃げ先が `htmls/<id>.html` 固定でフォルダ型3件・md型1件は 404、過去版閲覧中も最新を開く。容量表示が「0.0 KB」 | O#8 G#10 F2 | 再現（standalone 404・caption 0.0 KB） | `render.js`・`index.html`：`promptHtmlPath` | B2 | 完了：prompton-app／_folder_demo／p1779770067635／prompton-handoff の別タブ先が全て200、過去版リンクは _v1 を指す。容量表示も修正 |
+| M13 | フォルダ型・md型でも「新バージョンを保存」が出て、実行すると空の `htmls/<id>.html` `_v1.html` を作る | G#11 F R2 | 読解（ボタン表示は再現） | `render.js`：フラット型のみ許可 | B2 | 完了：フォルダ型・md型では保存ボタンを出さず、関数側でも拒否（B1と合わせ確認） |
 | M14 | ドラフトの自動保存タイマーが削除・投稿で止まらず、消したドラフトが空タイトルで復活 | G#12 | 再現（`d_test:` が復活） | `render.js` | B5 | |
 | M15 | スマホ（≤680px）で Rankings / Playlists へ行く導線がない | G#13 | 再現（display:none、タブにもなし） | `render.js`・`css` | B4 | |
 | M16 | 設定画面で言語ボタンを押すとギャラリーへ飛ぶ。`#/rankings/forks` は `#/rankings` に潰れる | G#14 F4 | 再現 | `index.html`・`render.js`：現在の hash で再描画 | B5 | |
@@ -35,7 +35,7 @@
 | M20 | OG ページが7作品で欠落、2件はタイトルが古い、全件 `og:image` なし | O#11 G#18 F | 再現（照合） | `p/*/index.html` 生成、`github.js` に og:image | B7 | |
 | M21 | プロフィール「公開」タブがサムネ画像でなく iframe 17個（srcdoc 4.6MB） | O#12 G#19 F9 | 再現 | `render.js` | B3 | |
 | M22 | `thumbs/prompton-app.jpg` が額縁だけの白紙。`generate-thumbs.mjs` が `git diff HEAD~1 HEAD` で複数コミット push を取りこぼし、md 未対応 | O#14 G#21 | 再現（画像確認）＋読解 | `.github/` | B7 | |
-| M23 | 削除が md 型・フォルダ型の深い階層に未対応。メタ更新が `mdSource` 等を manifest に混入。manifest の JSON 解析失敗時に `[]` で上書き（5か所） | G#22 O#20 F R1 | 読解 | `github.js`：共通ヘルパーに集約 | B2 | |
+| M23 | 削除が md 型・フォルダ型の深い階層に未対応。メタ更新が `mdSource` 等を manifest に混入。manifest の JSON 解析失敗時に `[]` で上書き（5か所） | G#22 O#20 F R1 | 読解 | `github.js`：共通ヘルパーに集約 | B2 | 完了：manifest/profiles が壊れていれば書き込まず中止、メタ更新で thumb/thumbVer/votes を保持し mdSource・html を除外、md参照ファイルは削除せず、フォルダ削除は再帰（通信を差し替えたテストで確認）。実GitHubへの書き込みは未実施 |
 | M24 | Service Worker が `htmls/` をキャッシュ優先で古い HTML を返し、`thumbs/?v=` が溜まる | O#21 G#23 | 読解 | `sw.js` | B3 | |
 | M25 | 日本語モードに英語の直書きが多数。比較ボタンが英語に化ける。PAT「表示/隠す」は逆 | O#15 G#24 F | 再現 | `i18n/*.json`・`render.js`・`index.html` | B6 | |
 | M26 | 呼称：`Publish prompt`、`recipes for AI`、`PromptShare`、旧説明文 | O#16 O#17 G#25 F | 再現 | `upload.js`・`manifest.webmanifest`・`profiles.json` | B6 | |

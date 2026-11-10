@@ -5,6 +5,13 @@
 
 // ─── Routing ───
 function showView(name) {
+  // Leaving the share form with a Fork half-prepared: forget the parent and
+  // blank the pre-filled form (see resetUploadForm in js/upload.js).
+  if (name !== 'upload') {
+    let pending = null;
+    try { pending = sessionStorage.getItem('prompton_fork_parent'); } catch (e) {}
+    if (pending && typeof resetUploadForm === 'function') resetUploadForm();
+  }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   window.scrollTo({top:0, behavior:'instant'});

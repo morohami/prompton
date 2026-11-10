@@ -128,6 +128,52 @@ function buildZip(entries) { // entries: [{ name, text }]
   return new Blob(parts, { type: 'application/zip' });
 }
 
+// ─── Downloadable form of a prompton ───────────────────────────────────
+// One place decides what "download" and "fork" hand the user, per layout:
+//   md     → the raw markdown source (not the styled preview wrapper)
+//   folder → an uncompressed .zip of fileList (default: index.html)
+//   flat   → the single .html (latest, or the past version being viewed)
+// Fork used to ship `parent.html` unconditionally, which is '' for folder
+// promptons (0-byte file) and the wrapper page for md ones.
+async function ensurePromptHtml(p, viewing) {
+  if (!p || p.format === 'md' || p.layout === 'folder') return (p && p.html) || '';
+  let target = p;
+  if (viewing && p.versions) target = p.versions.find(v => v.v === viewing) || p;
+  if (target.html) return target.html;
+  const r = await fetch(promptHtmlPath(p, target === p ? null : viewing));
+  if (!r.ok) throw new Error('could not load ' + promptHtmlPath(p, target === p ? null : viewing) + ' (' + r.status + ')');
+  target.html = await r.text();
+  return target.html;
+}
+async function buildPromptDownload(p, viewing) {
+  if (p.format === 'md') {
+    let md = p.mdSource;
+    if (md == null) {
+      const r = await fetch(promptHtmlPath(p));
+      md = r.ok ? await r.text() : '';
+    }
+    return { blob: new Blob([md], { type: 'text/markdown' }), filename: safeFilename(p).replace(/\.html$/, '.md') };
+  }
+  if (p.layout === 'folder') {
+    const names = (p.fileList && p.fileList.length) ? p.fileList : ['index.html'];
+    const base = 'htmls/' + p.id + (viewing ? '_v' + viewing : '') + '/';
+    const files = await Promise.all(names.map(n =>
+      fetch(base + n).then(r => r.ok ? r.text() : '').then(text => ({ name: n, text }))));
+    const present = files.filter(f => f.text);
+    if (!present.length) throw new Error('no files found for ' + p.id);
+    return { blob: buildZip(present), filename: safeFilename(p).replace(/\.html$/, '.zip') };
+  }
+  const html = await ensurePromptHtml(p, viewing);
+  return { blob: new Blob([html], { type: 'text/html' }), filename: safeFilename(p) };
+}
+function saveBlobAs(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // ─── Broken-thumbnail rescue ───────────────────────────────────────────
 // If a card's <img class="thumb-img"> fails to load (manifest points at a
 // jpg that doesn't exist yet, deploy lag, etc.), swap in the live iframe
@@ -1199,7 +1245,7 @@ function renderDetail(id, viewingVersionNum) {
           </div>
         </div>
         <div class="preview-caption">
-          <span>↑ Live preview · ${(new Blob([view.html]).size / 1024).toFixed(1)} KB</span>
+          <span>↑ Live preview · <span id="previewSizeLabel">…</span></span>
           <span>${escapeHtml(p.license)}</span>
         </div>
 
@@ -1385,29 +1431,10 @@ function renderDetail(id, viewingVersionNum) {
   // Wire actions
   document.getElementById('downloadBtn').addEventListener('click', async (e) => {
     const btn = e.currentTarget;
-    // md promptons download the raw markdown source; folder promptons are
-    // multi-file so they download as an uncompressed .zip (fileList from
-    // the manifest names the members); flat stays a single .html.
-    const isMd = p.format === 'md';
-    let blob, filename;
-    if (isMd) {
-      blob = new Blob([p.mdSource || ''], {type: 'text/markdown'});
-      filename = safeFilename(p).replace(/\.html$/, '.md');
-    } else if (p.layout === 'folder') {
-      const names = (p.fileList && p.fileList.length) ? p.fileList : ['index.html'];
-      const files = await Promise.all(names.map(n =>
-        fetch('htmls/' + p.id + '/' + n).then(r => r.ok ? r.text() : '').then(text => ({ name: n, text }))));
-      blob = buildZip(files.filter(f => f.text));
-      filename = safeFilename(p).replace(/\.html$/, '.zip');
-    } else {
-      blob = new Blob([view.html], {type: 'text/html'});
-      filename = safeFilename(p);
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    let dl;
+    try { dl = await buildPromptDownload(p, isViewingPast ? viewing : null); }
+    catch (err) { console.warn('Download failed:', err); toast('Download failed — ' + err.message); return; }
+    saveBlobAs(dl.blob, dl.filename);
     p.downloads++;
     saveData(prompts);
     const originalHTML = btn.innerHTML;
@@ -1504,7 +1531,25 @@ function renderDetail(id, viewingVersionNum) {
   const openLink = document.getElementById('openStandaloneLink');
   if (openLink) {
     // Always link to the same-origin htmls/ path so it works both locally and on Pages.
-    openLink.href = 'htmls/' + encodeURIComponent(p.id) + '.html';
+    // Layout-aware (folder → htmls/<id>/index.html, md → its .md) and, while
+    // viewing a past version, that version's file instead of the latest.
+    openLink.href = promptHtmlPath(p, isViewingPast ? viewing : null);
+  }
+  // Size label: folder promptons are several files, md is its source text, flat
+  // is the HTML file (fetched on demand — it is no longer held for every card).
+  const sizeLabel = document.getElementById('previewSizeLabel');
+  if (sizeLabel) {
+    const kb = (s) => (new Blob([s]).size / 1024).toFixed(1) + ' KB';
+    if (p.layout === 'folder') {
+      const n = (p.fileList && p.fileList.length) ? p.fileList.length : 1;
+      sizeLabel.textContent = n + (n === 1 ? ' file' : ' files');
+    } else if (p.format === 'md') {
+      sizeLabel.textContent = kb(p.mdSource || '');
+    } else {
+      ensurePromptHtml(p, isViewingPast ? viewing : null)
+        .then(h => { sizeLabel.textContent = kb(h); })
+        .catch(() => { sizeLabel.textContent = ''; });
+    }
   }
 
   // Top-level Copy prompt button — works for any prompt
@@ -1633,7 +1678,10 @@ function renderDetail(id, viewingVersionNum) {
   const deleteBtn = document.getElementById('deletePromptBtn');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
-      const msg = `Delete "${p.title}" (${p.id})?\n\nThis removes htmls/${p.id}.html and the manifest entry from GitHub. Cannot be undone.`;
+      const where = p.layout === 'folder' ? `the htmls/${p.id}/ folder`
+        : (p.format === 'md' ? (p.file ? `its manifest entry (${p.file} itself is kept)` : `htmls/${p.id}.md`)
+        : `htmls/${p.id}.html`);
+      const msg = `Delete "${p.title}" (${p.id})?\n\nThis removes ${where} and the manifest entry from GitHub. Cannot be undone.`;
       if (!confirm(msg)) return;
       const originalHTML = deleteBtn.innerHTML;
       deleteBtn.disabled = true;
@@ -1857,6 +1905,7 @@ function renderVersionTimeline(p, viewing) {
 function openVersionEditor(promptId) {
   const p = prompts.find(x => x.id === promptId);
   if (!p) return;
+  if (p.layout === 'folder' || p.format === 'md') { toast('Saving new versions is only supported for single-file promptons for now.'); return; }
   const latest = (p.versions && p.versions.length) ? p.versions[p.versions.length - 1] : null;
   const baseSys = latest ? latest.systemPrompt : (p.systemPrompt || '');
   const baseUser = latest ? latest.userPrompt : (p.userPrompt || '');
@@ -2069,6 +2118,14 @@ async function saveMetadata(promptId, fields) {
 async function saveNewVersion(promptId, fields) {
   const p = prompts.find(x => x.id === promptId);
   if (!p) return;
+  // Folder/md promptons have no htmls/<id>.html — pushing versions would
+  // create empty files. Guarded here and in the UI (openVersionEditor).
+  if (p.layout === 'folder' || p.format === 'md') { toast('Saving new versions is only supported for single-file promptons for now.'); return; }
+  // Version snapshots need the real HTML of the current latest.
+  try {
+    await ensurePromptHtml(p, null);
+    for (const v of (p.versions || [])) await ensurePromptHtml(p, v.v);
+  } catch (e) { toast('Could not load the current HTML — ' + e.message); return; }
 
   // Snapshot for revert-on-failure
   const prevState = JSON.stringify({ versions: p.versions, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt, context: p.context, model: p.model, html: p.html, date: p.date });
@@ -2190,17 +2247,14 @@ function renderTemplate(text, variables) {
 // the user can edit it in their own editor, then come back and Upload the
 // edited file as a new prompt. The parent id is stashed in sessionStorage so
 // the next successful upload picks it up as parentId.
-function forkPrompt(parent) {
+async function forkPrompt(parent) {
   if (!parent) return;
-  // 1. Download the parent's HTML
+  // 1. Download the parent's files (zip for folder promptons, raw .md for md,
+  //    the .html — or the compared past version — for flat ones).
   try {
-    const blob = new Blob([parent.html || ''], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = safeFilename(parent);
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (e) { console.warn('Fork download failed:', e); }
+    const dl = await buildPromptDownload(parent, parent._versionViewed || null);
+    saveBlobAs(dl.blob, dl.filename);
+  } catch (e) { console.warn('Fork download failed:', e); toast('Could not download the original — ' + e.message); }
   // 2. Stash parent for the upcoming upload + pre-fill the form
   try { sessionStorage.setItem('prompton_fork_parent', parent.id); } catch (e) {}
   prefillUploadFormFromParent(parent);
