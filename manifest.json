@@ -2,6 +2,9 @@
   {
     "id": "prompton-app",
     "layout": "folder",
+    "fileList": [
+      "index.html"
+    ],
     "handoffFile": "HANDOFF.md",
     "handoffVer": 1784178000000,
     "title": "Prompton",

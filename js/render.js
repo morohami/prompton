@@ -3,7 +3,7 @@
 // becomes a global. Depends on (defined elsewhere): prompts, profiles, tagConfig,
 // escapeHtml/escapeAttr/formatNum/formatDate/safeFilename/toast/normalizeTag/normalizeTagList,
 // mountAlbumThumbs, mountTagPicker, getProfile, saveData, saveProfiles, setRoute, showView,
-// renderCompare, renderTagChips, isOwner, pushPromptToGitHub, updatePromptMetadataOnGitHub,
+// renderCompare, isOwner, pushPromptToGitHub, updatePromptMetadataOnGitHub,
 // deletePromptFromGitHub, ghGetSha, ghPutFile, cleanupHtml.
 
 // Cache-bust thumbnail URLs. Without ?v=, browsers + the SW can hold onto an
@@ -233,7 +233,7 @@ function titleWithEmphasis(title) {
 // shows a count badge; clicking it opens a dropdown with "+ 新規" and every
 // saved draft. The function keeps its historical name because every draft
 // mutation site (save / publish / delete / autosave-flush) calls it.
-function renderStoriesBar() {
+function renderDraftsMenu() {
   const btn = document.getElementById('draftsMenuBtn');
   const menu = document.getElementById('draftsMenu');
   if (!btn || !menu) return;
@@ -275,7 +275,7 @@ function closeDraftsMenu() {
     e.stopPropagation();
     const open = menu.classList.toggle('open');
     menu.setAttribute('aria-hidden', open ? 'false' : 'true');
-    if (open) renderStoriesBar(); // refresh list right before showing
+    if (open) renderDraftsMenu(); // refresh list right before showing
   });
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target) && e.target !== btn) closeDraftsMenu();
@@ -398,7 +398,7 @@ function openDraftEditorModal(draftId) {
       if (idx >= 0) drafts[idx] = draft;
       else drafts.unshift(draft);
       try { saveDrafts(); } catch (e) { console.warn('draft autosave failed:', e); }
-      renderStoriesBar();
+      renderDraftsMenu();
       setAutosaveStatus('drafts.autosaveSaved');
     }, 2000);
   }
@@ -422,7 +422,7 @@ function openDraftEditorModal(draftId) {
         if (idx >= 0) drafts[idx] = draft;
         else drafts.unshift(draft);
         try { saveDrafts(); } catch (e) {}
-        renderStoriesBar();
+        renderDraftsMenu();
       }
     }
   };
@@ -485,7 +485,7 @@ function openDraftEditorModal(draftId) {
     else drafts.unshift(draft);
     saveDrafts();
     overlay.remove();
-    renderStoriesBar();
+    renderDraftsMenu();
     toast(t('drafts.saved'));
   });
 
@@ -505,7 +505,7 @@ function openDraftEditorModal(draftId) {
       drafts = drafts.filter(x => x.id !== draft.id);
       saveDrafts();
       overlay.remove();
-      renderStoriesBar();
+      renderDraftsMenu();
       renderGallery();
       toast(t('drafts.published'));
     } catch (err) {
@@ -525,7 +525,7 @@ function openDraftEditorModal(draftId) {
     drafts = drafts.filter(x => x.id !== draft.id);
     saveDrafts();
     overlay.remove();
-    renderStoriesBar();
+    renderDraftsMenu();
   });
 
   setTimeout(() => { const i = document.getElementById('draftTitle'); if (i) i.focus(); }, 50);
@@ -598,7 +598,7 @@ function renderPlaylistDetail(plId) {
         <div class="thumb-wrap">${thumbInner}</div>
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
-        <div class="by">by <span data-author="${p.author}">${escapeHtml(p.authorName)}</span></div>
+        <div class="by">by <span data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span></div>
       `;
       card.addEventListener('click', () => renderDetail(p.id));
       grid.appendChild(card);
@@ -749,7 +749,7 @@ function renderRankings(metric) {
             ${thumb}
             <div class="rank-info">
               <div class="rank-title">${escapeHtml(p.title)}</div>
-              <div class="rank-by">by <span class="author-link" data-author="${p.author}">${escapeHtml(p.authorName)}</span>${p.date ? ' · ' + formatDate(p.date) : ''}</div>
+              <div class="rank-by">by <span class="author-link" data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span>${p.date ? ' · ' + formatDate(p.date) : ''}</div>
             </div>
             <div class="rank-metric">
               <div class="num">${formatNum(primary)}</div>
@@ -783,8 +783,7 @@ function renderGallery(opts) {
   const keepScroll = !!(opts && opts.keepScroll);
   setRoute('');
   showView('gallery', keepScroll);
-  renderTagChips();
-  renderStoriesBar();
+  renderDraftsMenu();
   // Everything in the manifest is published; unlisted entries are hidden
   // from visitors (the owner sees them with an Unlisted ribbon).
   const publicPrompts = prompts.filter(isListed);
@@ -866,7 +865,7 @@ function renderGallery(opts) {
               '<div class="spotlight-kicker">TODAY\'S LEAD</div>' +
               '<h2 class="spotlight-title" data-news-go="' + lead.id + '">' + titleWithEmphasis(lead.title) + '</h2>' +
               (leadExcerpt ? '<div class="spotlight-excerpt">' + escapeHtml(leadExcerpt) + '</div>' : '') +
-              '<div class="spotlight-byline">by <span class="author-link" data-author="' + lead.author + '">' + escapeHtml(lead.authorName) + '</span> · ' + formatNum(lead.downloads) + ' downloads · ' + lead.forks + ' forks</div>' +
+              '<div class="spotlight-byline">by <span class="author-link" data-author="' + escapeAttr(lead.author) + '">' + escapeHtml(lead.authorName) + '</span> · ' + formatNum(lead.downloads) + ' downloads · ' + lead.forks + ' forks</div>' +
               '<div class="spotlight-actions">' +
                 '<button class="btn-play" data-news-go="' + lead.id + '">Open prompton</button>' +
                 '<button class="btn-ghost" data-news-fork="' + lead.id + '">⑂ Fork</button>' +
@@ -900,7 +899,7 @@ function renderGallery(opts) {
         '<div class="row-section">' +
           '<div class="row-header">' +
             '<h2><em>' + escapeHtml(t('ui.madeForYou')) + '</em></h2>' +
-            '<a class="show-all" data-go-profile="' + me_h + '">' + escapeHtml(t('ui.showAll')) + '</a>' +
+            '<a class="show-all" data-go-profile="' + escapeAttr(me_h) + '">' + escapeHtml(t('ui.showAll')) + '</a>' +
           '</div>' +
           '<div class="row-scroll">' + yourForks.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -909,8 +908,8 @@ function renderGallery(opts) {
       (featuredAuthorPrompts.length ? (
         '<div class="row-section">' +
           '<div class="row-header">' +
-            '<h2 data-author="' + featuredAuthor + '">' + escapeHtml(t('ui.byAuthor', { name: featuredAuthorName })) + '</h2>' +
-            '<a class="show-all" data-go-profile="' + featuredAuthor + '">' + escapeHtml(t('ui.showAll')) + '</a>' +
+            '<h2 data-author="' + escapeAttr(featuredAuthor) + '">' + escapeHtml(t('ui.byAuthor', { name: featuredAuthorName })) + '</h2>' +
+            '<a class="show-all" data-go-profile="' + escapeAttr(featuredAuthor) + '">' + escapeHtml(t('ui.showAll')) + '</a>' +
           '</div>' +
           '<div class="row-scroll">' + featuredAuthorPrompts.map(albumCardHtml).join('') + '</div>' +
         '</div>'
@@ -1033,7 +1032,7 @@ function renderGallery(opts) {
         <span>${p.model}</span>
       </div>
       <h3>${escapeHtml(p.title)}</h3>
-      <div class="by">by <span data-author="${p.author}">${escapeHtml(p.authorName)}</span></div>
+      <div class="by">by <span data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span></div>
       <div class="stats">
         <span><b>${formatNum(p.downloads)}</b> ${escapeHtml(t('ui.downloads'))}</span>
         <span><b>${p.forks}</b> ${escapeHtml(t('ui.forks'))}</span>
@@ -1085,8 +1084,6 @@ function renderGallery(opts) {
   });
   // Apply compare-mode class
   grid.classList.toggle('compare-mode', compareMode);
-  const _issueCountEl = document.getElementById('issueCount');
-  if (_issueCountEl) _issueCountEl.textContent = `${prompts.length} promptons in circulation`;
   // Lazy-mount the grid's iframe thumbnails — only what enters the viewport.
   mountAlbumThumbs(grid);
   showView('gallery', keepScroll);
@@ -1208,7 +1205,7 @@ function renderDetail(id, viewingVersionNum) {
       <div>
         <h1>${escapeHtml(p.title)}</h1>
         <div class="detail-byline">
-          <span class="author-link" data-author="${p.author}">@${escapeHtml(p.author)}</span>
+          <span class="author-link" data-author="${escapeAttr(p.author)}">@${escapeHtml(p.author)}</span>
           &nbsp;·&nbsp; ${formatDateShort(p.date)}
           &nbsp;·&nbsp; ${escapeHtml(p.model)}
           ${parent ? `&nbsp;·&nbsp; <span class="author-link" data-prompt="${parent.id}">forked from ${escapeHtml(parent.title)}</span>` : ''}
@@ -1586,17 +1583,18 @@ function renderDetail(id, viewingVersionNum) {
     copyWithFeedback(buildFullPromptText(), e.currentTarget);
   });
 
-  // Top-level Open in Claude.ai button — works for any prompt
-  document.getElementById('openClaudeTopBtn').addEventListener('click', (e) => {
+  // Open in Claude.ai — one implementation shared by the top button and the
+  // Personalize panel button (they used to carry two copies).
+  const openInClaude = (btn) => {
     if (!ensureRequiredValid()) return;
     window.open('https://claude.ai/new?q=' + encodeURIComponent(buildFullPromptText()), '_blank');
-    const btn = e.currentTarget;
     const originalHTML = btn.innerHTML;
     btn.classList.add('success');
     btn.innerHTML = '✓ Opened';
     clearTimeout(btn._copyTimer);
     btn._copyTimer = setTimeout(() => { btn.classList.remove('success'); btn.innerHTML = originalHTML; }, 1800);
-  });
+  };
+  document.getElementById('openClaudeTopBtn').addEventListener('click', (e) => openInClaude(e.currentTarget));
 
   // Per-block copy buttons in Prompt Anatomy
   el.querySelectorAll('.block-copy').forEach(b => {
@@ -1814,55 +1812,14 @@ function renderDetail(id, viewingVersionNum) {
       });
     });
 
-    // Validate required fields — returns true if valid
-    const validateRequired = () => {
-      let valid = true;
-      panel.querySelectorAll('.var-field').forEach(f => f.classList.remove('error'));
-      view.variables.forEach(v => {
-        if (!v.required) return;
-        const input = panel.querySelector(`[data-var="${v.key}"]`);
-        if (input && !input.value.trim()) {
-          const field = input.closest('.var-field');
-          if (field) field.classList.add('error');
-          valid = false;
-        }
-      });
-      if (!valid) {
-        const t = document.getElementById('toast');
-        t.textContent = 'Fill in the required variables first.';
-        t.classList.add('error');
-        t.classList.add('show');
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => { t.classList.remove('show'); t.classList.remove('error'); }, 2400);
-      }
-      return valid;
-    };
-
-    // Build substituted prompt text
-    const buildPromptText = () => {
-      const vals = currentValues();
-      const parts = [];
-      if (view.systemPrompt) parts.push('[SYSTEM]\n' + substitute(view.systemPrompt, view.variables, vals));
-      parts.push('[USER]\n' + substitute(view.userPrompt, view.variables, vals));
-      if (view.context) parts.push('[CONTEXT]\n' + substitute(view.context, view.variables, vals));
-      return parts.join('\n\n');
-    };
-
+    // Required-field check, prompt assembly and Claude.ai launch are the shared
+    // helpers above (ensureRequiredValid / buildFullPromptText / openInClaude).
     document.getElementById('copyPromptBtn').addEventListener('click', (e) => {
-      if (!validateRequired()) return;
-      copyWithFeedback(buildPromptText(), e.currentTarget, 'Copied');
+      if (!ensureRequiredValid()) return;
+      copyWithFeedback(buildFullPromptText(), e.currentTarget, 'Copied');
     });
 
-    document.getElementById('openClaudeBtn').addEventListener('click', (e) => {
-      if (!validateRequired()) return;
-      window.open('https://claude.ai/new?q=' + encodeURIComponent(buildPromptText()), '_blank');
-      const btn = e.currentTarget;
-      const originalHTML = btn.innerHTML;
-      btn.classList.add('success');
-      btn.innerHTML = '✓ Opened';
-      clearTimeout(btn._copyTimer);
-      btn._copyTimer = setTimeout(() => { btn.classList.remove('success'); btn.innerHTML = originalHTML; }, 1800);
-    });
+    document.getElementById('openClaudeBtn').addEventListener('click', (e) => openInClaude(e.currentTarget));
 
     document.getElementById('resetVarsBtn').addEventListener('click', () => {
       inputs.forEach(input => {
@@ -2320,11 +2277,6 @@ function prefillUploadFormFromParent(parent) {
 }
 
 // ─── Profile ───
-function getMostProlificAuthor() {
-  const counts = {};
-  prompts.forEach(p => { counts[p.author] = (counts[p.author] || 0) + 1; });
-  return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
-}
 function renderProfile(handle, tab) {
   const profile = getProfile(handle);
   if (!profile) return;
@@ -2487,7 +2439,7 @@ function renderProfileTab(handle, tab) {
         <div class="thumb-wrap">${thumbInner}</div>
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
-        <div class="by">by <span data-author="${p.author}">${escapeHtml(p.authorName)}</span></div>
+        <div class="by">by <span data-author="${escapeAttr(p.author)}">${escapeHtml(p.authorName)}</span></div>
       `;
       card.addEventListener('click', () => renderDetail(p.id));
       grid.appendChild(card);

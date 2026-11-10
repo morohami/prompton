@@ -15,6 +15,7 @@ import { chromium } from 'playwright';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import http from 'node:http';
 
 const HTMLS_DIR = 'htmls';
 const THUMBS_DIR = 'thumbs';
@@ -26,6 +27,32 @@ const SIZE = 640;
 const QUALITY = 72;
 const NETWORK_IDLE_TIMEOUT = 20000;
 const SETTLE_MS = 2000;
+
+// Serve the checkout over HTTP instead of opening file:// URLs. Under file://
+// a directory URL is a listing, so a prompton that frames another page of the
+// site (prompton-app -> "../../") screenshotted as an empty frame; over HTTP
+// "../../" resolves to the real app. It also matches how visitors load pages.
+const MIME = {
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8', '.md': 'text/markdown; charset=utf-8', '.svg': 'image/svg+xml',
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.webmanifest': 'application/manifest+json'
+};
+function startServer() {
+  const root = path.resolve('.');
+  const server = http.createServer(async (req, res) => {
+    try {
+      let rel = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+      if (rel.endsWith('/')) rel += 'index.html';
+      const abs = path.resolve(root, '.' + rel);
+      if (abs !== root && !abs.startsWith(root + path.sep)) { res.writeHead(403).end('forbidden'); return; }
+      const data = await fs.readFile(abs);
+      res.writeHead(200, { 'Content-Type': MIME[path.extname(abs)] || 'application/octet-stream' }).end(data);
+    } catch (e) {
+      res.writeHead(404).end('not found');
+    }
+  });
+  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
+}
 
 // Extract a set of prompt IDs that need re-thumbnailing from a list of
 // changed file paths. Both flat (htmls/<id>.html) and folder
@@ -61,14 +88,23 @@ async function pickTargetIds() {
   if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch') {
     return await allManifestIds();
   }
-  try {
-    const diff = execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf8' });
-    const paths = diff.split('\n').filter(Boolean);
-    return changedIdsFromPaths(paths);
-  } catch (e) {
-    console.warn('diff lookup failed — falling back to all manifest ids:', e.message);
-    return await allManifestIds();
+  // Diff the whole push (BEFORE_SHA = github.event.before), not just the last
+  // commit: pushing several commits at once used to lose every file touched by
+  // all but the newest one.
+  const before = process.env.BEFORE_SHA || '';
+  const ranges = [];
+  if (/^[0-9a-f]{40}$/.test(before) && !/^0+$/.test(before)) ranges.push(before + ' HEAD');
+  ranges.push('HEAD~1 HEAD');
+  for (const range of ranges) {
+    try {
+      const diff = execSync('git diff --name-only ' + range, { encoding: 'utf8' });
+      return changedIdsFromPaths(diff.split('\n').filter(Boolean));
+    } catch (e) {
+      console.warn('diff for "' + range + '" failed:', e.message);
+    }
   }
+  console.warn('no usable diff — falling back to all manifest ids');
+  return await allManifestIds();
 }
 
 // Resolve the path to a prompt's main HTML file on disk, given its
@@ -91,10 +127,13 @@ async function main() {
   const manifest = JSON.parse(await fs.readFile(MANIFEST, 'utf8'));
   const byId = new Map(manifest.map(p => [p.id, p]));
 
+  const server = await startServer();
+  const base = 'http://127.0.0.1:' + server.address().port + '/';
   const browser = await chromium.launch();
   const context = await browser.newContext({
     viewport: { width: SIZE, height: SIZE },
-    deviceScaleFactor: 1
+    deviceScaleFactor: 1,
+    serviceWorkers: 'block'
   });
   const page = await context.newPage();
 
@@ -106,6 +145,11 @@ async function main() {
       skipped++;
       continue;
     }
+    if (entry.format === 'md') {
+      console.log(`skip ${id} — markdown prompton (no HTML to screenshot)`);
+      skipped++;
+      continue;
+    }
     const filePath = htmlPathFor(entry);
     try { await fs.access(filePath); }
     catch (e) {
@@ -113,7 +157,7 @@ async function main() {
       skipped++;
       continue;
     }
-    const fileUrl = 'file://' + path.resolve(filePath);
+    const fileUrl = base + filePath.split('/').map(encodeURIComponent).join('/');
     try {
       await page.goto(fileUrl, { waitUntil: 'networkidle', timeout: NETWORK_IDLE_TIMEOUT });
       await page.waitForTimeout(SETTLE_MS);
@@ -135,6 +179,7 @@ async function main() {
   }
 
   await browser.close();
+  server.close();
   await fs.writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
   console.log(`Done — ok ${ok}, skipped ${skipped}, failed ${failed}.`);
   if (failed && !ok) process.exit(1);

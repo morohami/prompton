@@ -32,9 +32,9 @@
 | M17 | 旧テーマの `color:#000` が濃赤背景に残る（設定の Save・Save tag config・Popular リボン等。コントラスト約2:1）。緑の `rgba(29,185,84)` も残る | G#15 | 再現（背景 rgb(140,21,21) に文字 rgb(0,0,0)）。`.btn.primary` の通常時は白で正常 | `css/main.css` | B5 | 完了：設定の Save・Save tag config・Popular リボンが濃赤背景＋白文字（以前は黒）。緑の残りを色トークンに置換、成功表示は緑の専用色に。.btn:hover と .btn.primary:hover の黒文字も置換（hover の実描画は未確認） |
 | M18 | 画面遷移が `replaceState` のみで、戻るで離脱する | O#9 G#16 F7 | 再現 | `router.js` | B5 | 完了：ギャラリー→詳細→プロフィールで履歴が2件増え、戻る・進むで該当画面に移動（以前は増えず離脱） |
 | M19 | モデルの選択肢が3か所に重複し、`Claude Sonnet 4.5` がなく、編集フォームを開くと「AI」に変わる | O#10 G#17 F3 | 再現 | 共通定数＋現在値を保持 | B1 | 完了：編集フォームが Claude Sonnet 4.5 を保持、共有フォームの選択肢8件を確認 |
-| M20 | OG ページが7作品で欠落、2件はタイトルが古い、全件 `og:image` なし | O#11 G#18 F | 再現（照合） | `p/*/index.html` 生成、`github.js` に og:image | B7 | |
+| M20 | OG ページが7作品で欠落、2件はタイトルが古い、全件 `og:image` なし | O#11 G#18 F | 再現（照合） | `p/*/index.html` 生成、`github.js` に og:image | B7 | 完了：欠けていた7作品の p/<id>/index.html を生成し、全作品の OG ページを manifest のタイトルで再生成（2件の古いタイトルを解消）、og:image（thumbs/<id>.jpg）を27件に追加（md の1件は画像なし）。generateOGPageHtml も og:image 対応。公開サイトでの共有URL 200 は push 後に確認 |
 | M21 | プロフィール「公開」タブがサムネ画像でなく iframe 17個（srcdoc 4.6MB） | O#12 G#19 F9 | 再現 | `render.js` | B3 | 完了：プロフィール「公開」は17枚ともサムネ画像（iframe 0個） |
-| M22 | `thumbs/prompton-app.jpg` が額縁だけの白紙。`generate-thumbs.mjs` が `git diff HEAD~1 HEAD` で複数コミット push を取りこぼし、md 未対応 | O#14 G#21 | 再現（画像確認）＋読解 | `.github/` | B7 | |
+| M22 | `thumbs/prompton-app.jpg` が額縁だけの白紙。`generate-thumbs.mjs` が `git diff HEAD~1 HEAD` で複数コミット push を取りこぼし、md 未対応 | O#14 G#21 | 再現（画像確認）＋読解 | `.github/` | B7 | 完了（実行確認は push 後）：サムネ生成を file:// から一時HTTPサーバー経由に（prompton-app の ../../ が実体に解決）、push 全体の差分（BEFORE_SHA、fetch-depth 0）、md はスキップ、SW をブロック。スクリプトの構文は読み込みで確認。ローカルに node がないため実行は GitHub 上の手動実行で確認する |
 | M23 | 削除が md 型・フォルダ型の深い階層に未対応。メタ更新が `mdSource` 等を manifest に混入。manifest の JSON 解析失敗時に `[]` で上書き（5か所） | G#22 O#20 F R1 | 読解 | `github.js`：共通ヘルパーに集約 | B2 | 完了：manifest/profiles が壊れていれば書き込まず中止、メタ更新で thumb/thumbVer/votes を保持し mdSource・html を除外、md参照ファイルは削除せず、フォルダ削除は再帰（通信を差し替えたテストで確認）。実GitHubへの書き込みは未実施 |
 | M24 | Service Worker が `htmls/` をキャッシュ優先で古い HTML を返し、`thumbs/?v=` が溜まる | O#21 G#23 | 読解 | `sw.js` | B3 | 完了：SW を v9 に。htmls はネットワーク優先、サムネは同一ファイルの古い ?v= を削除（キャッシュ名と取得経路を確認）。更新直後の実機での古い版の消え方は未確認 |
 | M25 | 日本語モードに英語の直書きが多数。比較ボタンが英語に化ける。PAT「表示/隠す」は逆 | O#15 G#24 F | 再現 | `i18n/*.json`・`render.js`・`index.html` | B6 | 一部完了：ホーム（挨拶・各行・見出し）、カード、詳細の見出しとボタン、比較トグル（英語に化けなくなった）、ランキング、検索、プロフィール、投稿フォームの主要文言、設定の説明・ボタン、PAT 表示/隠すを ja/en に（375px で両言語を確認、キーは ja/en とも80件で一致）。通知（トースト）・比較画面・編集フォーム・プレイリスト/ドラフトのモーダルの英語は未対応 |
@@ -47,13 +47,13 @@
 
 | # | 内容 | 報告 | 再現 | 直し方・触るファイル | バッチ | 状態 |
 |---|---|---|---|---|---|---|
-| M32 | `functions/`（未デプロイ）：`ALLOWED_USERS` 未設定で全員許可、`functions/` への書き込みを弾かない、ログアウトが GET 可 | G#29 | 読解 | `functions/` | B7 | |
-| M34 | 未使用コード（空関数・spotlight/trending・`getMostProlificAuthor` 等）、未使用 i18n キー 12、未使用 CSS 約55クラス | O#27 G#31 F | 照合 | 削除 | B7 | |
-| M35 | 重複：詳細内の必須チェック／プロンプト組み立て／Claude.ai 起動が2重、manifest 読み書き6回、エスケープ関数2つ、CSS 重複 | O#28 G#32 F | 読解 | 共通化（manifest ヘルパーは M23、詳細内の重複は B7） | B7 | |
+| M32 | `functions/`（未デプロイ）：`ALLOWED_USERS` 未設定で全員許可、`functions/` への書き込みを弾かない、ログアウトが GET 可 | G#29 | 読解 | `functions/` | B7 | 完了（未デプロイのため実行確認なし）：ALLOWED_USERS 未設定は全拒否、functions/ への書き込み拒否、ログアウトは POST のみ。OAUTH_SETUP.md も更新 |
+| M34 | 未使用コード（空関数・spotlight/trending・`getMostProlificAuthor` 等）、未使用 i18n キー 12、未使用 CSS 約55クラス | O#27 G#31 F | 照合 | 削除 | B7 | 一部完了：何もしない関数・使われない関数・読み込み先のない処理・使われない i18n キー（filter.all など8キーとセクション）を削除、renderStoriesBar を renderDraftsMenu に改名、サンドボックス内の SW 参照を try で囲む。spotlight/trending は FEATURES で意図的に無効化した機能のため残し、未使用 CSS 約55クラスは削除のリスクに見合わないため未対応 |
+| M35 | 重複：詳細内の必須チェック／プロンプト組み立て／Claude.ai 起動が2重、manifest 読み書き6回、エスケープ関数2つ、CSS 重複 | O#28 G#32 F | 読解 | 共通化（manifest ヘルパーは M23、詳細内の重複は B7） | B7 | 一部完了：詳細画面の必須チェック・プロンプト組み立て・Claude.ai 起動の二重定義を一本化、manifest 読み書きは M23 で集約。CSS の重複セレクタ・OG ページ内のエスケープ関数は未対応 |
 | M36 | 設定画面が毎回 `/auth/me` を 404 で叩き、訪問者に内部向け文言 | O#29 G#33 F | 再現 | `index.html` | B6 | 完了：設定画面を開いても /auth/me を呼ばず（0回）、パネルは非表示（バックエンド導入時は AUTH_BACKEND_ENABLED を true に） |
 | M37 | `#/upload` ルートがなくリロードでギャラリーに戻る。存在しない `#/p/<id>` が無言でギャラリーへ | O#30 G#34 | 読解（ルート表にない） | `router.js` | B5 | 完了：/upload ルートは owner のみ開き訪問者はギャラリーへ。存在しない /p/<id> と不明な hash は通知を出してギャラリーへ |
 | M38 | タップ領域が 44px 未満（テーマ・設定 28×28 など） | O#31 G#35 | 再現（28×28） | `css` | B4 | 完了：375px でテーマ・設定 44×44、SHOW ALL 83×44、下部タブ 94×52 を計測 |
-| M40 | 細部：`prompton-app` に `fileList` なし、`data-author` が未エスケープ、削除確認文がフォルダ型・md型でも `.html` 固定 | O#26 O#34 O#35 G#36 | 読解 | `manifest.json`・`render.js` | B7 | |
+| M40 | 細部：`prompton-app` に `fileList` なし、`data-author` が未エスケープ、削除確認文がフォルダ型・md型でも `.html` 固定 | O#26 O#34 O#35 G#36 | 読解 | `manifest.json`・`render.js` | B7 | 一部完了：prompton-app に fileList、data-author・data-go-profile をエスケープ、削除確認文を種類別に（B2）。親フォーク数が GitHub に保存されない点は未対応（フォーク機能の仕様判断） |
 | M41 | `HANDOFF.md` が「No known open bugs / 2026-07-16」のまま | 全報告 | — | 最後に更新 | 最終 | |
 
 ## owner 判断待ち（手を付けない）

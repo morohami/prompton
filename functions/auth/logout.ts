@@ -1,5 +1,5 @@
-// POST /auth/logout — clears the session cookie. GET is allowed for plain
-// link-style sign-out but returns the same response.
+// POST /auth/logout — clears the session cookie. POST only: allowing GET let any
+// page log the visitor out with an <img src="/auth/logout"> (logout CSRF).
 import { Env, clearSessionCookieHeader } from '../_utils';
 
 const handler: PagesFunction<Env> = async () =>
@@ -11,5 +11,4 @@ const handler: PagesFunction<Env> = async () =>
     }
   });
 
-export const onRequestGet = handler;
 export const onRequestPost = handler;

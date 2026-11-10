@@ -156,6 +156,10 @@ function generateOGPageHtml(prompt) {
     ? 'https://' + cfg.repo.split('/')[0] + '.github.io/' + cfg.repo.split('/')[1] + '/'
     : '';
   const canonical = baseUrl + 'p/' + prompt.id + '/';
+  // Link-preview image: the Thumbnails workflow writes thumbs/<id>.jpg for every
+  // html/folder prompton shortly after publish, so the path is predictable even
+  // though `thumb` isn't in the manifest yet when this page is generated.
+  const img = (baseUrl && prompt.format !== 'md') ? baseUrl + 'thumbs/' + encodeURIComponent(prompt.id) + '.jpg' : '';
   const title = (prompt.title || 'Prompton') + ' — Prompton';
   const desc = (prompt.description || prompt.title || '').slice(0, 280);
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -174,6 +178,7 @@ function generateOGPageHtml(prompt) {
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Prompton">
 <meta name="twitter:card" content="summary">
+${img ? '<meta property="og:image" content="' + esc(img) + '">\n<meta name="twitter:image" content="' + esc(img) + '">' : ''}
 <meta name="twitter:title" content="${esc(prompt.title || 'Prompton')}">
 <meta name="twitter:description" content="${esc(desc)}">
 <link rel="canonical" href="${esc(canonical)}">

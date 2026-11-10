@@ -1,6 +1,5 @@
 {
   "nav": {
-    "browse": "ブラウズ",
     "rankings": "ランキング",
     "playlists": "プレイリスト",
     "profile": "プロフィール",
@@ -9,19 +8,9 @@
     "settings": "GitHub同期設定",
     "drafts": "下書き"
   },
-  "issue": {
-    "lede": "AIと作った、動くprompton集",
-    "count": "公開中のprompton"
-  },
-  "tagline": {
-    "main": "<em>実際に</em>動くprompton。",
-    "sub": "全部ブラウザでそのまま動く。見て、フォークして、改良して、投稿。"
-  },
   "filter": {
-    "all": "すべて",
     "sort": "並び替え:",
     "sortNew": "新着順",
-    "sortOld": "古い順",
     "sortDl": "ダウンロード数",
     "sortFk": "フォーク数",
     "searchPlaceholder": "prompton・タグ・作者を検索…",
@@ -147,7 +136,6 @@
     "compareNow": "比較する →",
     "pickMore": "あと{{n}}件選択",
     "selectedOf2": "2件中{{n}}件選択",
-    "clear": "クリア",
     "descriptionH": "説明",
     "reproduceH": "再現方法",
     "devNotesH": "制作メモ",
@@ -171,7 +159,6 @@
     "totalForks": "フォーク合計",
     "promptonsLabel": "prompton",
     "noPromptonsYet": "まだpromptonがありません。",
-    "none": "なし",
     "show": "表示",
     "hide": "隠す",
     "editProfile": "✎ プロフィール編集",

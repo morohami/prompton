@@ -28,9 +28,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   // Path safety: only allow writes inside the project tree, no path traversal,
-  // no .github/ tampering.
+  // no .github/ or functions/ tampering (a write there is code execution).
   const path = body.path.replace(/^\/+/, '');
-  if (path.includes('..') || path.startsWith('.github/')) {
+  if (path.includes('..') || path.startsWith('.github/') || path.startsWith('functions/')) {
     return json({ error: 'path not allowed' }, 403);
   }
 

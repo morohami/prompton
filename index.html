@@ -365,15 +365,6 @@ let seedPrompts = [];
 
 // ─── Storage ───
 const STORAGE_KEY = 'promptshare_v4';
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  // Seed
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts));
-  return JSON.parse(JSON.stringify(seedPrompts));
-}
 // The offline cache holds metadata only. It used to hold every prompton's full
 // HTML (≈5.2M characters — 99% of the browser's 5MB localStorage quota, shared
 // with the other sites on this origin), so one more prompton would have made
@@ -740,9 +731,6 @@ function getNewspaperPicks(list) {
 
 // ─── Filter / search / sort wiring ───
 // Tag-chip system removed — too noisy and shifted layout as the user typed.
-// Search is now: input + suggestion dropdown only. `renderTagChips` is kept
-// as a no-op stub so existing call sites in render.js don't need to change.
-function renderTagChips() { /* removed — see renderSearchSuggest */ }
 
 // Show up to 8 matching prompts as a dropdown below the search input.
 // Match against title, author handle/name, tags. Click → jump to detail.
@@ -1267,16 +1255,6 @@ function renderCompare(idLeft, idRight, returnTo) {
 
 // Hash routing + share popover live in js/router.js.
 
-// ─── Issue date (daily, newspaper-style) ───
-// #issueDate was removed from the masthead in d955ed1 (Instagram-style overhaul).
-// Guard against the missing element so the inline script doesn't halt on a
-// TypeError, which would leave currentLocale in TDZ and break renderGallery.
-const _issueDateEl = document.getElementById('issueDate');
-if (_issueDateEl) {
-  _issueDateEl.textContent =
-    `Vol. I · Issue ${getIssueNumber()} · ${getTodayLongDate()}`;
-}
-
 // ─── Undeclared variable detection in upload form ───
 function checkUndeclaredVars() {
   const promptEl = document.querySelector('[name="quickPrompt"]');
@@ -1388,7 +1366,7 @@ document.querySelectorAll('.lang-btn').forEach(b => {
     // the router knows every route) so dynamic strings refresh too, instead
     // of falling through to the gallery and yanking the user off Settings.
     if (!handleHashRoute()) renderGallery();
-    renderStoriesBar();
+    renderDraftsMenu();
   });
 });
 // Show/hide the token characters (CSS mask flip, no type= change).
@@ -1467,9 +1445,6 @@ document.getElementById('tagSaveBtn').addEventListener('click', async () => {
     await ghPutFile('tags.json', JSON.stringify(tagConfig, null, 2), 'Prompton: update tag config', existingSha);
     status.className = 'settings-status ok';
     status.textContent = '✓ Saved to GitHub — Pages may take a minute to refresh.';
-    // Re-render anywhere chips show
-    if (document.getElementById('curatedTagChipsUpload')) mountCuratedTagChips('tagsInput', 'curatedTagChipsUpload');
-    renderTagChips();
   } catch (err) {
     console.error('Tag config save failed:', err);
     status.className = 'settings-status err';
@@ -1637,7 +1612,14 @@ document.querySelectorAll('.bottom-tab-nav .bt-item[data-tab]').forEach(b =>
 // Only register on http(s) (skip file:// / local dev with no SW support).
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW registration failed:', err));
+    // Inside a sandboxed iframe (e.g. the "Prompton on Prompton" showcase) the
+    // document has an opaque origin and merely reading navigator.serviceWorker
+    // throws a SecurityError — guard it so the frame doesn't log a page error.
+    try {
+      navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW registration failed:', err));
+    } catch (err) {
+      console.warn('SW unavailable here:', err.name);
+    }
   });
 }
 

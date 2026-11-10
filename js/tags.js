@@ -139,63 +139,6 @@ function mountTagPicker(containerId, initialTags, opts) {
   };
 }
 
-// Render clickable chips for curated + previously-used tags into a mount,
-// excluding tags already present in the linked input. Clicking a chip
-// appends the tag to the input and re-renders.
-// `excludeTags` (optional) hides those tags from the suggestions even if
-// they're "past" tags — used by the metadata editor for the prompt's
-// existing tags.
-// Tags the user explicitly removes from the input mid-session are tracked
-// in `removed` and stay excluded until they re-add them via a chip click
-// or by typing the tag back in.
-function mountCuratedTagChips(inputId, mountId, excludeTags) {
-  const input = document.getElementById(inputId);
-  const mount = document.getElementById(mountId);
-  if (!input || !mount) return;
-  const excluded = new Set((excludeTags || []).map(normalizeTag).filter(Boolean));
-  const removed = new Set();
-  const parseTags = (val) => new Set((val || '').split(',').map(s => normalizeTag(s.trim())).filter(Boolean));
-  let lastTags = parseTags(input.value);
-  const refresh = () => {
-    const present = parseTags(input.value);
-    const past = new Set();
-    prompts.forEach(p => {
-      if (p.tag) past.add(normalizeTag(p.tag));
-      if (Array.isArray(p.tags)) p.tags.forEach(t => past.add(normalizeTag(t)));
-    });
-    const curatedSet = new Set(tagConfig.curated || []);
-    const ordered = [
-      ...(tagConfig.curated || []).filter(t => !present.has(t) && !excluded.has(t) && !removed.has(t)),
-      ...[...past].filter(t => t && !curatedSet.has(t) && !present.has(t) && !excluded.has(t) && !removed.has(t)).sort()
-    ];
-    mount.innerHTML = ordered.map(t => {
-      const isCurated = curatedSet.has(t);
-      return `<button type="button" class="curated-chip${isCurated ? ' curated' : ''}" data-tag="${escapeAttr(t)}">+ ${escapeHtml(t)}</button>`;
-    }).join('');
-  };
-  mount.addEventListener('click', (e) => {
-    const chip = e.target.closest('.curated-chip');
-    if (!chip) return;
-    const tag = chip.dataset.tag;
-    const cur = input.value.trim();
-    input.value = cur ? (cur.replace(/,\s*$/, '') + ', ' + tag) : tag;
-    // Re-adding via chip click clears the "I removed this" memory for that tag.
-    removed.delete(tag);
-    lastTags = parseTags(input.value);
-    refresh();
-  });
-  input.addEventListener('input', () => {
-    const cur = parseTags(input.value);
-    // Anything that was in the input before and isn't now → user just removed it.
-    for (const t of lastTags) if (!cur.has(t)) removed.add(t);
-    // Anything in the input now that wasn't before → user just added it (typing).
-    for (const t of cur) if (!lastTags.has(t)) removed.delete(t);
-    lastTags = cur;
-    refresh();
-  });
-  refresh();
-}
-
 function normalizeTagList(tags) {
   if (!Array.isArray(tags)) return tags;
   const seen = new Set();

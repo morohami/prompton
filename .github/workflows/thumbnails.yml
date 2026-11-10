@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0   # need the pre-push commit to diff the whole push
 
       - uses: actions/setup-node@v4
         with:
@@ -32,6 +32,7 @@ jobs:
       - name: Generate thumbnails
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: node .github/scripts/generate-thumbs.mjs
 
       - name: Commit + push

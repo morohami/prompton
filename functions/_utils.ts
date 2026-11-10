@@ -101,7 +101,10 @@ export function newSession(sub: number, login: string): Session {
 
 export function isAllowed(login: string, env: Env): boolean {
   const allow = (env.ALLOWED_USERS || '').trim();
-  if (!allow) return true;  // no list configured → anyone with a GitHub login can sign in
+  // Fail closed: with no allow-list configured nobody may sign in. (It used to
+  // default to "any GitHub user", which with /api/write meant anyone could
+  // write to the repo if the variable was forgotten.)
+  if (!allow) return false;
   const set = new Set(allow.split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
   return set.has(login.toLowerCase());
 }

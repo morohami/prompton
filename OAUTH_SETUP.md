@@ -57,7 +57,7 @@ it for all writes. Don't reuse the one in localStorage.
 | `MASTER_PAT` | from step 3 |
 | `REPO` | `morohami/prompton` |
 | `SESSION_SECRET` | 32+ random bytes (use `openssl rand -base64 32`) |
-| `ALLOWED_USERS` | (optional) CSV of GitHub logins permitted to sign in, e.g. `morohami,chinchin`. Omit to allow any GitHub user. |
+| `ALLOWED_USERS` | **Required.** CSV of GitHub logins permitted to sign in, e.g. `morohami,chinchin`. If unset, nobody can sign in (fail closed). |
 
 Mark `GH_CLIENT_SECRET`, `MASTER_PAT`, and `SESSION_SECRET` as **encrypted**.
 
@@ -84,7 +84,8 @@ existing PAT input can stay alongside it for local dev.
 - Session cookies are HMAC-signed, HttpOnly, Secure, SameSite=Lax — JS can't
   read them, CSRF is gated by the `state` cookie at callback.
 - `MASTER_PAT` never leaves the server.
-- `ALLOWED_USERS` is the only gate on who can write. If unset, any GitHub
-  user who completes the OAuth flow gets a session. Set it.
-- `/api/write` refuses `..` paths and writes inside `.github/` to prevent
-  workflow tampering.
+- `ALLOWED_USERS` is the only gate on who can write. If unset, nobody can sign
+  in (fail closed) — set it before deploying.
+- `/api/write` refuses `..` paths and writes inside `.github/` and `functions/`
+  to prevent workflow / edge-function tampering.
+- `/auth/logout` accepts POST only (a GET would let any page log you out).
