@@ -473,6 +473,7 @@ function openDraftEditorModal(draftId) {
 
   // Save-only — keep as draft, don't publish.
   document.getElementById('draftSaveBtn').addEventListener('click', () => {
+    if (autosaveTimer) { clearTimeout(autosaveTimer); autosaveTimer = null; }
     const t3 = readTabs();
     draft.title = document.getElementById('draftTitle').value.trim();
     draft.body = t3.body;
@@ -499,6 +500,7 @@ function openDraftEditorModal(draftId) {
     btn.textContent = t('drafts.posting');
     try {
       await publishDraftDirect(title, t3.body, t3.css, t3.js);
+      if (autosaveTimer) { clearTimeout(autosaveTimer); autosaveTimer = null; } // else the overlay-removal flush would resurrect the published draft
       // Drop this draft — it's published now.
       drafts = drafts.filter(x => x.id !== draft.id);
       saveDrafts();
@@ -519,6 +521,7 @@ function openDraftEditorModal(draftId) {
   const delBtn = document.getElementById('draftDeleteBtn');
   if (delBtn) delBtn.addEventListener('click', () => {
     if (!confirm(t('drafts.confirmDelete'))) return;
+    if (autosaveTimer) { clearTimeout(autosaveTimer); autosaveTimer = null; } // pending autosave would re-add the deleted draft
     drafts = drafts.filter(x => x.id !== draft.id);
     saveDrafts();
     overlay.remove();
@@ -710,7 +713,7 @@ function renderAddToPlaylistMenu(container, promptId) {
 // ─── Rankings view (top prompts by downloads / forks) ───
 function renderRankings(metric) {
   metric = metric || 'downloads';   // 'downloads' or 'forks'
-  setRoute('rankings');
+  setRoute(metric === 'forks' ? 'rankings/forks' : 'rankings');
   const el = document.getElementById('rankingsContent');
   if (!el) return;
   const all = prompts.filter(isListed);

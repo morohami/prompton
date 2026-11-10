@@ -20,7 +20,7 @@ document.querySelectorAll('[data-nav]').forEach(el => {
   el.addEventListener('click', (e) => {
     const target = el.getAttribute('data-nav');
     if (target === 'gallery') renderGallery();
-    if (target === 'upload') showView('upload');
+    if (target === 'upload') { setRoute('upload'); showView('upload'); }
     if (target === 'profile') renderProfile(ownerHandle()); // Always YOUR profile from nav
     if (target === 'settings') renderSettings();
     if (target === 'rankings') renderRankings();
@@ -116,6 +116,8 @@ function handleHashRoute() {
   if (detailM) {
     const id = detailM[1];
     if (prompts.find(x => x.id === id)) { renderDetail(id); return true; }
+    routeNotFound();
+    return true;
   }
   const profileM = h.match(/^#\/profile\/([^/]+)$/);
   if (profileM) { renderProfile(profileM[1]); return true; }
@@ -125,17 +127,36 @@ function handleHashRoute() {
   if (h === '#/playlists') { renderPlaylists(); return true; }
   const playlistM = h.match(/^#\/playlists\/([^/]+)$/);
   if (playlistM) { renderPlaylistDetail(playlistM[1]); return true; }
+  if (h === '#/upload') {
+    // Publishing is owner-only; a visitor following this link lands on the gallery.
+    if (isOwner()) { showView('upload'); } else { renderGallery(); }
+    return true;
+  }
   if (h === '' || h === '#' || h === '#/') { renderGallery(); return true; }
   return false;
+}
+// Unknown prompton id / unrecognised hash: say so, then show the gallery
+// (it used to switch silently).
+function routeNotFound() {
+  try { toast(t('route.notFound')); } catch (e) {}
+  renderGallery();
 }
 // Backward-compatible alias used at bootstrap.
 function handleCompareHash() { return handleHashRoute(); }
 // Update the URL hash without firing hashchange (replaceState is silent for
 // hash-only updates, so internal navigation doesn't re-trigger the router).
+// Navigation the user performs adds a history entry (so the browser/OS Back
+// gesture returns to the previous screen instead of leaving the site). The
+// very first route set during boot only normalises the URL (replace).
+let _routeBooted = false;
 function setRoute(path) {
   const target = '#/' + path.replace(/^#?\/?/, '');
-  if (location.hash !== target) {
-    try { history.replaceState(null, '', target); } catch (e) { location.hash = target; }
-  }
+  const cur = location.hash;
+  // '' / '#' / '#/' are the same place (gallery).
+  if (cur === target || (target === '#/' && (cur === '' || cur === '#'))) return;
+  try {
+    if (_routeBooted) history.pushState(null, '', target);
+    else history.replaceState(null, '', target);
+  } catch (e) { location.hash = target; }
 }
-window.addEventListener('hashchange', () => { handleHashRoute(); });
+window.addEventListener('hashchange', () => { if (!handleHashRoute()) routeNotFound(); });

@@ -1068,7 +1068,8 @@ function renderCompare(idLeft, idRight, returnTo) {
   window._compareReturnTo = returnTo || '';
   const newHash = '#compare/' + idLeft + '/' + idRight;
   if (location.hash !== newHash) {
-    history.replaceState(null, '', newHash);
+    try { if (_routeBooted) history.pushState(null, '', newHash); else history.replaceState(null, '', newHash); }
+    catch (e) { location.hash = newHash; }
   }
 
   // Parent / fork labeling
@@ -1376,12 +1377,11 @@ document.querySelectorAll('.lang-btn').forEach(b => {
   b.addEventListener('click', async () => {
     await setLocale(b.dataset.locale);
     document.querySelectorAll('.lang-btn').forEach(x => x.classList.toggle('active', x.dataset.locale === currentLocale));
-    // Re-render whatever view is showing so dynamic strings refresh too.
-    const hash = location.hash;
-    if (hash.startsWith('#/profile/')) renderProfile(hash.replace('#/profile/', ''));
-    else if (hash.startsWith('#/p/')) renderDetail(hash.replace('#/p/', ''));
-    else if (hash === '#/rankings' || hash.startsWith('#/rankings')) renderRankings(hash.indexOf('forks') >= 0 ? 'forks' : 'downloads');
-    else renderGallery();
+    // Re-render whatever view is showing (settings, playlists, compare, â¦ â
+    // the router knows every route) so dynamic strings refresh too, instead
+    // of falling through to the gallery and yanking the user off Settings.
+    if (!handleHashRoute()) renderGallery();
+    renderStoriesBar();
   });
 });
 // Show/hide the token characters (CSS mask flip, no type= change).
@@ -1675,12 +1675,19 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   } catch (e) { console.warn('model select fill failed:', e); }
   try { window._uploadTagPicker = mountTagPicker('uploadTagPicker', []); } catch (e) { console.warn('tag picker mount failed:', e); }
   try { await i18nReady; } catch (e) { /* localized strings will fall back to keys */ }
-  try { if (!handleCompareHash()) renderGallery(); }
+  try {
+    if (!handleCompareHash()) {
+      const h0 = location.hash;
+      if (h0 && h0 !== '#' && h0 !== '#/') routeNotFound(); else renderGallery();
+    }
+  }
   catch (e) {
     console.warn('Initial render failed, retrying gallery only:', e);
     try { renderGallery(); } catch (e2) { console.error('renderGallery also failed:', e2); }
   }
   try { updateBottomTabActive(); } catch (e) {}
+  // From here on, route changes add history entries (see setRoute in js/router.js).
+  _routeBooted = true;
 })();
 </script>
 </body>

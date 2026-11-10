@@ -26,11 +26,11 @@
 |---|---|---|---|---|---|---|
 | M12 | 「別タブで開く」と全画面の逃げ先が `htmls/<id>.html` 固定でフォルダ型3件・md型1件は 404、過去版閲覧中も最新を開く。容量表示が「0.0 KB」 | O#8 G#10 F2 | 再現（standalone 404・caption 0.0 KB） | `render.js`・`index.html`：`promptHtmlPath` | B2 | 完了：prompton-app／_folder_demo／p1779770067635／prompton-handoff の別タブ先が全て200、過去版リンクは _v1 を指す。容量表示も修正 |
 | M13 | フォルダ型・md型でも「新バージョンを保存」が出て、実行すると空の `htmls/<id>.html` `_v1.html` を作る | G#11 F R2 | 読解（ボタン表示は再現） | `render.js`：フラット型のみ許可 | B2 | 完了：フォルダ型・md型では保存ボタンを出さず、関数側でも拒否（B1と合わせ確認） |
-| M14 | ドラフトの自動保存タイマーが削除・投稿で止まらず、消したドラフトが空タイトルで復活 | G#12 | 再現（`d_test:` が復活） | `render.js` | B5 | |
+| M14 | ドラフトの自動保存タイマーが削除・投稿で止まらず、消したドラフトが空タイトルで復活 | G#12 | 再現（`d_test:` が復活） | `render.js` | B5 | 完了：編集直後（2秒以内）に削除してもドラフトが復活しないことを確認（以前は d_test: が復活）。保存・投稿でもタイマーを止める |
 | M15 | スマホ（≤680px）で Rankings / Playlists へ行く導線がない | G#13 | 再現（display:none、タブにもなし） | `render.js`・`css` | B4 | 完了：375px のホームに「ランキング」「プレイリスト」ボタン（44px 高）を追加し、押下で各画面へ遷移することを確認 |
 | M16 | 設定画面で言語ボタンを押すとギャラリーへ飛ぶ。`#/rankings/forks` は `#/rankings` に潰れる | G#14 F4 | 再現 | `index.html`・`render.js`：現在の hash で再描画 | B5 | |
-| M17 | 旧テーマの `color:#000` が濃赤背景に残る（設定の Save・Save tag config・Popular リボン等。コントラスト約2:1）。緑の `rgba(29,185,84)` も残る | G#15 | 再現（背景 rgb(140,21,21) に文字 rgb(0,0,0)）。`.btn.primary` の通常時は白で正常 | `css/main.css` | B5 | |
-| M18 | 画面遷移が `replaceState` のみで、戻るで離脱する | O#9 G#16 F7 | 再現 | `router.js` | B5 | |
+| M17 | 旧テーマの `color:#000` が濃赤背景に残る（設定の Save・Save tag config・Popular リボン等。コントラスト約2:1）。緑の `rgba(29,185,84)` も残る | G#15 | 再現（背景 rgb(140,21,21) に文字 rgb(0,0,0)）。`.btn.primary` の通常時は白で正常 | `css/main.css` | B5 | 完了：設定の Save・Save tag config・Popular リボンが濃赤背景＋白文字（以前は黒）。緑の残りを色トークンに置換、成功表示は緑の専用色に。.btn:hover と .btn.primary:hover の黒文字も置換（hover の実描画は未確認） |
+| M18 | 画面遷移が `replaceState` のみで、戻るで離脱する | O#9 G#16 F7 | 再現 | `router.js` | B5 | 完了：ギャラリー→詳細→プロフィールで履歴が2件増え、戻る・進むで該当画面に移動（以前は増えず離脱） |
 | M19 | モデルの選択肢が3か所に重複し、`Claude Sonnet 4.5` がなく、編集フォームを開くと「AI」に変わる | O#10 G#17 F3 | 再現 | 共通定数＋現在値を保持 | B1 | 完了：編集フォームが Claude Sonnet 4.5 を保持、共有フォームの選択肢8件を確認 |
 | M20 | OG ページが7作品で欠落、2件はタイトルが古い、全件 `og:image` なし | O#11 G#18 F | 再現（照合） | `p/*/index.html` 生成、`github.js` に og:image | B7 | |
 | M21 | プロフィール「公開」タブがサムネ画像でなく iframe 17個（srcdoc 4.6MB） | O#12 G#19 F9 | 再現 | `render.js` | B3 | 完了：プロフィール「公開」は17枚ともサムネ画像（iframe 0個） |

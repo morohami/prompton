@@ -119,6 +119,9 @@
     "delete": "Delete playlist",
     "confirmDelete": "Delete \"{{name}}\"? This cannot be undone."
   },
+  "route": {
+    "notFound": "That page was not found — showing the gallery."
+  },
   "settings": {
     "back": "← Back to gallery",
     "ghTitle": "Sync with <em>GitHub</em>.",

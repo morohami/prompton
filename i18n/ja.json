@@ -119,6 +119,9 @@
     "delete": "プレイリストを削除",
     "confirmDelete": "「{{name}}」を削除しますか？元に戻せません。"
   },
+  "route": {
+    "notFound": "ページが見つかりませんでした — ギャラリーを表示します。"
+  },
   "settings": {
     "back": "← ギャラリーへ戻る",
     "ghTitle": "<em>GitHub</em>と同期。",
