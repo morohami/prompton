@@ -224,7 +224,11 @@
     "model": "Other",
     "license": "© PhET Interactive Simulations, University of Colorado Boulder — see https://phet.colorado.edu/en/licensing (this 2026-04-23 build is newer than the CC BY 4.0 notice; license unconfirmed)",
     "visibility": "unlisted",
-    "tags": ["physics", "simulation", "phet"],
+    "tags": [
+      "physics",
+      "simulation",
+      "phet"
+    ],
     "tag": "other",
     "author": "you",
     "authorName": "You",
@@ -235,7 +239,7 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1779746643461.jpg",
-    "thumbVer": 1794332367502
+    "thumbVer": 1794333023435
   },
   {
     "id": "p1779734355097",
