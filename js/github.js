@@ -441,6 +441,32 @@ async function readProfilesFromGitHub() {
   return profiles;
 }
 
+// Persist the owner's profile edit. Until now "Edit profile" only wrote to
+// localStorage, and the next boot re-seeded profiles from the repo, so every
+// edit silently reverted on reload. Writes profiles.json + the display name on
+// the owner's manifest entries in ONE commit. The email is deliberately NOT
+// pushed: profiles.json is public, and the form labels the field "private".
+async function pushOwnerProfileToGitHub(handle, profile) {
+  if (!isOwner()) return false;
+  const liveProfiles = await readProfilesFromGitHub();
+  const { manifest } = await readManifestFromGitHub();
+  const existing = liveProfiles[handle] || {};
+  liveProfiles[handle] = Object.assign({}, existing, {
+    handle: handle,
+    name: profile.name,
+    bio: profile.bio,
+    location: profile.location,
+    website: profile.website,
+    avatar: profile.avatar || null
+  });
+  manifest.forEach(p => { if (p && p.author === handle) p.authorName = profile.name; });
+  await ghBulkCommit([
+    { path: 'profiles.json', content: JSON.stringify(liveProfiles, null, 2) },
+    { path: 'manifest.json', content: JSON.stringify(manifest, null, 2) }
+  ], 'Prompton: update profile @' + handle);
+  return true;
+}
+
 // ─── Owner handle rename ───
 // Validate a proposed new handle. Returns null if OK or an error string.
 // Rules: lowercase alphanumeric + . _ -, 3–20 chars, no collision with another

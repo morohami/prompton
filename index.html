@@ -373,8 +373,21 @@ function loadData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts));
   return JSON.parse(JSON.stringify(seedPrompts));
 }
+// The offline cache holds metadata only. It used to hold every prompton's full
+// HTML (≈5.2M characters — 99% of the browser's 5MB localStorage quota, shared
+// with the other sites on this origin), so one more prompton would have made
+// every localStorage write — PAT, drafts, favorites — fail. HTML now comes
+// from the Service Worker cache / network on demand.
+function cacheableList(list) {
+  return (list || []).map(p => {
+    const c = Object.assign({}, p);
+    delete c.html; delete c.mdSource; delete c.files;
+    if (c.versions) c.versions = c.versions.map(v => { const x = Object.assign({}, v); delete x.html; return x; });
+    return c;
+  });
+}
 function saveData(prompts) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts)); }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheableList(prompts))); }
   catch (e) { console.warn('Could not persist:', e); }
 }
 
@@ -846,11 +859,9 @@ function escapeAttr(s) { return escapeHtml(s); }
 function mountAlbumThumbs(scope) {
   const mounts = Array.from((scope || document).querySelectorAll('.thumb-mount[data-thumb-id]:not([data-mounted="1"])'));
   if (!mounts.length) return;
-  const cache = window._albumHtmlCache || {};
-  // Look up the prompt in the live prompts[] array so we can read the
-  // layout flag without needing a parallel side-map. Multi-file (folder
-  // layout) prompts can't be served via srcdoc — they need iframe.src
-  // pointing at htmls/<id>/index.html so sibling CSS/JS/assets resolve.
+  // Look up the prompt in the live prompts[] array so we can read its layout.
+  // Previews load the real file via iframe.src (promptHtmlPath), so relative
+  // CSS/JS/assets of folder promptons resolve; only md promptons use srcdoc.
   const findPrompt = (id) => (typeof prompts !== 'undefined' ? prompts.find(p => p && p.id === id) : null);
   const buildIframe = (mount) => {
     if (mount.dataset.mounted === '1') return;
@@ -867,11 +878,8 @@ function mountAlbumThumbs(scope) {
     iframe.setAttribute('aria-hidden', 'true');
     iframe.setAttribute('loading', 'lazy');
     iframe.setAttribute('allowfullscreen', '');
-    if (p && p.layout === 'folder') {
-      iframe.src = 'htmls/' + id + '/index.html';
-    } else {
-      iframe.srcdoc = cache[id] || (p && p.html) || '';
-    }
+    if (p && p.format === 'md') iframe.srcdoc = p.html || '';
+    else if (p) iframe.src = promptHtmlPath(p);
     mount.appendChild(iframe);
   };
 
@@ -1115,7 +1123,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side left">
         <div class="side-label">${leftLabel}</div>
         <div class="preview-wrap">
-          <iframe${promptPreviewAttrs(pLeft)} sandbox="allow-scripts"></iframe>
+          <iframe${promptPreviewAttrs(pLeft, pLeft._versionViewed)} sandbox="allow-scripts"></iframe>
         </div>
         <h3>${escapeHtml(pLeft.title)}</h3>
         <div class="meta">by ${escapeHtml(pLeft.authorName)} · ${formatDate(pLeft.date)} · ${escapeHtml(pLeft.model)}</div>
@@ -1124,7 +1132,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       <div class="compare-side right">
         <div class="side-label">${rightLabel}</div>
         <div class="preview-wrap">
-          <iframe${promptPreviewAttrs(pRight)} sandbox="allow-scripts"></iframe>
+          <iframe${promptPreviewAttrs(pRight, pRight._versionViewed)} sandbox="allow-scripts"></iframe>
         </div>
         <h3>${escapeHtml(pRight.title)}</h3>
         <div class="meta">by ${escapeHtml(pRight.authorName)} · ${formatDate(pRight.date)} · ${escapeHtml(pRight.model)}</div>
@@ -1526,12 +1534,27 @@ function applyI18n(root) {
   });
 }
 
+// Markdown promptons: fetch the raw .md, keep it verbatim on mdSource
+// (downloads serve it untouched) and put a styled preview wrapper on p.html
+// so srcdoc previews render it readably. An optional `file` field points at
+// any repo-served path (e.g. the root HANDOFF.md) so one file can be both a
+// working doc and a prompton — no drifting copies.
+async function loadMarkdownSources(list) {
+  await Promise.all((list || []).filter(p => p && p.format === 'md').map(p => {
+    const mdPath = p.file || ('htmls/' + p.id + '.md');
+    return fetch(mdPath).then(r => r.ok ? r.text() : '').catch(() => '').then(txt => {
+      p.mdSource = txt;
+      p.html = (typeof mdPreviewHtml === 'function') ? mdPreviewHtml(txt) : txt;
+    });
+  }));
+}
+
 async function fetchSeed() {
   const [manifestRaw, profileSeed, tagSeed, playlistSeed] = await Promise.all([
-    fetch('manifest.json').then(r => { if (!r.ok) throw new Error('manifest.json ' + r.status); return r.json(); }),
-    fetch('profiles.json').then(r => { if (!r.ok) throw new Error('profiles.json ' + r.status); return r.json(); }),
-    fetch('tags.json').then(r => r.ok ? r.json() : { curated: [], aliases: {} }).catch(() => ({ curated: [], aliases: {} })),
-    fetch('playlists.json').then(r => r.ok ? r.json() : []).catch(() => [])
+    fetch('manifest.json', { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('manifest.json ' + r.status); return r.json(); }),
+    fetch('profiles.json', { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('profiles.json ' + r.status); return r.json(); }),
+    fetch('tags.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : { curated: [], aliases: {} }).catch(() => ({ curated: [], aliases: {} })),
+    fetch('playlists.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).catch(() => [])
   ]);
   if (Array.isArray(playlistSeed)) playlists = playlistSeed;
   savePlaylists();
@@ -1544,39 +1567,14 @@ async function fetchSeed() {
   tagConfig = tagSeed || { curated: [], aliases: {} };
   if (!Array.isArray(tagConfig.curated)) tagConfig.curated = [];
   if (!tagConfig.aliases || typeof tagConfig.aliases !== 'object') tagConfig.aliases = {};
-  const htmlJobs = [];
-  for (const p of manifest) {
-    // Markdown promptons: fetch the raw .md, keep it verbatim on mdSource
-    // (downloads serve it untouched) and put a styled preview wrapper on
-    // p.html so every srcdoc preview path renders it readably.
-    // An optional `file` field points at any repo-served path (e.g. the
-    // root HANDOFF.md) so one file can be both a working doc and a
-    // prompton — no drifting copies.
-    if (p.format === 'md') {
-      const mdPath = p.file || ('htmls/' + p.id + '.md');
-      htmlJobs.push(fetch(mdPath).then(r => r.ok ? r.text() : '').then(txt => {
-        p.mdSource = txt;
-        p.html = (typeof mdPreviewHtml === 'function') ? mdPreviewHtml(txt) : txt;
-      }));
-      continue;
-    }
-    // Folder-layout prompts live at htmls/<id>/index.html and are loaded
-    // by the iframe directly via src= — no need to pre-fetch into p.html.
-    // Same for each of their versions.
-    if (p.layout === 'folder') {
-      p.html = '';
-      if (p.versions) p.versions.forEach(v => { if (v.html === undefined) v.html = ''; });
-      continue;
-    }
-    htmlJobs.push(fetch('htmls/' + p.id + '.html').then(r => r.ok ? r.text() : '').then(h => { p.html = h; }));
-    if (p.versions) {
-      p.versions.forEach((v, i) => {
-        const vNum = v.v != null ? v.v : (i + 1);
-        htmlJobs.push(fetch('htmls/' + p.id + '_v' + vNum + '.html').then(r => r.ok ? r.text() : '').then(h => { v.html = h; }));
-      });
-    }
-  }
-  await Promise.all(htmlJobs);
+  // HTML is NOT fetched here any more. The gallery shows thumbs/<id>.jpg and
+  // every live preview is an iframe pointed straight at its file
+  // (promptHtmlPath), so the first paint only needs the manifest. Code that
+  // really needs the source text (download, fork, new version, size label)
+  // calls ensurePromptHtml() in js/render.js, which fetches on demand.
+  // Only markdown promptons are loaded up front: their preview is a wrapper
+  // built from the text, and there is just one small file.
+  await loadMarkdownSources(manifest);
   seedPrompts = manifest;
   seedProfiles = profileSeed;
   if (seedProfiles.you && !seedProfiles.you.joined) seedProfiles.you.joined = new Date().toISOString().slice(0, 10);
@@ -1638,9 +1636,12 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
       const rawP = localStorage.getItem(PROFILE_KEY);
       if (rawP) seedProfiles = JSON.parse(rawP);
     } catch (e2) {}
+    // The cache is metadata-only; markdown promptons still need their text
+    // (served from the Service Worker cache when offline).
+    try { await loadMarkdownSources(seedPrompts); } catch (e3) {}
   }
   if (fetchOk) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts)); } catch(e){}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheableList(seedPrompts))); } catch(e){}
     try { localStorage.setItem(PROFILE_KEY, JSON.stringify(seedProfiles)); } catch(e){}
   }
   try {

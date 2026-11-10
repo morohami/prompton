@@ -190,8 +190,6 @@ document.addEventListener('error', (e) => {
   const mount = document.createElement('div');
   mount.className = 'thumb-mount' + (img.closest('.album-thumb') ? '' : ' card-thumb-mount');
   mount.dataset.thumbId = id;
-  window._albumHtmlCache = window._albumHtmlCache || {};
-  if (window._albumHtmlCache[id] === undefined) window._albumHtmlCache[id] = p.html || '';
   const parent = img.parentElement;
   img.replaceWith(mount);
   if (typeof mountAlbumThumbs === 'function' && parent) mountAlbumThumbs(parent);
@@ -215,14 +213,12 @@ function isListed(p) {
 // prompts use srcdoc= with the already-fetched p.html.
 function promptPreviewAttrs(p, viewing) {
   if (!p) return ' srcdoc=""';
-  if (p.layout === 'folder') return ' src="' + escapeAttr(promptHtmlPath(p, viewing)) + '"';
-  // viewing a past version of a flat prompt: prefer its versions[] entry's html
-  let html = p.html || '';
-  if (viewing && p.versions) {
-    const v = p.versions.find(x => x.v === viewing);
-    if (v && v.html) html = v.html;
-  }
-  return ' srcdoc="' + escapeAttr(html) + '"';
+  // md promptons preview through a wrapper page built from their text.
+  if (p.format === 'md') return ' srcdoc="' + escapeAttr(p.html || '') + '"';
+  // Flat and folder alike: point the iframe at the real file. (The sandbox
+  // has no allow-same-origin, so this stays an opaque origin either way, and
+  // the HTML no longer has to be held in memory for every prompton.)
+  return ' src="' + escapeAttr(promptHtmlPath(p, viewing)) + '"';
 }
 
 function titleWithEmphasis(title) {
@@ -822,13 +818,6 @@ function renderGallery() {
     })();
     const youName = getProfile(me_h).name;
 
-    // Cache HTML strings keyed by prompt id so the IntersectionObserver below
-    // can build iframes without hauling them through the DOM as data-attrs.
-    // Folder-layout prompts don't need a cache entry (mountAlbumThumbs reads
-    // p.layout straight off the prompts[] array and points iframe.src
-    // at htmls/<id>/index.html instead of using srcdoc).
-    window._albumHtmlCache = window._albumHtmlCache || {};
-    publicPrompts.forEach(p => { window._albumHtmlCache[p.id] = p.html || ''; });
 
     const albumCardHtml = (p) =>
       '<div class="album-card" data-news-go="' + p.id + '">' +
@@ -923,8 +912,8 @@ function renderGallery() {
     if (spotIframe) {
       const p = prompts.find(x => x.id === spotIframe.dataset.promptId);
       if (p) {
-        if (p.layout === 'folder') spotIframe.src = 'htmls/' + p.id + '/index.html';
-        else spotIframe.srcdoc = p.html || '';
+        if (p.format === 'md') spotIframe.srcdoc = p.html || '';
+        else spotIframe.src = promptHtmlPath(p);
       }
     }
 
@@ -1236,8 +1225,12 @@ function renderDetail(id, viewingVersionNum) {
           <!-- No allow-same-origin: prompt HTML runs arbitrary JS; sharing the
                app origin would let it read localStorage (GitHub PAT). Opaque
                origin still loads static subresources and GitHub Pages sends
-               ACAO:* so same-host fetch() keeps working too. -->
-          <iframe id="detailPreviewIframe" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" allowfullscreen></iframe>
+               ACAO:* so same-host fetch() keeps working too.
+               allow-popups-to-escape-sandbox is deliberately NOT granted: it
+               would let a prompton's window.open() land in an UNsandboxed
+               same-origin tab that can read the stored PAT. Popups opened
+               from here inherit this sandbox instead. -->
+          <iframe id="detailPreviewIframe" sandbox="allow-scripts allow-popups allow-forms" allowfullscreen></iframe>
           ${p.thumb ? `<img class="preview-thumb-mobile" src="${escapeAttr(thumbUrl(p))}" alt="">` : ''}
           <div class="preview-overlay">
             <button type="button" id="fullscreenBtn" title="View fullscreen">${escapeHtml(t('detail.fullscreen'))}</button>
@@ -1691,7 +1684,7 @@ function renderDetail(id, viewingVersionNum) {
         // Remove from in-memory state and persist cache
         const lIdx = prompts.findIndex(x => x.id === p.id);
         if (lIdx >= 0) prompts.splice(lIdx, 1);
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seedPrompts)); } catch(e){}
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheableList(seedPrompts))); } catch(e){}
         toast('Deleted "' + p.title + '" — Pages may take a minute to refresh');
         showView('gallery');
         renderGallery();
@@ -2410,10 +2403,13 @@ function renderProfileTab(handle, tab) {
       card.className = 'card';
       const knobsBadge = p.variables && p.variables.length ? `<span class="knobs-badge">⚙ ${p.variables.length} knobs</span>` : '';
       const versionBadge = p.versions && p.versions.length >= 2 ? `<span class="v-badge">v${p.versions.length}</span>` : '';
+      // Use the generated thumbnail (one small JPG) like the gallery does;
+      // a live iframe per card cost ~10MB and hundreds of requests here.
+      const thumbInner = p.thumb
+        ? `<img class="thumb-img" loading="lazy" decoding="async" src="${escapeAttr(thumbUrl(p))}" alt="">`
+        : `<iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1" loading="lazy"></iframe>`;
       card.innerHTML = `
-        <div class="thumb-wrap">
-          <iframe class="thumb"${promptPreviewAttrs(p)} sandbox="" scrolling="no" tabindex="-1"></iframe>
-        </div>
+        <div class="thumb-wrap">${thumbInner}</div>
         <div class="meta-top"><span>${formatDate(p.date)}</span><span>${escapeHtml(p.model)}</span></div>
         <h3>${escapeHtml(p.title)}</h3>
         <div class="stats">
@@ -2637,6 +2633,8 @@ function openEditProfileModal() {
       toast('Renaming ' + me_h + ' → ' + newHandle + '…');
       try {
         await renameOwnerHandle(me_h, newHandle);
+        // The rename commit carries the old profile fields; write the edits too.
+        await pushOwnerProfileToGitHub(newHandle, getProfile(newHandle));
         toast('✓ Renamed to @' + newHandle);
       } catch (err) {
         console.warn('Rename failed:', err);
@@ -2647,7 +2645,18 @@ function openEditProfileModal() {
     }
 
     closeProfileModal();
-    toast('Profile saved.');
+    if (isOwner()) {
+      toast('Saving profile to GitHub…');
+      try {
+        await pushOwnerProfileToGitHub(me_h, profile);
+        toast('Profile saved — Pages may take a minute to refresh');
+      } catch (err) {
+        console.warn('Profile push failed:', err);
+        toast('Profile saved on this device only — GitHub push failed: ' + err.message);
+      }
+    } else {
+      toast('Profile saved.');
+    }
     renderProfile(me_h);
   });
 
