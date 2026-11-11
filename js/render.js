@@ -2135,7 +2135,12 @@ async function saveNewVersion(promptId, fields) {
   }
 
   const nextV = p.versions[p.versions.length - 1].v + 1;
-  const prevHtml = p.versions[p.versions.length - 1].html;
+  // Base an attachment-less version on the TOP-LEVEL file (the live latest), not
+  // versions[last].html: they can differ (東京今昔マップ's file is V3.8 while its
+  // newest registered version is v2), and syncVersionsToGitHub writes the new
+  // version's HTML back over htmls/<id>.html — using the stale snapshot would
+  // silently revert the live work.
+  const prevHtml = p.html || p.versions[p.versions.length - 1].html;
   const newVersion = {
     v: nextV,
     date: new Date().toISOString().slice(0, 10),

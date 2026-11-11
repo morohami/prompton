@@ -139,7 +139,7 @@ annotations, etc.) — don't be surprised by non-app commits in the log.
 
 - Bootstrap try/catch hardened; hash routes; `isOwner()` = PAT+repo in
   `prompton_sync_v1`; i18n `t()` TDZ-safe, `i18n/{en,ja}.json`;
-  `body.mobile-app` via matchMedia 680px; SW **v9** network-first for
+  `body.mobile-app` via matchMedia 680px; SW **v10** network-first for
   shell/JSON/htmls, cache-first for thumbs (old `?v=` entries pruned); OG
   cards at `p/<id>/index.html` (with `og:image` → `thumbs/<id>.jpg`);
   `localStorage` (`promptshare_v4`) caches **metadata only** — never put
