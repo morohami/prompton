@@ -23,10 +23,11 @@ references it — likely staged for a later 東京被災マップ step; ask that
 session before deleting) (J6) · visitor votes: keep or drop (J7) · 東京今昔マップ
 `versions` registration / metadata (J8).
 
-**Partially done:** i18n (main UI strings are keyed; toasts, compare page,
-editor forms and playlist/draft modals are still English) · dead code (spotlight/
-trending stay behind `FEATURES`; ~55 unused CSS classes remain) · duplicate CSS
-selectors · parent fork counts are local-only.
+**Partially done:** i18n (toasts, compare page, editors, profile modal and version
+UI are keyed; a few small labels — upload "Advanced" fields, `by`, playlist
+modals — are still English) · spotlight/trending stay behind `FEATURES` on
+purpose · duplicate CSS selectors were deliberately not merged (cascade-order
+risk that the computed-style snapshot can't cover for hover/focus).
 
 ---
 

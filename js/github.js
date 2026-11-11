@@ -350,6 +350,25 @@ async function bumpDownloadCountOnGitHub(prompt) {
   }
 }
 
+// Owner-only: persist +1 on a parent's fork counter after a remix is published.
+// Read-modify-write on the live manifest (same rule as the download counter),
+// so thumb/thumbVer/votes written by other sessions are untouched. Returns the
+// new count, or null when the parent isn't in the manifest.
+async function bumpForkCountOnGitHub(parentId) {
+  let newCount = null;
+  await mutateManifestOnGitHub(manifest => {
+    const idx = manifest.findIndex(p => p.id === parentId);
+    if (idx < 0) return;
+    manifest[idx].forks = (manifest[idx].forks || 0) + 1;
+    newCount = manifest[idx].forks;
+  }, 'Prompton: +1 fork for ' + parentId);
+  if (newCount !== null && typeof seedPrompts !== 'undefined' && Array.isArray(seedPrompts)) {
+    const s = seedPrompts.find(x => x.id === parentId);
+    if (s) s.forks = newCount;
+  }
+  return newCount;
+}
+
 // Conservative HTML cleanup — safe on arbitrary prompt output.
 //   - Strip UTF-8 BOM
 //   - Normalize CRLF → LF

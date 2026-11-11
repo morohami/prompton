@@ -289,14 +289,12 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
   const tags = normalizeTagList(window._uploadTagPicker ? window._uploadTagPicker.getTags() : []);
 
-  // If this upload started from a Fork, pick up the stashed parent id and
-  // bump the parent's fork count.
+  // If this upload started from a Fork, pick up the stashed parent id. The
+  // parent's fork count is bumped once the publish succeeds (below) — it used
+  // to be bumped here, before the push, and only ever locally.
   let parentId = null;
   try { parentId = sessionStorage.getItem('prompton_fork_parent') || null; } catch (e) {}
-  if (parentId) {
-    const parent = prompts.find(x => x.id === parentId);
-    if (parent) parent.forks++;
-  }
+  const forkParent = parentId ? prompts.find(x => x.id === parentId) : null;
 
   const newPrompt = {
     id: 'p' + Date.now(),
@@ -328,6 +326,17 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     try {
       await pushPromptToGitHub(newPrompt);
       toast(t('msg.publishedGh', { title: newPrompt.title }));
+      if (parentId) {
+        // Persist the parent's +1 (best effort — the new prompton is already published).
+        try {
+          const n = await bumpForkCountOnGitHub(parentId);
+          if (forkParent) forkParent.forks = (n !== null) ? n : (forkParent.forks || 0) + 1;
+        } catch (e) {
+          console.warn('Fork count push failed:', e);
+          if (forkParent) forkParent.forks = (forkParent.forks || 0) + 1;
+        }
+        saveData(prompts);
+      }
     } catch (err) {
       console.error(err);
       toast(t('msg.savedLocalFail', { err: err.message }));
@@ -335,6 +344,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
     }
   } else {
+    if (forkParent) forkParent.forks = (forkParent.forks || 0) + 1;
     toast(t('msg.savedLocal', { title: newPrompt.title }));
   }
 
