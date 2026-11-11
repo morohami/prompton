@@ -1,0 +1,824 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3906" height="3898" viewBox="0 0 3906 3898" font-family="'Noto Sans JP','Noto Sans CJK JP','IPAGothic','Hiragino Sans','Yu Gothic','Meiryo',sans-serif">
+<style>.n circle{fill:#fff;stroke:#111}.n .M{r:9;stroke-width:4}.n .m{r:5.5;stroke-width:2.5}.lb rect{fill:#111}.lb .M{fill:#fff;font-size:26px;font-weight:700;text-anchor:middle;dominant-baseline:central}.lb .m{fill:#222;font-size:18px;font-weight:500;text-anchor:middle;dominant-baseline:central;stroke:#fff;stroke-width:5;paint-order:stroke;stroke-linejoin:round}.no rect{stroke:#fff;stroke-width:3}.no text{fill:#fff;font-size:22px;font-weight:700;text-anchor:middle;dominant-baseline:central}.ls rect{rx:7}.ls .t{fill:#fff;font-size:20px;font-weight:700;text-anchor:middle;dominant-baseline:central}.ls .d{fill:#222;font-size:22px;font-weight:500;dominant-baseline:central}</style>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<g id="lines">
+<g id="r1" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="2562" y1="2456" x2="2507" y2="2540"/><line x1="2503" y1="2537" x2="2419" y2="2604"/><line x1="2419" y1="2604" x2="2335" y2="2646"/><line x1="2335" y1="2646" x2="2234" y2="2713"/><line x1="2234" y1="2713" x2="2108" y2="2789"/><line x1="2108" y1="2789" x2="2024" y2="2814"/><line x1="2024" y1="2814" x2="1882" y2="2671"/><line x1="1882" y1="2676" x2="1790" y2="2693"/><line x1="1785" y1="2685" x2="1743" y2="2744"/><line x1="1747" y1="2747" x2="1621" y2="2696"/><line x1="1623" y1="2692" x2="1564" y2="2667"/><line x1="1562" y1="2671" x2="1529" y2="2780"/></g>
+<g id="r2" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="1527" y1="2785" x2="1451" y2="2747"/><line x1="1450" y1="2738" x2="1392" y2="2776"/><line x1="1394" y1="2780" x2="1310" y2="2747"/><line x1="1310" y1="2747" x2="1184" y2="2789"/><line x1="1184" y1="2789" x2="1058" y2="2839"/><line x1="1058" y1="2839" x2="907" y2="2831"/><line x1="907" y1="2831" x2="823" y2="2881"/><line x1="823" y1="2881" x2="727" y2="2881"/><line x1="727" y1="2881" x2="638" y2="2814"/><line x1="637" y1="2809" x2="511" y2="2851"/><line x1="512" y1="2856" x2="462" y2="2940"/></g>
+<g id="r3" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="467" y1="2942" x2="446" y2="2992"/><line x1="441" y1="2990" x2="357" y2="3045"/><line x1="357" y1="3045" x2="378" y2="3121"/><line x1="378" y1="3121" x2="378" y2="3175"/><line x1="378" y1="3175" x2="399" y2="3268"/><line x1="399" y1="3268" x2="399" y2="3343"/><line x1="399" y1="3343" x2="386" y2="3410"/><line x1="386" y1="3410" x2="403" y2="3486"/><line x1="403" y1="3486" x2="470" y2="3553"/></g>
+<g id="r4" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="2563" y1="2453" x2="2563" y2="2369"/><line x1="2558" y1="2369" x2="2596" y2="2117"/><line x1="2596" y1="2117" x2="2696" y2="1974"/><line x1="2696" y1="1974" x2="2713" y2="1890"/><line x1="2713" y1="1890" x2="2780" y2="1806"/><line x1="2776" y1="1809" x2="2734" y2="1741"/><line x1="2738" y1="1739" x2="2839" y2="1554"/><line x1="2839" y1="1554" x2="2822" y2="1260"/></g>
+<g id="r5" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="2814" y1="1092" x2="2839" y2="941"/><line x1="2839" y1="941" x2="2940" y2="689"/><line x1="2940" y1="689" x2="3024" y2="714"/></g>
+<g id="r6" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="2558" y1="2453" x2="2738" y2="2209"/><line x1="2738" y1="2209" x2="2839" y2="2058"/><line x1="2839" y1="2058" x2="2780" y2="1806"/></g>
+<g id="r7" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="2402" y1="1949" x2="2419" y2="1823"/><line x1="2419" y1="1823" x2="2444" y2="1772"/><line x1="2444" y1="1772" x2="2528" y2="1638"/><line x1="2528" y1="1638" x2="2696" y2="1378"/><line x1="2696" y1="1378" x2="2822" y2="1260"/></g>
+<g id="r8" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="2405" y1="1953" x2="2296" y2="2037"/><line x1="2293" y1="2033" x2="2150" y2="2075"/><line x1="2150" y1="2075" x2="1957" y2="2159"/><line x1="1957" y1="2159" x2="1831" y2="2251"/><line x1="1831" y1="2251" x2="1722" y2="2352"/><line x1="1722" y1="2352" x2="1588" y2="2478"/><line x1="1588" y1="2478" x2="1705" y2="2587"/><line x1="1705" y1="2587" x2="1663" y2="2612"/><line x1="1663" y1="2612" x2="1621" y2="2696"/><line x1="1619" y1="2701" x2="1560" y2="2676"/></g>
+<g id="r9" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="1562" y1="2671" x2="1478" y2="2671"/><line x1="1478" y1="2671" x2="1352" y2="2604"/><line x1="1352" y1="2604" x2="1252" y2="2545"/><line x1="1252" y1="2545" x2="1142" y2="2520"/><line x1="1142" y1="2520" x2="1008" y2="2545"/><line x1="1008" y1="2545" x2="932" y2="2537"/><line x1="932" y1="2537" x2="848" y2="2562"/><line x1="848" y1="2562" x2="739" y2="2621"/><line x1="739" y1="2621" x2="647" y2="2688"/><line x1="647" y1="2688" x2="638" y2="2814"/><line x1="640" y1="2819" x2="514" y2="2861"/></g>
+<g id="r10" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="457" y1="2938" x2="436" y2="2988"/><line x1="441" y1="2990" x2="622" y2="3066"/><line x1="622" y1="3066" x2="622" y2="3116"/><line x1="622" y1="3116" x2="638" y2="3242"/><line x1="638" y1="3242" x2="622" y2="3373"/><line x1="622" y1="3373" x2="538" y2="3419"/><line x1="538" y1="3419" x2="470" y2="3553"/></g>
+<g id="r11" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="1407" y1="2989" x2="1432" y2="2921"/><line x1="1436" y1="2923" x2="1260" y2="2940"/><line x1="1260" y1="2940" x2="1117" y2="2982"/><line x1="1117" y1="2982" x2="991" y2="3041"/></g>
+<g id="r12" stroke="#D62828" stroke-width="14" stroke-linecap="round"><line x1="3024" y1="714" x2="3133" y2="672"/><line x1="3133" y1="672" x2="3192" y2="588"/><line x1="3192" y1="588" x2="3259" y2="479"/></g>
+<g id="r13" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2713" y1="1890" x2="2587" y2="1873"/><line x1="2587" y1="1873" x2="2562" y2="1806"/><line x1="2562" y1="1806" x2="2545" y2="1722"/><line x1="2545" y1="1722" x2="2629" y2="1672"/><line x1="2629" y1="1672" x2="2528" y2="1638"/></g>
+<g id="r14" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2558" y1="2453" x2="2654" y2="2503"/></g>
+<g id="r15" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2554" y1="2450" x2="2499" y2="2534"/></g>
+<g id="r16" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2503" y1="2537" x2="2528" y2="2629"/><line x1="2528" y1="2629" x2="2629" y2="2629" stroke-dasharray="13 10"/><line x1="2629" y1="2629" x2="2654" y2="2570"/><line x1="2654" y1="2570" x2="2654" y2="2503"/><line x1="2654" y1="2503" x2="2638" y2="2394"/><line x1="2638" y1="2394" x2="2558" y2="2369"/><line x1="2558" y1="2369" x2="2419" y2="2453"/><line x1="2419" y1="2453" x2="2444" y2="2499"/><line x1="2444" y1="2499" x2="2503" y2="2537"/></g>
+<g id="r17" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2553" y1="2453" x2="2553" y2="2369"/><line x1="2558" y1="2369" x2="2444" y2="2335"/><line x1="2444" y1="2335" x2="2360" y2="2293"/><line x1="2360" y1="2293" x2="2293" y2="2033"/><line x1="2290" y1="2029" x2="2399" y2="1945"/></g>
+<g id="r18" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2360" y1="2293" x2="2234" y2="2293"/><line x1="2234" y1="2293" x2="2108" y2="2243"/><line x1="2108" y1="2243" x2="2150" y2="2075"/></g>
+<g id="r19" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1882" y1="2671" x2="1915" y2="2562"/><line x1="1915" y1="2562" x2="1982" y2="2503"/><line x1="1982" y1="2503" x2="2083" y2="2436"/><line x1="2083" y1="2436" x2="2083" y2="2373"/><line x1="2083" y1="2373" x2="2108" y2="2243"/></g>
+<g id="r20" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2558" y1="2453" x2="2419" y2="2453"/><line x1="2419" y1="2453" x2="2276" y2="2520"/><line x1="2276" y1="2520" x2="2150" y2="2461"/><line x1="2150" y1="2461" x2="2083" y2="2436"/></g>
+<g id="r21" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1856" y1="2562" x2="1789" y2="2562"/><line x1="1789" y1="2562" x2="1705" y2="2587"/></g>
+<g id="r22" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1882" y1="2671" x2="1856" y2="2562"/></g>
+<g id="r23" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="2024" y1="2814" x2="1957" y2="2747"/><line x1="1957" y1="2747" x2="1882" y2="2671"/><line x1="1881" y1="2666" x2="1788" y2="2683"/><line x1="1789" y1="2688" x2="1798" y2="2814"/><line x1="1798" y1="2814" x2="1798" y2="2873"/><line x1="1798" y1="2873" x2="1840" y2="2919"/></g>
+<g id="r24" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1562" y1="2671" x2="1613" y2="2814"/><line x1="1613" y1="2814" x2="1588" y2="2940"/><line x1="1588" y1="2940" x2="1520" y2="3016"/></g>
+<g id="r25" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1793" y1="2691" x2="1751" y2="2750"/><line x1="1747" y1="2747" x2="1714" y2="2806"/><line x1="1714" y1="2806" x2="1630" y2="2852"/><line x1="1630" y1="2852" x2="1529" y2="2780"/></g>
+<g id="r26" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1529" y1="2780" x2="1520" y2="2856"/><line x1="1520" y1="2856" x2="1504" y2="2919"/><line x1="1504" y1="2919" x2="1520" y2="3016"/></g>
+<g id="r27" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1588" y1="2478" x2="1495" y2="2512"/><line x1="1495" y1="2512" x2="1411" y2="2520"/><line x1="1411" y1="2520" x2="1394" y2="2579"/><line x1="1394" y1="2579" x2="1411" y2="2654"/></g>
+<g id="r28" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1456" y1="2747" x2="1397" y2="2785"/><line x1="1394" y1="2780" x2="1445" y2="2848" stroke-dasharray="13 10"/><line x1="1445" y1="2848" x2="1436" y2="2923" stroke-dasharray="13 10"/><line x1="1441" y1="2925" x2="1416" y2="2992"/></g>
+<g id="r29" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1310" y1="2747" x2="1142" y2="2520"/></g>
+<g id="r30" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1184" y1="2789" x2="1184" y2="2873"/><line x1="1184" y1="2873" x2="1260" y2="2940" stroke-dasharray="13 10"/></g>
+<g id="r31" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="907" y1="2831" x2="958" y2="2902"/></g>
+<g id="r32" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1260" y1="2940" x2="1218" y2="3007"/><line x1="1218" y1="3007" x2="1201" y2="3058"/><line x1="1201" y1="3058" x2="1226" y2="3175"/></g>
+<g id="r33" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="1226" y1="3175" x2="1075" y2="3108"/><line x1="1075" y1="3108" x2="991" y2="3041"/></g>
+<g id="r34" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="378" y1="3121" x2="294" y2="3142"/><line x1="294" y1="3142" x2="218" y2="3142"/><line x1="218" y1="3142" x2="218" y2="3205"/><line x1="218" y1="3205" x2="218" y2="3251"/><line x1="221" y1="3255" x2="150" y2="3305"/></g>
+<g id="r35" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"><line x1="218" y1="3142" x2="176" y2="3058"/></g>
+<g id="r36" stroke="#15803D" stroke-width="8" stroke-linecap="round"><line x1="3024" y1="714" x2="3091" y2="815"/><line x1="3091" y1="815" x2="3091" y2="899"/><line x1="3091" y1="899" x2="3016" y2="966"/></g>
+<g id="r37" stroke="#15803D" stroke-width="8" stroke-linecap="round"><line x1="2839" y1="941" x2="2923" y2="916"/><line x1="2923" y1="916" x2="2965" y2="949"/><line x1="2965" y1="949" x2="3016" y2="966"/></g>
+<g id="r38" stroke="#15803D" stroke-width="8" stroke-linecap="round"><line x1="3192" y1="588" x2="3284" y2="647"/><line x1="3284" y1="647" x2="3410" y2="773"/><line x1="3410" y1="773" x2="3578" y2="882"/></g>
+<g id="r39" stroke="#15803D" stroke-width="8" stroke-linecap="round"><line x1="3259" y1="479" x2="3469" y2="420"/><line x1="3469" y1="420" x2="3578" y2="353"/></g>
+<g id="r40" stroke="#15803D" stroke-width="8" stroke-linecap="round"><line x1="3259" y1="479" x2="3301" y2="336"/><line x1="3301" y1="336" x2="3301" y2="126"/></g>
+<g id="r41" stroke="#F28C28" stroke-width="8" stroke-linecap="round"><line x1="1882" y1="2671" x2="1982" y2="2310"/><line x1="1982" y1="2310" x2="1957" y2="2159"/></g>
+<g id="r42" stroke="#F28C28" stroke-width="8" stroke-linecap="round"><line x1="2108" y1="2789" x2="1966" y2="2948"/><line x1="1966" y1="2948" x2="1890" y2="2948" stroke-dasharray="13 10"/><line x1="1890" y1="2948" x2="1840" y2="2919"/><line x1="1840" y1="2919" x2="1756" y2="3032"/><line x1="1756" y1="3032" x2="1672" y2="3116"/><line x1="1672" y1="3116" x2="1546" y2="3116"/><line x1="1546" y1="3116" x2="1520" y2="3016"/></g>
+<g id="r43" stroke="#F28C28" stroke-width="8" stroke-linecap="round"><line x1="1531" y1="2776" x2="1455" y2="2738"/></g>
+<g id="r44" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="3578" y1="882" x2="3738" y2="857"/></g>
+<g id="r45" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2780" y1="1806" x2="2864" y2="1764"/><line x1="2864" y1="1764" x2="2906" y2="1680"/><line x1="2906" y1="1680" x2="2965" y2="1596"/><line x1="2965" y1="1596" x2="2982" y2="1512"/><line x1="2982" y1="1512" x2="2965" y2="1411"/><line x1="2965" y1="1411" x2="2923" y2="1344"/><line x1="2923" y1="1344" x2="2822" y2="1260"/></g>
+<g id="r46" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2839" y1="1554" x2="2671" y2="1579"/><line x1="2671" y1="1579" x2="2528" y2="1638"/></g>
+<g id="r47" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2785" y1="1803" x2="2743" y2="1736"/><line x1="2738" y1="1739" x2="2646" y2="1722"/><line x1="2646" y1="1722" x2="2545" y2="1722"/><line x1="2545" y1="1722" x2="2444" y2="1772"/></g>
+<g id="r48" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2780" y1="1806" x2="2562" y2="1806"/></g>
+<g id="r49" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2839" y1="2058" x2="2696" y2="1974"/><line x1="2696" y1="1974" x2="2570" y2="1974"/><line x1="2570" y1="1974" x2="2402" y2="1949"/></g>
+<g id="r50" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2402" y1="2243" x2="2461" y2="2201"/><line x1="2461" y1="2201" x2="2570" y2="2201"/><line x1="2570" y1="2201" x2="2738" y2="2209"/></g>
+<g id="r51" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2654" y1="2503" x2="2738" y2="2436"/><line x1="2738" y1="2436" x2="2780" y2="2377"/><line x1="2780" y1="2377" x2="2797" y2="2293"/><line x1="2797" y1="2293" x2="2738" y2="2209"/></g>
+<g id="r52" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="2234" y1="2713" x2="2251" y2="2621"/><line x1="2251" y1="2621" x2="2276" y2="2520"/></g>
+<g id="r53" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="1184" y1="2789" x2="1201" y2="2663"/><line x1="1201" y1="2663" x2="1142" y2="2520"/></g>
+<g id="r54" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="907" y1="2831" x2="949" y2="2705"/><line x1="949" y1="2705" x2="932" y2="2537"/></g>
+<g id="r55" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="1411" y1="2990" x2="1386" y2="3150"/><line x1="1386" y1="3150" x2="1226" y2="3175"/></g>
+<g id="r56" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="1226" y1="3175" x2="1134" y2="3217"/><line x1="1134" y1="3217" x2="1050" y2="3276"/><line x1="1050" y1="3276" x2="966" y2="3217"/><line x1="966" y1="3217" x2="983" y2="3133"/><line x1="983" y1="3133" x2="991" y2="3041"/></g>
+<g id="r57" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"><line x1="622" y1="3116" x2="546" y2="3184"/><line x1="546" y1="3184" x2="483" y2="3217"/><line x1="483" y1="3217" x2="399" y2="3268"/><line x1="399" y1="3268" x2="302" y2="3284" stroke-dasharray="13 10"/><line x1="302" y1="3284" x2="218" y2="3251"/><line x1="216" y1="3247" x2="144" y2="3297"/></g>
+<g id="r58" stroke="#0891B2" stroke-width="8" stroke-linecap="round"><line x1="470" y1="3553" x2="630" y2="3620" stroke-dasharray="13 10"/><line x1="630" y1="3620" x2="819" y2="3679" stroke-dasharray="13 10"/><line x1="819" y1="3679" x2="1029" y2="3721" stroke-dasharray="13 10"/><line x1="1029" y1="3721" x2="1134" y2="3772"/></g>
+</g>
+<g class="n">
+<circle class="M" cx="462" cy="2940"/>
+<circle class="m" cx="441" cy="2990"/>
+<circle class="M" cx="357" cy="3045"/>
+<circle class="M" cx="378" cy="3121"/>
+<circle class="M" cx="294" cy="3142"/>
+<circle class="M" cx="218" cy="3142"/>
+<circle class="M" cx="176" cy="3058"/>
+<circle class="m" cx="218" cy="3205"/>
+<circle class="m" cx="218" cy="3251"/>
+<circle class="M" cx="147" cy="3301"/>
+<circle class="m" cx="302" cy="3284"/>
+<circle class="m" cx="378" cy="3175"/>
+<circle class="M" cx="399" cy="3268"/>
+<circle class="m" cx="483" cy="3217"/>
+<circle class="m" cx="546" cy="3184"/>
+<circle class="M" cx="622" cy="3116"/>
+<circle class="m" cx="622" cy="3066"/>
+<circle class="m" cx="638" cy="3242"/>
+<circle class="M" cx="622" cy="3373"/>
+<circle class="m" cx="538" cy="3419"/>
+<circle class="m" cx="399" cy="3343"/>
+<circle class="m" cx="386" cy="3410"/>
+<circle class="m" cx="403" cy="3486"/>
+<circle class="M" cx="470" cy="3553"/>
+<circle class="m" cx="630" cy="3620"/>
+<circle class="m" cx="819" cy="3679"/>
+<circle class="m" cx="1029" cy="3721"/>
+<circle class="M" cx="1134" cy="3772"/>
+<circle class="M" cx="512" cy="2856"/>
+<circle class="M" cx="638" cy="2814"/>
+<circle class="m" cx="727" cy="2881"/>
+<circle class="m" cx="823" cy="2881"/>
+<circle class="M" cx="907" cy="2831"/>
+<circle class="M" cx="958" cy="2902"/>
+<circle class="m" cx="949" cy="2705"/>
+<circle class="m" cx="1058" cy="2839"/>
+<circle class="M" cx="1184" cy="2789"/>
+<circle class="m" cx="1184" cy="2873"/>
+<circle class="m" cx="1201" cy="2663"/>
+<circle class="M" cx="1310" cy="2747"/>
+<circle class="m" cx="1394" cy="2780"/>
+<circle class="M" cx="1453" cy="2743"/>
+<circle class="M" cx="1529" cy="2780"/>
+<circle class="m" cx="647" cy="2688"/>
+<circle class="m" cx="739" cy="2621"/>
+<circle class="m" cx="848" cy="2562"/>
+<circle class="M" cx="932" cy="2537"/>
+<circle class="m" cx="1008" cy="2545"/>
+<circle class="M" cx="1142" cy="2520"/>
+<circle class="m" cx="1252" cy="2545"/>
+<circle class="m" cx="1352" cy="2604"/>
+<circle class="m" cx="1394" cy="2579"/>
+<circle class="m" cx="1411" cy="2520"/>
+<circle class="m" cx="1495" cy="2512"/>
+<circle class="M" cx="1588" cy="2478"/>
+<circle class="m" cx="1411" cy="2654"/>
+<circle class="m" cx="1478" cy="2671"/>
+<circle class="M" cx="1562" cy="2671"/>
+<circle class="M" cx="1260" cy="2940"/>
+<circle class="M" cx="1411" cy="2990"/>
+<circle class="m" cx="1436" cy="2923"/>
+<circle class="m" cx="1445" cy="2848"/>
+<circle class="m" cx="1218" cy="3007"/>
+<circle class="m" cx="1201" cy="3058"/>
+<circle class="M" cx="1226" cy="3175"/>
+<circle class="m" cx="1386" cy="3150"/>
+<circle class="m" cx="1134" cy="3217"/>
+<circle class="m" cx="1050" cy="3276"/>
+<circle class="m" cx="966" cy="3217"/>
+<circle class="m" cx="983" cy="3133"/>
+<circle class="M" cx="991" cy="3041"/>
+<circle class="m" cx="1117" cy="2982"/>
+<circle class="m" cx="1075" cy="3108"/>
+<circle class="m" cx="1520" cy="2856"/>
+<circle class="m" cx="1504" cy="2919"/>
+<circle class="M" cx="1520" cy="3016"/>
+<circle class="m" cx="1588" cy="2940"/>
+<circle class="M" cx="1613" cy="2814"/>
+<circle class="m" cx="1630" cy="2852"/>
+<circle class="m" cx="1714" cy="2806"/>
+<circle class="m" cx="1747" cy="2747"/>
+<circle class="m" cx="1789" cy="2688"/>
+<circle class="M" cx="1798" cy="2814"/>
+<circle class="m" cx="1798" cy="2873"/>
+<circle class="M" cx="1840" cy="2919"/>
+<circle class="m" cx="1890" cy="2948"/>
+<circle class="m" cx="1756" cy="3032"/>
+<circle class="m" cx="1672" cy="3116"/>
+<circle class="m" cx="1546" cy="3116"/>
+<circle class="m" cx="1966" cy="2948"/>
+<circle class="m" cx="2024" cy="2814"/>
+<circle class="M" cx="2108" cy="2789"/>
+<circle class="M" cx="1882" cy="2671"/>
+<circle class="M" cx="1856" cy="2562"/>
+<circle class="m" cx="1789" cy="2562"/>
+<circle class="m" cx="1705" cy="2587"/>
+<circle class="m" cx="1663" cy="2612"/>
+<circle class="m" cx="1621" cy="2696"/>
+<circle class="m" cx="1957" cy="2747"/>
+<circle class="M" cx="2234" cy="2713"/>
+<circle class="m" cx="2335" cy="2646"/>
+<circle class="m" cx="2419" cy="2604"/>
+<circle class="M" cx="2503" cy="2537"/>
+<circle class="M" cx="2558" cy="2453"/>
+<circle class="M" cx="2654" cy="2503"/>
+<circle class="m" cx="2528" cy="2629"/>
+<circle class="m" cx="2629" cy="2629"/>
+<circle class="m" cx="2654" cy="2570"/>
+<circle class="m" cx="2419" cy="2453"/>
+<circle class="m" cx="2444" cy="2499"/>
+<circle class="m" cx="2558" cy="2369"/>
+<circle class="m" cx="2638" cy="2394"/>
+<circle class="M" cx="2276" cy="2520"/>
+<circle class="m" cx="2251" cy="2621"/>
+<circle class="m" cx="2150" cy="2461"/>
+<circle class="m" cx="2083" cy="2436"/>
+<circle class="m" cx="2083" cy="2373"/>
+<circle class="M" cx="2108" cy="2243"/>
+<circle class="m" cx="2234" cy="2293"/>
+<circle class="m" cx="2360" cy="2293"/>
+<circle class="M" cx="2402" cy="2243"/>
+<circle class="m" cx="2444" cy="2335"/>
+<circle class="m" cx="2461" cy="2201"/>
+<circle class="m" cx="2570" cy="2201"/>
+<circle class="M" cx="2738" cy="2209"/>
+<circle class="M" cx="2596" cy="2117"/>
+<circle class="m" cx="2738" cy="2436"/>
+<circle class="m" cx="2780" cy="2377"/>
+<circle class="m" cx="2797" cy="2293"/>
+<circle class="m" cx="1982" cy="2503"/>
+<circle class="m" cx="1915" cy="2562"/>
+<circle class="m" cx="1982" cy="2310"/>
+<circle class="M" cx="1957" cy="2159"/>
+<circle class="M" cx="1831" cy="2251"/>
+<circle class="M" cx="1722" cy="2352"/>
+<circle class="m" cx="2150" cy="2075"/>
+<circle class="m" cx="2293" cy="2033"/>
+<circle class="M" cx="2402" cy="1949"/>
+<circle class="m" cx="2419" cy="1823"/>
+<circle class="m" cx="2444" cy="1772"/>
+<circle class="M" cx="2528" cy="1638"/>
+<circle class="m" cx="2696" cy="1378"/>
+<circle class="M" cx="2822" cy="1260"/>
+<circle class="M" cx="2713" cy="1890"/>
+<circle class="m" cx="2696" cy="1974"/>
+<circle class="m" cx="2587" cy="1873"/>
+<circle class="M" cx="2562" cy="1806"/>
+<circle class="m" cx="2545" cy="1722"/>
+<circle class="m" cx="2629" cy="1672"/>
+<circle class="M" cx="2780" cy="1806"/>
+<circle class="m" cx="2864" cy="1764"/>
+<circle class="m" cx="2906" cy="1680"/>
+<circle class="m" cx="2965" cy="1596"/>
+<circle class="m" cx="2982" cy="1512"/>
+<circle class="m" cx="2965" cy="1411"/>
+<circle class="m" cx="2923" cy="1344"/>
+<circle class="M" cx="2839" cy="1554"/>
+<circle class="m" cx="2671" cy="1579"/>
+<circle class="m" cx="2738" cy="1739"/>
+<circle class="m" cx="2646" cy="1722"/>
+<circle class="M" cx="2839" cy="2058"/>
+<circle class="m" cx="2570" cy="1974"/>
+<circle class="M" cx="2814" cy="1092"/>
+<circle class="m" cx="2839" cy="941"/>
+<circle class="m" cx="2923" cy="916"/>
+<circle class="m" cx="2965" cy="949"/>
+<circle class="M" cx="3016" cy="966"/>
+<circle class="m" cx="3091" cy="899"/>
+<circle class="m" cx="3091" cy="815"/>
+<circle class="M" cx="3024" cy="714"/>
+<circle class="m" cx="2940" cy="689"/>
+<circle class="m" cx="3133" cy="672"/>
+<circle class="m" cx="3192" cy="588"/>
+<circle class="M" cx="3259" cy="479"/>
+<circle class="m" cx="3284" cy="647"/>
+<circle class="M" cx="3410" cy="773"/>
+<circle class="M" cx="3578" cy="882"/>
+<circle class="M" cx="3738" cy="857"/>
+<circle class="m" cx="3469" cy="420"/>
+<circle class="M" cx="3578" cy="353"/>
+<circle class="m" cx="3301" cy="336"/>
+<circle class="M" cx="3301" cy="126"/>
+</g>
+<g class="lb">
+<rect x="478" y="2920" width="206" height="40" rx="20.0"/>
+<text class="M" x="581" y="2940">北九州（門司）</text>
+<text class="m" x="412" y="2990">小倉</text>
+<rect x="265" y="3025" width="76" height="40" rx="20.0"/>
+<text class="M" x="303" y="3045">福岡</text>
+<rect x="394" y="3101" width="76" height="40" rx="20.0"/>
+<text class="M" x="432" y="3121">鳥栖</text>
+<rect x="256" y="3086" width="76" height="40" rx="20.0"/>
+<text class="M" x="294" y="3106">佐賀</text>
+<rect x="126" y="3122" width="76" height="40" rx="20.0"/>
+<text class="M" x="164" y="3142">武雄</text>
+<rect x="58" y="3038" width="102" height="40" rx="20.0"/>
+<text class="M" x="109" y="3058">佐世保</text>
+<text class="m" x="247" y="3205">大村</text>
+<text class="m" x="247" y="3251">諫早</text>
+<rect x="55" y="3281" width="76" height="40" rx="20.0"/>
+<text class="M" x="93" y="3301">長崎</text>
+<text class="m" x="302" y="3306">島原</text>
+<text class="m" x="416" y="3175">久留米</text>
+<rect x="307" y="3248" width="76" height="40" rx="20.0"/>
+<text class="M" x="345" y="3268">熊本</text>
+<text class="m" x="483" y="3239">阿蘇</text>
+<text class="m" x="546" y="3206">竹田</text>
+<rect x="638" y="3096" width="76" height="40" rx="20.0"/>
+<text class="M" x="676" y="3116">大分</text>
+<text class="m" x="651" y="3066">別府</text>
+<text class="m" x="667" y="3242">延岡</text>
+<rect x="638" y="3353" width="76" height="40" rx="20.0"/>
+<text class="M" x="676" y="3373">宮崎</text>
+<text class="m" x="538" y="3441">都城</text>
+<text class="m" x="370" y="3343">八代</text>
+<text class="m" x="357" y="3410">水俣</text>
+<text class="m" x="374" y="3486">川内</text>
+<rect x="352" y="3533" width="102" height="40" rx="20.0"/>
+<text class="M" x="403" y="3553">鹿児島</text>
+<text class="m" x="630" y="3642">種子島（西之表）</text>
+<text class="m" x="819" y="3701">奄美（名瀬）</text>
+<text class="m" x="1029" y="3699">名護</text>
+<rect x="1150" y="3752" width="76" height="40" rx="20.0"/>
+<text class="M" x="1188" y="3772">那覇</text>
+<rect x="420" y="2836" width="76" height="40" rx="20.0"/>
+<text class="M" x="458" y="2856">下関</text>
+<rect x="600" y="2758" width="76" height="40" rx="20.0"/>
+<text class="M" x="638" y="2778">山口</text>
+<text class="m" x="727" y="2903">徳山</text>
+<text class="m" x="823" y="2903">岩国</text>
+<rect x="869" y="2775" width="76" height="40" rx="20.0"/>
+<text class="M" x="907" y="2795">広島</text>
+<rect x="974" y="2882" width="50" height="40" rx="20.0"/>
+<text class="M" x="999" y="2902">呉</text>
+<text class="m" x="978" y="2705">三次</text>
+<text class="m" x="1058" y="2861">福山</text>
+<rect x="1146" y="2733" width="76" height="40" rx="20.0"/>
+<text class="M" x="1184" y="2753">岡山</text>
+<text class="m" x="1155" y="2873">宇野</text>
+<text class="m" x="1230" y="2663">津山</text>
+<rect x="1272" y="2691" width="76" height="40" rx="20.0"/>
+<text class="M" x="1310" y="2711">姫路</text>
+<text class="m" x="1394" y="2802">明石</text>
+<rect x="1415" y="2687" width="76" height="40" rx="20.0"/>
+<text class="M" x="1453" y="2707">神戸</text>
+<rect x="1545" y="2760" width="76" height="40" rx="20.0"/>
+<text class="M" x="1583" y="2780">大阪</text>
+<text class="m" x="618" y="2688">益田</text>
+<text class="m" x="739" y="2599">浜田</text>
+<text class="m" x="848" y="2540">出雲</text>
+<rect x="894" y="2481" width="76" height="40" rx="20.0"/>
+<text class="M" x="932" y="2501">松江</text>
+<text class="m" x="1008" y="2567">米子</text>
+<rect x="1104" y="2464" width="76" height="40" rx="20.0"/>
+<text class="M" x="1142" y="2484">鳥取</text>
+<text class="m" x="1252" y="2523">豊岡</text>
+<text class="m" x="1352" y="2582">福知山</text>
+<text class="m" x="1423" y="2579">綾部</text>
+<text class="m" x="1411" y="2498">舞鶴</text>
+<text class="m" x="1495" y="2490">小浜</text>
+<rect x="1550" y="2422" width="76" height="40" rx="20.0"/>
+<text class="M" x="1588" y="2442">敦賀</text>
+<text class="m" x="1411" y="2676">京丹波</text>
+<text class="m" x="1478" y="2649">亀岡</text>
+<rect x="1524" y="2615" width="76" height="40" rx="20.0"/>
+<text class="M" x="1562" y="2635">京都</text>
+<rect x="1222" y="2884" width="76" height="40" rx="20.0"/>
+<text class="M" x="1260" y="2904">高松</text>
+<rect x="1319" y="2970" width="76" height="40" rx="20.0"/>
+<text class="M" x="1357" y="2990">徳島</text>
+<text class="m" x="1465" y="2923">鳴門</text>
+<text class="m" x="1380" y="2848">洲本（淡路）</text>
+<text class="m" x="1189" y="3007">琴平</text>
+<text class="m" x="1172" y="3058">池田</text>
+<rect x="1188" y="3191" width="76" height="40" rx="20.0"/>
+<text class="M" x="1226" y="3211">高知</text>
+<text class="m" x="1415" y="3150">室戸</text>
+<text class="m" x="1134" y="3239">須崎</text>
+<text class="m" x="1050" y="3298">四万十（中村）</text>
+<text class="m" x="928" y="3217">宇和島</text>
+<text class="m" x="954" y="3133">大洲</text>
+<rect x="899" y="3021" width="76" height="40" rx="20.0"/>
+<text class="M" x="937" y="3041">松山</text>
+<text class="m" x="1117" y="2960">新居浜</text>
+<text class="m" x="1122" y="3108">久万高原</text>
+<text class="m" x="1540" y="2856">堺</text>
+<text class="m" x="1542" y="2919">岸和田</text>
+<rect x="1536" y="2996" width="102" height="40" rx="20.0"/>
+<text class="M" x="1587" y="3016">和歌山</text>
+<text class="m" x="1617" y="2940">橋本</text>
+<rect x="1624" y="2763" width="76" height="40" rx="20.0"/>
+<text class="M" x="1662" y="2783">奈良</text>
+<text class="m" x="1630" y="2874">天理</text>
+<text class="m" x="1714" y="2828">伊賀上野</text>
+<text class="m" x="1747" y="2769">亀山</text>
+<text class="m" x="1754" y="2669">四日市</text>
+<rect x="1814" y="2794" width="50" height="40" rx="20.0"/>
+<text class="M" x="1839" y="2814">津</text>
+<text class="m" x="1769" y="2873">松阪</text>
+<rect x="1748" y="2899" width="76" height="40" rx="20.0"/>
+<text class="M" x="1786" y="2919">伊勢</text>
+<text class="m" x="1890" y="2970">鳥羽</text>
+<text class="m" x="1785" y="3032">尾鷲</text>
+<text class="m" x="1701" y="3116">新宮</text>
+<text class="m" x="1546" y="3138">田辺</text>
+<text class="m" x="1966" y="2970">伊良湖</text>
+<text class="m" x="2024" y="2836">豊橋</text>
+<rect x="2070" y="2805" width="76" height="40" rx="20.0"/>
+<text class="M" x="2108" y="2825">浜松</text>
+<rect x="1898" y="2651" width="102" height="40" rx="20.0"/>
+<text class="M" x="1949" y="2671">名古屋</text>
+<rect x="1818" y="2506" width="76" height="40" rx="20.0"/>
+<text class="M" x="1856" y="2526">岐阜</text>
+<text class="m" x="1789" y="2540">大垣</text>
+<text class="m" x="1705" y="2565">米原</text>
+<text class="m" x="1663" y="2590">彦根</text>
+<text class="m" x="1621" y="2718">草津</text>
+<text class="m" x="1957" y="2769">岡崎</text>
+<rect x="2196" y="2729" width="76" height="40" rx="20.0"/>
+<text class="M" x="2234" y="2749">静岡</text>
+<text class="m" x="2335" y="2668">沼津</text>
+<text class="m" x="2419" y="2626">小田原</text>
+<rect x="2519" y="2517" width="76" height="40" rx="20.0"/>
+<text class="M" x="2557" y="2537">横浜</text>
+<rect x="2471" y="2402" width="76" height="40" rx="20.0"/>
+<text class="M" x="2509" y="2422">東京</text>
+<rect x="2616" y="2519" width="76" height="40" rx="20.0"/>
+<text class="M" x="2654" y="2539">千葉</text>
+<text class="m" x="2490" y="2629">横須賀</text>
+<text class="m" x="2658" y="2629">富津</text>
+<text class="m" x="2692" y="2570">木更津</text>
+<text class="m" x="2419" y="2431">八王子</text>
+<text class="m" x="2406" y="2499">相模原</text>
+<text class="m" x="2583" y="2350">大宮</text>
+<text class="m" x="2658" y="2394">柏</text>
+<rect x="2189" y="2531" width="76" height="40" rx="20.0"/>
+<text class="M" x="2227" y="2551">甲府</text>
+<text class="m" x="2222" y="2621">身延</text>
+<text class="m" x="2150" y="2483">諏訪</text>
+<text class="m" x="2054" y="2436">塩尻</text>
+<text class="m" x="2054" y="2373">松本</text>
+<rect x="2016" y="2223" width="76" height="40" rx="20.0"/>
+<text class="M" x="2054" y="2243">長野</text>
+<text class="m" x="2234" y="2271">軽井沢</text>
+<text class="m" x="2360" y="2315">高崎</text>
+<rect x="2364" y="2187" width="76" height="40" rx="20.0"/>
+<text class="M" x="2402" y="2207">前橋</text>
+<text class="m" x="2444" y="2357">熊谷</text>
+<text class="m" x="2461" y="2179">桐生</text>
+<text class="m" x="2570" y="2179">小山</text>
+<rect x="2754" y="2189" width="76" height="40" rx="20.0"/>
+<text class="M" x="2792" y="2209">水戸</text>
+<rect x="2478" y="2097" width="102" height="40" rx="20.0"/>
+<text class="M" x="2529" y="2117">宇都宮</text>
+<text class="m" x="2767" y="2436">成田</text>
+<text class="m" x="2809" y="2377">佐原</text>
+<text class="m" x="2826" y="2293">鹿嶋</text>
+<text class="m" x="2020" y="2503">中津川</text>
+<text class="m" x="1915" y="2584">多治見</text>
+<text class="m" x="1953" y="2310">高山</text>
+<rect x="1919" y="2103" width="76" height="40" rx="20.0"/>
+<text class="M" x="1957" y="2123">富山</text>
+<rect x="1793" y="2195" width="76" height="40" rx="20.0"/>
+<text class="M" x="1831" y="2215">金沢</text>
+<rect x="1630" y="2332" width="76" height="40" rx="20.0"/>
+<text class="M" x="1668" y="2352">福井</text>
+<text class="m" x="2150" y="2053">上越（直江津）</text>
+<text class="m" x="2322" y="2033">長岡</text>
+<rect x="2310" y="1929" width="76" height="40" rx="20.0"/>
+<text class="M" x="2348" y="1949">新潟</text>
+<text class="m" x="2390" y="1823">鶴岡</text>
+<text class="m" x="2415" y="1772">酒田</text>
+<rect x="2436" y="1618" width="76" height="40" rx="20.0"/>
+<text class="M" x="2474" y="1638">秋田</text>
+<text class="m" x="2667" y="1378">弘前</text>
+<rect x="2730" y="1240" width="76" height="40" rx="20.0"/>
+<text class="M" x="2768" y="1260">青森</text>
+<rect x="2729" y="1870" width="76" height="40" rx="20.0"/>
+<text class="M" x="2767" y="1890">福島</text>
+<text class="m" x="2725" y="1974">郡山</text>
+<text class="m" x="2558" y="1873">米沢</text>
+<rect x="2470" y="1786" width="76" height="40" rx="20.0"/>
+<text class="M" x="2508" y="1806">山形</text>
+<text class="m" x="2516" y="1722">新庄</text>
+<text class="m" x="2658" y="1672">横手</text>
+<rect x="2796" y="1786" width="76" height="40" rx="20.0"/>
+<text class="M" x="2834" y="1806">仙台</text>
+<text class="m" x="2893" y="1764">石巻</text>
+<text class="m" x="2944" y="1680">気仙沼</text>
+<text class="m" x="2994" y="1596">釜石</text>
+<text class="m" x="3011" y="1512">宮古</text>
+<text class="m" x="2994" y="1411">久慈</text>
+<text class="m" x="2952" y="1344">八戸</text>
+<rect x="2855" y="1534" width="76" height="40" rx="20.0"/>
+<text class="M" x="2893" y="1554">盛岡</text>
+<text class="m" x="2671" y="1557">角館</text>
+<text class="m" x="2767" y="1739">古川</text>
+<text class="m" x="2646" y="1700">鳴子</text>
+<rect x="2855" y="2038" width="102" height="40" rx="20.0"/>
+<text class="M" x="2906" y="2058">いわき</text>
+<text class="m" x="2570" y="1996">会津若松</text>
+<rect x="2722" y="1072" width="76" height="40" rx="20.0"/>
+<text class="M" x="2760" y="1092">函館</text>
+<text class="m" x="2801" y="941">長万部</text>
+<text class="m" x="2923" y="894">洞爺</text>
+<text class="m" x="2965" y="971">伊達</text>
+<rect x="3032" y="946" width="76" height="40" rx="20.0"/>
+<text class="M" x="3070" y="966">室蘭</text>
+<text class="m" x="3129" y="899">苫小牧</text>
+<text class="m" x="3120" y="815">千歳</text>
+<rect x="2937" y="725" width="76" height="40" rx="20.0"/>
+<text class="M" x="2975" y="745">札幌</text>
+<text class="m" x="2911" y="689">小樽</text>
+<text class="m" x="3133" y="694">岩見沢</text>
+<text class="m" x="3163" y="588">滝川</text>
+<rect x="3167" y="459" width="76" height="40" rx="20.0"/>
+<text class="M" x="3205" y="479">旭川</text>
+<text class="m" x="3322" y="647">富良野</text>
+<rect x="3372" y="789" width="76" height="40" rx="20.0"/>
+<text class="M" x="3410" y="809">帯広</text>
+<rect x="3540" y="898" width="76" height="40" rx="20.0"/>
+<text class="M" x="3578" y="918">釧路</text>
+<rect x="3700" y="801" width="76" height="40" rx="20.0"/>
+<text class="M" x="3738" y="821">根室</text>
+<text class="m" x="3469" y="442">北見</text>
+<rect x="3594" y="333" width="76" height="40" rx="20.0"/>
+<text class="M" x="3632" y="353">網走</text>
+<text class="m" x="3330" y="336">名寄</text>
+<rect x="3317" y="106" width="76" height="40" rx="20.0"/>
+<text class="M" x="3355" y="126">稚内</text>
+</g>
+<g class="no">
+<rect x="2373" y="2635" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="2391" y="2652">1</text>
+<rect x="1092" y="2769" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="1110" y="2786">2</text>
+<rect x="345" y="3354" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="363" y="3371">3</text>
+<rect x="2653" y="2046" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="2671" y="2063">4</text>
+<rect x="2899" y="809" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="2917" y="826">5</text>
+<rect x="2796" y="2133" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="2814" y="2150">6</text>
+<rect x="2569" y="1475" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="2587" y="1492">7</text>
+<rect x="1779" y="2307" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="1797" y="2324">8</text>
+<rect x="790" y="2601" width="36" height="34" rx="8" fill="#D62828"/>
+<text x="808" y="2618">9</text>
+<rect x="577" y="3287" width="46" height="34" rx="8" fill="#D62828"/>
+<text x="600" y="3304">10</text>
+<rect x="1019" y="2967" width="46" height="34" rx="8" fill="#D62828"/>
+<text x="1042" y="2984">11</text>
+<rect x="3164" y="630" width="46" height="34" rx="8" fill="#D62828"/>
+<text x="3187" y="647">12</text>
+<rect x="2501" y="1753" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2524" y="1770">13</text>
+<rect x="2597" y="2434" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2620" y="2451">14</text>
+<rect x="2478" y="2459" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2501" y="2476">15</text>
+<rect x="2450" y="2368" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2473" y="2385">16</text>
+<rect x="2275" y="2153" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2298" y="2170">17</text>
+<rect x="2077" y="2135" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2100" y="2152">18</text>
+<rect x="2026" y="2478" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2049" y="2495">19</text>
+<rect x="2312" y="2442" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="2335" y="2459">20</text>
+<rect x="1716" y="2529" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1739" y="2546">21</text>
+<rect x="1875" y="2593" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1898" y="2610">22</text>
+<rect x="1745" y="2826" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1768" y="2843">23</text>
+<rect x="1548" y="2854" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1571" y="2871">24</text>
+<rect x="1681" y="2744" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1704" y="2761">25</text>
+<rect x="1518" y="2878" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1541" y="2895">26</text>
+<rect x="1427" y="2469" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1450" y="2486">27</text>
+<rect x="1447" y="2872" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1470" y="2889">28</text>
+<rect x="1228" y="2599" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1251" y="2616">29</text>
+<rect x="1179" y="2912" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1202" y="2929">30</text>
+<rect x="885" y="2867" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="908" y="2884">31</text>
+<rect x="1220" y="3093" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1243" y="3110">32</text>
+<rect x="1140" y="3097" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="1163" y="3114">33</text>
+<rect x="233" y="3155" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="256" y="3172">34</text>
+<rect x="201" y="3069" width="46" height="34" rx="8" fill="#1D4ED8"/>
+<text x="224" y="3086">35</text>
+<rect x="3038" y="840" width="46" height="34" rx="8" fill="#15803D"/>
+<text x="3061" y="857">36</text>
+<rect x="2850" y="882" width="46" height="34" rx="8" fill="#15803D"/>
+<text x="2873" y="899">37</text>
+<rect x="3303" y="714" width="46" height="34" rx="8" fill="#15803D"/>
+<text x="3326" y="731">38</text>
+<rect x="3349" y="461" width="46" height="34" rx="8" fill="#15803D"/>
+<text x="3372" y="478">39</text>
+<rect x="3308" y="214" width="46" height="34" rx="8" fill="#15803D"/>
+<text x="3331" y="231">40</text>
+<rect x="1880" y="2466" width="46" height="34" rx="8" fill="#F28C28"/>
+<text x="1903" y="2483">41</text>
+<rect x="1669" y="3036" width="46" height="34" rx="8" fill="#F28C28"/>
+<text x="1692" y="3053">42</text>
+<rect x="1484" y="2713" width="46" height="34" rx="8" fill="#F28C28"/>
+<text x="1507" y="2730">43</text>
+<rect x="3631" y="823" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="3654" y="840">44</text>
+<rect x="2980" y="1543" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="3003" y="1560">45</text>
+<rect x="2588" y="1619" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2611" y="1636">46</text>
+<rect x="2573" y="1735" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2596" y="1752">47</text>
+<rect x="2648" y="1759" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2671" y="1776">48</text>
+<rect x="2468" y="1915" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2491" y="1932">49</text>
+<rect x="2493" y="2154" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2516" y="2171">50</text>
+<rect x="2795" y="2324" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2818" y="2341">51</text>
+<rect x="2190" y="2645" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="2213" y="2662">52</text>
+<rect x="1140" y="2705" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="1163" y="2722">53</text>
+<rect x="948" y="2601" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="971" y="2618">54</text>
+<rect x="1346" y="3049" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="1369" y="3066">55</text>
+<rect x="1052" y="3205" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="1075" y="3222">56</text>
+<rect x="477" y="3157" width="46" height="34" rx="8" fill="#7E22CE"/>
+<text x="500" y="3174">57</text>
+<rect x="710" y="3604" width="46" height="34" rx="8" fill="#0891B2"/>
+<text x="733" y="3621">58</text>
+</g>
+<text x="105.0" y="92.4" font-size="64" font-weight="700" fill="#111111">一級国道（1〜58号）の区分別路線図</text>
+<text x="105.0" y="152.4" font-size="30" font-weight="500" fill="#333333">区分：国交省が示す旧一級国道ナンバリングの区分</text>
+<text x="105.0" y="196.4" font-size="24" font-weight="500" fill="#666666">地下鉄路線図ふうの模式図。距離・方位・縮尺は正確ではない。線の色は路線ごとではなく区分ごと。番号は各路線に1回だけ表示。</text>
+<rect x="2352.0" y="2814.0" width="1428.0" height="924.0" rx="24" fill="#FFFFFF" stroke="#111111" stroke-width="3"/>
+<text x="2388.0" y="2880.0" font-size="38" font-weight="700" fill="#111111">凡例（色＝区分）</text>
+<line x1="2392.0" y1="2944.0" x2="2552.0" y2="2944.0" stroke="#D62828" stroke-width="14" stroke-linecap="round"/>
+<text x="2582.0" y="2944.0" font-size="30" font-weight="700" fill="#111111" dominant-baseline="central">1〜12号</text>
+<text x="2752.0" y="2944.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">国土を縦貫する骨格幹線</text>
+<line x1="2392.0" y1="3016.0" x2="2552.0" y2="3016.0" stroke="#1D4ED8" stroke-width="8" stroke-linecap="round"/>
+<text x="2582.0" y="3016.0" font-size="30" font-weight="700" fill="#111111" dominant-baseline="central">13〜35号</text>
+<text x="2752.0" y="3016.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">1〜12号で結ばれない県庁所在地などを連絡（北から順に付番）</text>
+<line x1="2392.0" y1="3088.0" x2="2552.0" y2="3088.0" stroke="#15803D" stroke-width="8" stroke-linecap="round"/>
+<text x="2582.0" y="3088.0" font-size="30" font-weight="700" fill="#111111" dominant-baseline="central">36〜40号</text>
+<text x="2752.0" y="3088.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">北海道内の主要幹線</text>
+<line x1="2392.0" y1="3160.0" x2="2552.0" y2="3160.0" stroke="#F28C28" stroke-width="8" stroke-linecap="round"/>
+<text x="2582.0" y="3160.0" font-size="30" font-weight="700" fill="#111111" dominant-baseline="central">41〜43号</text>
+<text x="2752.0" y="3160.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">1958年に追加指定</text>
+<line x1="2392.0" y1="3232.0" x2="2552.0" y2="3232.0" stroke="#7E22CE" stroke-width="8" stroke-linecap="round"/>
+<text x="2582.0" y="3232.0" font-size="30" font-weight="700" fill="#111111" dominant-baseline="central">44〜57号</text>
+<text x="2752.0" y="3232.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">1962年に追加指定（県庁所在地・北海道の支庁などを連絡）</text>
+<line x1="2392.0" y1="3304.0" x2="2552.0" y2="3304.0" stroke="#0891B2" stroke-width="8" stroke-linecap="round"/>
+<text x="2582.0" y="3304.0" font-size="30" font-weight="700" fill="#111111" dominant-baseline="central">58号</text>
+<text x="2752.0" y="3304.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">1972年の沖縄復帰に伴い指定</text>
+<line x1="2392.0" y1="3386.0" x2="2552.0" y2="3386.0" stroke="#555555" stroke-width="8" stroke-linecap="round" stroke-dasharray="13 10"/>
+<text x="2582.0" y="3386.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">点線＝海上区間（航路）：16号 東京湾、28号 明石海峡・淡路、30号 宇野〜高松、</text>
+<text x="2582.0" y="3422.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">42号 伊勢湾、57号 島原〜熊本、58号 鹿児島〜那覇</text>
+<line x1="2392.0" y1="3488.0" x2="2552.0" y2="3488.0" stroke="#999999" stroke-width="14" stroke-linecap="round"/>
+<text x="2582.0" y="3488.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">太線＝1〜12号（骨格幹線）、細線＝13〜58号</text>
+<rect x="2412.0" y="3534.0" width="110" height="40" rx="20" fill="#111111"/>
+<text x="2467.0" y="3554.0" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">都市名</text>
+<text x="2582.0" y="3554.0" font-size="26" font-weight="500" fill="#222222" dominant-baseline="central">黒ラベル＝起点・終点・県庁所在地など、小さな文字＝途中の町</text>
+<text x="2392.0" y="3620.0" font-size="22" font-weight="500" fill="#666666" dominant-baseline="central">起点・終点は旧一級国道指定時の路線をもとにし、16号は環状化後、42号は浜松延伸後（1975年）の形で描いた。</text>
+<text x="2392.0" y="3660.0" font-size="22" font-weight="500" fill="#666666" dominant-baseline="central">沖縄方面（58号）の航路は配置を縮めて描いた。</text>
+<text x="105.0" y="277.2" font-size="34" font-weight="700" fill="#111111">路線一覧（起点〜終点）</text>
+<g class="ls">
+<rect x="105" y="312" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="327">1</text>
+<text class="d" x="163" y="327">東京〜大阪</text>
+<rect x="105" y="348" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="363">2</text>
+<text class="d" x="163" y="363">大阪〜北九州（門司）</text>
+<rect x="105" y="384" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="399">3</text>
+<text class="d" x="163" y="399">北九州（門司）〜鹿児島</text>
+<rect x="105" y="420" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="435">4</text>
+<text class="d" x="163" y="435">東京〜青森</text>
+<rect x="105" y="456" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="471">5</text>
+<text class="d" x="163" y="471">函館〜札幌</text>
+<rect x="105" y="492" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="507">6</text>
+<text class="d" x="163" y="507">東京〜仙台</text>
+<rect x="105" y="528" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="543">7</text>
+<text class="d" x="163" y="543">新潟〜青森</text>
+<rect x="105" y="564" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="579">8</text>
+<text class="d" x="163" y="579">新潟〜京都</text>
+<rect x="105" y="600" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="615">9</text>
+<text class="d" x="163" y="615">京都〜下関</text>
+<rect x="105" y="636" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="651">10</text>
+<text class="d" x="163" y="651">北九州（門司）〜鹿児島</text>
+<rect x="105" y="672" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="687">11</text>
+<text class="d" x="163" y="687">徳島〜松山</text>
+<rect x="105" y="708" width="46" height="30" fill="#D62828"/>
+<text class="t" x="128" y="723">12</text>
+<text class="d" x="163" y="723">札幌〜旭川</text>
+<rect x="105" y="744" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="759">13</text>
+<text class="d" x="163" y="759">福島〜秋田</text>
+<rect x="105" y="780" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="795">14</text>
+<text class="d" x="163" y="795">東京〜千葉</text>
+<rect x="105" y="816" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="831">15</text>
+<text class="d" x="163" y="831">東京〜横浜</text>
+<rect x="105" y="852" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="867">16</text>
+<text class="d" x="163" y="867">横浜〜横浜〜（環状・東京湾経由）</text>
+<rect x="105" y="888" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="903">17</text>
+<text class="d" x="163" y="903">東京〜新潟</text>
+<rect x="105" y="924" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="939">18</text>
+<text class="d" x="163" y="939">高崎〜上越（直江津）</text>
+<rect x="105" y="960" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="975">19</text>
+<text class="d" x="163" y="975">名古屋〜長野</text>
+<rect x="105" y="996" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="128" y="1011">20</text>
+<text class="d" x="163" y="1011">東京〜塩尻</text>
+<rect x="575" y="312" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="327">21</text>
+<text class="d" x="633" y="327">岐阜〜米原</text>
+<rect x="575" y="348" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="363">22</text>
+<text class="d" x="633" y="363">名古屋〜岐阜</text>
+<rect x="575" y="384" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="399">23</text>
+<text class="d" x="633" y="399">豊橋〜伊勢</text>
+<rect x="575" y="420" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="435">24</text>
+<text class="d" x="633" y="435">京都〜和歌山</text>
+<rect x="575" y="456" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="471">25</text>
+<text class="d" x="633" y="471">四日市〜大阪</text>
+<rect x="575" y="492" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="507">26</text>
+<text class="d" x="633" y="507">大阪〜和歌山</text>
+<rect x="575" y="528" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="543">27</text>
+<text class="d" x="633" y="543">敦賀〜京丹波</text>
+<rect x="575" y="564" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="579">28</text>
+<text class="d" x="633" y="579">神戸〜徳島</text>
+<rect x="575" y="600" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="615">29</text>
+<text class="d" x="633" y="615">姫路〜鳥取</text>
+<rect x="575" y="636" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="651">30</text>
+<text class="d" x="633" y="651">岡山〜高松</text>
+<rect x="575" y="672" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="687">31</text>
+<text class="d" x="633" y="687">広島〜呉</text>
+<rect x="575" y="708" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="723">32</text>
+<text class="d" x="633" y="723">高松〜高知</text>
+<rect x="575" y="744" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="759">33</text>
+<text class="d" x="633" y="759">高知〜松山</text>
+<rect x="575" y="780" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="795">34</text>
+<text class="d" x="633" y="795">鳥栖〜長崎</text>
+<rect x="575" y="816" width="46" height="30" fill="#1D4ED8"/>
+<text class="t" x="598" y="831">35</text>
+<text class="d" x="633" y="831">武雄〜佐世保</text>
+<rect x="575" y="852" width="46" height="30" fill="#15803D"/>
+<text class="t" x="598" y="867">36</text>
+<text class="d" x="633" y="867">札幌〜室蘭</text>
+<rect x="575" y="888" width="46" height="30" fill="#15803D"/>
+<text class="t" x="598" y="903">37</text>
+<text class="d" x="633" y="903">長万部〜室蘭</text>
+<rect x="575" y="924" width="46" height="30" fill="#15803D"/>
+<text class="t" x="598" y="939">38</text>
+<text class="d" x="633" y="939">滝川〜釧路</text>
+<rect x="575" y="960" width="46" height="30" fill="#15803D"/>
+<text class="t" x="598" y="975">39</text>
+<text class="d" x="633" y="975">旭川〜網走</text>
+<rect x="575" y="996" width="46" height="30" fill="#15803D"/>
+<text class="t" x="598" y="1011">40</text>
+<text class="d" x="633" y="1011">旭川〜稚内</text>
+<rect x="1046" y="312" width="46" height="30" fill="#F28C28"/>
+<text class="t" x="1069" y="327">41</text>
+<text class="d" x="1104" y="327">名古屋〜富山</text>
+<rect x="1046" y="348" width="46" height="30" fill="#F28C28"/>
+<text class="t" x="1069" y="363">42</text>
+<text class="d" x="1104" y="363">浜松〜和歌山</text>
+<rect x="1046" y="384" width="46" height="30" fill="#F28C28"/>
+<text class="t" x="1069" y="399">43</text>
+<text class="d" x="1104" y="399">大阪〜神戸</text>
+<rect x="1046" y="420" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="435">44</text>
+<text class="d" x="1104" y="435">釧路〜根室</text>
+<rect x="1046" y="456" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="471">45</text>
+<text class="d" x="1104" y="471">仙台〜青森</text>
+<rect x="1046" y="492" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="507">46</text>
+<text class="d" x="1104" y="507">盛岡〜秋田</text>
+<rect x="1046" y="528" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="543">47</text>
+<text class="d" x="1104" y="543">仙台〜酒田</text>
+<rect x="1046" y="564" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="579">48</text>
+<text class="d" x="1104" y="579">仙台〜山形</text>
+<rect x="1046" y="600" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="615">49</text>
+<text class="d" x="1104" y="615">いわき〜新潟</text>
+<rect x="1046" y="636" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="651">50</text>
+<text class="d" x="1104" y="651">前橋〜水戸</text>
+<rect x="1046" y="672" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="687">51</text>
+<text class="d" x="1104" y="687">千葉〜水戸</text>
+<rect x="1046" y="708" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="723">52</text>
+<text class="d" x="1104" y="723">静岡〜甲府</text>
+<rect x="1046" y="744" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="759">53</text>
+<text class="d" x="1104" y="759">岡山〜鳥取</text>
+<rect x="1046" y="780" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="795">54</text>
+<text class="d" x="1104" y="795">広島〜松江</text>
+<rect x="1046" y="816" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="831">55</text>
+<text class="d" x="1104" y="831">徳島〜高知</text>
+<rect x="1046" y="852" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="867">56</text>
+<text class="d" x="1104" y="867">高知〜松山</text>
+<rect x="1046" y="888" width="46" height="30" fill="#7E22CE"/>
+<text class="t" x="1069" y="903">57</text>
+<text class="d" x="1104" y="903">大分〜長崎</text>
+<rect x="1046" y="924" width="46" height="30" fill="#0891B2"/>
+<text class="t" x="1069" y="939">58</text>
+<text class="d" x="1104" y="939">鹿児島〜那覇</text>
+</g>
+</svg>

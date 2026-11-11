@@ -1,0 +1,114 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>一級国道 区分別路線図</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* layout: one column, the map first at full width, downloads and notes below */
+:root { --bg: #FAFAF8; --fg: #1A1A1A; --muted: #5C5C58; --line: #D9D7D0; --accent: #D62828; --panel: #FFFFFF; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16171A; --fg: #ECECE8; --muted: #A5A5A0; --line: #34363B; --accent: #FF6B6B; --panel: #1F2024; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #16171A; --fg: #ECECE8; --muted: #A5A5A0; --line: #34363B; --accent: #FF6B6B; --panel: #1F2024; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif; padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); line-height: 1.6; }
+main { max-width: 1400px; margin: 0 auto; display: grid; gap: 20px; }
+h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.sub { color: var(--muted); font-size: .95rem; }
+figure { margin: 0; background: #FFFFFF; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+figure img { display: block; width: 100%; height: auto; max-width: 100%; }
+.files { display: flex; flex-wrap: wrap; gap: 12px; }
+.files a { display: inline-block; padding: 10px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--fg); text-decoration: none; font-weight: 700; }
+.files a:hover, .files a:focus-visible { border-color: var(--accent); outline: none; }
+.files a small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; }
+ul { margin: 0; padding-left: 1.3em; }
+.note { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 20px; display: grid; gap: 8px; }
+</style>
+<main>
+  <h1>一級国道（1〜58号）の区分別路線図</h1>
+  <p class="sub">区分：国交省が示す旧一級国道ナンバリングの区分。地下鉄路線図ふうの模式図で、線の色は路線ごとではなく区分ごと。作成：Claude（2026-11-04）</p>
+  <figure>
+    <img src="ichikyu_kokudo_kubun_map.png" alt="一級国道1〜58号を6つの区分で色分けした地下鉄路線図ふうの模式図" width="3906" height="3898">
+  </figure>
+  <div class="files">
+    <a href="ichikyu_kokudo_kubun_map.png" target="_blank" rel="noopener">PNG（3906×3898 px）<small>高解像度・右クリックで保存</small></a>
+    <a href="ichikyu_kokudo_kubun_map.svg" target="_blank" rel="noopener">SVG（フォント埋め込み）<small>どの環境でも同じ字形で表示</small></a>
+    <a href="ichikyu_kokudo_kubun_map_nofont.svg" target="_blank" rel="noopener">SVG（軽量・フォント非埋め込み）<small>編集用、122 KB</small></a>
+  </div>
+  <div class="note">
+    <p><b>凡例</b>：赤＝1〜12号（骨格幹線・太線）、青＝13〜35号、緑＝36〜40号（北海道）、橙＝41〜43号（1958年追加）、紫＝44〜57号（1962年追加）、水色＝58号（1972年沖縄復帰）。点線は海上区間（16・28・30・42・57・58号）。</p>
+    <p><b>自信のない経路</b>：</p>
+    <ul>
+      <li>42号は浜松延伸後（1975年）の形。1958年指定時の起点（松阪市と思われる）は未確認。</li>
+      <li>23号の1952年指定時の起点（名古屋市か豊橋市か）は未確認。図は現行の豊橋〜伊勢。</li>
+      <li>27号の終点は京丹波町（旧丹波町、9号接続）として描いた。1952年指定時に京都市までだったかは未確認。</li>
+      <li>16号は環状化後の形。1952年指定時は横浜〜横須賀のみ。</li>
+      <li>途中の町は主なものだけ。実際の経路（峠・海岸）の細かな曲がりは省略。</li>
+    </ul>
+    <p>起点・終点はすべて自分の知識で描いたもので、国交省や Wikipedia のページはこのセッションのネットワーク制限で照合できなかった（未）。</p>
+  </div>
+  <div class="note">
+    <p><b>描いた路線（起点〜終点）</b>（未）</p>
+    <div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:.9rem;min-width:600px">
+      <thead><tr><th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)">号</th><th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)">起点〜終点</th><th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)">主な経由地（図に描いたもの）</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:3px 8px">1</td><td style="padding:3px 8px">東京〜大阪</td><td style="padding:3px 8px">横浜・小田原・沼津・静岡・浜松・豊橋・名古屋・四日市・亀山・草津・京都</td></tr>
+        <tr><td style="padding:3px 8px">2</td><td style="padding:3px 8px">大阪〜北九州（門司）</td><td style="padding:3px 8px">神戸・明石・姫路・岡山・福山・広島・岩国・徳山・山口・下関</td></tr>
+        <tr><td style="padding:3px 8px">3</td><td style="padding:3px 8px">北九州（門司）〜鹿児島</td><td style="padding:3px 8px">小倉・福岡・鳥栖・久留米・熊本・八代・水俣・川内</td></tr>
+        <tr><td style="padding:3px 8px">4</td><td style="padding:3px 8px">東京〜青森</td><td style="padding:3px 8px">大宮・宇都宮・郡山・福島・仙台・古川・盛岡</td></tr>
+        <tr><td style="padding:3px 8px">5</td><td style="padding:3px 8px">函館〜札幌</td><td style="padding:3px 8px">長万部・小樽</td></tr>
+        <tr><td style="padding:3px 8px">6</td><td style="padding:3px 8px">東京〜仙台</td><td style="padding:3px 8px">水戸・いわき</td></tr>
+        <tr><td style="padding:3px 8px">7</td><td style="padding:3px 8px">新潟〜青森</td><td style="padding:3px 8px">鶴岡・酒田・秋田・弘前</td></tr>
+        <tr><td style="padding:3px 8px">8</td><td style="padding:3px 8px">新潟〜京都</td><td style="padding:3px 8px">長岡・上越・富山・金沢・福井・敦賀・米原・彦根・草津</td></tr>
+        <tr><td style="padding:3px 8px">9</td><td style="padding:3px 8px">京都〜下関</td><td style="padding:3px 8px">亀岡・福知山・豊岡・鳥取・米子・松江・出雲・浜田・益田・山口</td></tr>
+        <tr><td style="padding:3px 8px">10</td><td style="padding:3px 8px">北九州（門司）〜鹿児島</td><td style="padding:3px 8px">小倉・別府・大分・延岡・宮崎・都城</td></tr>
+        <tr><td style="padding:3px 8px">11</td><td style="padding:3px 8px">徳島〜松山</td><td style="padding:3px 8px">鳴門・高松・新居浜</td></tr>
+        <tr><td style="padding:3px 8px">12</td><td style="padding:3px 8px">札幌〜旭川</td><td style="padding:3px 8px">岩見沢・滝川</td></tr>
+        <tr><td style="padding:3px 8px">13</td><td style="padding:3px 8px">福島〜秋田</td><td style="padding:3px 8px">米沢・山形・新庄・横手</td></tr>
+        <tr><td style="padding:3px 8px">14</td><td style="padding:3px 8px">東京〜千葉</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">15</td><td style="padding:3px 8px">東京〜横浜</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">16</td><td style="padding:3px 8px">横浜〜横浜（環状）</td><td style="padding:3px 8px">横須賀〜（東京湾・点線）〜富津・木更津・千葉・柏・大宮・八王子・相模原</td></tr>
+        <tr><td style="padding:3px 8px">17</td><td style="padding:3px 8px">東京〜新潟</td><td style="padding:3px 8px">大宮・熊谷・高崎・長岡</td></tr>
+        <tr><td style="padding:3px 8px">18</td><td style="padding:3px 8px">高崎〜上越（直江津）</td><td style="padding:3px 8px">軽井沢・長野</td></tr>
+        <tr><td style="padding:3px 8px">19</td><td style="padding:3px 8px">名古屋〜長野</td><td style="padding:3px 8px">多治見・中津川・塩尻・松本</td></tr>
+        <tr><td style="padding:3px 8px">20</td><td style="padding:3px 8px">東京〜塩尻</td><td style="padding:3px 8px">八王子・甲府・諏訪</td></tr>
+        <tr><td style="padding:3px 8px">21</td><td style="padding:3px 8px">岐阜〜米原</td><td style="padding:3px 8px">大垣</td></tr>
+        <tr><td style="padding:3px 8px">22</td><td style="padding:3px 8px">名古屋〜岐阜</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">23</td><td style="padding:3px 8px">豊橋〜伊勢</td><td style="padding:3px 8px">岡崎・名古屋・四日市・津・松阪</td></tr>
+        <tr><td style="padding:3px 8px">24</td><td style="padding:3px 8px">京都〜和歌山</td><td style="padding:3px 8px">奈良・橋本</td></tr>
+        <tr><td style="padding:3px 8px">25</td><td style="padding:3px 8px">四日市〜大阪</td><td style="padding:3px 8px">亀山・伊賀上野・天理</td></tr>
+        <tr><td style="padding:3px 8px">26</td><td style="padding:3px 8px">大阪〜和歌山</td><td style="padding:3px 8px">堺・岸和田</td></tr>
+        <tr><td style="padding:3px 8px">27</td><td style="padding:3px 8px">敦賀〜京丹波（9号接続）</td><td style="padding:3px 8px">小浜・舞鶴・綾部</td></tr>
+        <tr><td style="padding:3px 8px">28</td><td style="padding:3px 8px">神戸〜徳島</td><td style="padding:3px 8px">明石〜（明石海峡・点線）〜洲本〜（鳴門海峡・点線）〜鳴門</td></tr>
+        <tr><td style="padding:3px 8px">29</td><td style="padding:3px 8px">姫路〜鳥取</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">30</td><td style="padding:3px 8px">岡山〜高松</td><td style="padding:3px 8px">宇野〜（点線）〜高松</td></tr>
+        <tr><td style="padding:3px 8px">31</td><td style="padding:3px 8px">広島（海田）〜呉</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">32</td><td style="padding:3px 8px">高松〜高知</td><td style="padding:3px 8px">琴平・池田</td></tr>
+        <tr><td style="padding:3px 8px">33</td><td style="padding:3px 8px">高知〜松山</td><td style="padding:3px 8px">久万高原</td></tr>
+        <tr><td style="padding:3px 8px">34</td><td style="padding:3px 8px">鳥栖〜長崎</td><td style="padding:3px 8px">佐賀・武雄・大村・諫早</td></tr>
+        <tr><td style="padding:3px 8px">35</td><td style="padding:3px 8px">武雄〜佐世保</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">36</td><td style="padding:3px 8px">札幌〜室蘭</td><td style="padding:3px 8px">千歳・苫小牧</td></tr>
+        <tr><td style="padding:3px 8px">37</td><td style="padding:3px 8px">長万部〜室蘭</td><td style="padding:3px 8px">洞爺・伊達</td></tr>
+        <tr><td style="padding:3px 8px">38</td><td style="padding:3px 8px">滝川〜釧路</td><td style="padding:3px 8px">富良野・帯広</td></tr>
+        <tr><td style="padding:3px 8px">39</td><td style="padding:3px 8px">旭川〜網走</td><td style="padding:3px 8px">北見</td></tr>
+        <tr><td style="padding:3px 8px">40</td><td style="padding:3px 8px">旭川〜稚内</td><td style="padding:3px 8px">名寄</td></tr>
+        <tr><td style="padding:3px 8px">41</td><td style="padding:3px 8px">名古屋〜富山</td><td style="padding:3px 8px">高山</td></tr>
+        <tr><td style="padding:3px 8px">42</td><td style="padding:3px 8px">浜松〜和歌山</td><td style="padding:3px 8px">伊良湖〜（伊勢湾・点線）〜鳥羽・伊勢・尾鷲・新宮・田辺</td></tr>
+        <tr><td style="padding:3px 8px">43</td><td style="padding:3px 8px">大阪〜神戸</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">44</td><td style="padding:3px 8px">釧路〜根室</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">45</td><td style="padding:3px 8px">仙台〜青森</td><td style="padding:3px 8px">石巻・気仙沼・釜石・宮古・久慈・八戸</td></tr>
+        <tr><td style="padding:3px 8px">46</td><td style="padding:3px 8px">盛岡〜秋田</td><td style="padding:3px 8px">角館</td></tr>
+        <tr><td style="padding:3px 8px">47</td><td style="padding:3px 8px">仙台〜酒田</td><td style="padding:3px 8px">古川・鳴子・新庄</td></tr>
+        <tr><td style="padding:3px 8px">48</td><td style="padding:3px 8px">仙台〜山形</td><td style="padding:3px 8px">―</td></tr>
+        <tr><td style="padding:3px 8px">49</td><td style="padding:3px 8px">いわき〜新潟</td><td style="padding:3px 8px">郡山・会津若松</td></tr>
+        <tr><td style="padding:3px 8px">50</td><td style="padding:3px 8px">前橋〜水戸</td><td style="padding:3px 8px">桐生・小山</td></tr>
+        <tr><td style="padding:3px 8px">51</td><td style="padding:3px 8px">千葉〜水戸</td><td style="padding:3px 8px">成田・佐原・鹿嶋</td></tr>
+        <tr><td style="padding:3px 8px">52</td><td style="padding:3px 8px">静岡〜甲府</td><td style="padding:3px 8px">身延</td></tr>
+        <tr><td style="padding:3px 8px">53</td><td style="padding:3px 8px">岡山〜鳥取</td><td style="padding:3px 8px">津山</td></tr>
+        <tr><td style="padding:3px 8px">54</td><td style="padding:3px 8px">広島〜松江</td><td style="padding:3px 8px">三次</td></tr>
+        <tr><td style="padding:3px 8px">55</td><td style="padding:3px 8px">徳島〜高知</td><td style="padding:3px 8px">室戸</td></tr>
+        <tr><td style="padding:3px 8px">56</td><td style="padding:3px 8px">高知〜松山</td><td style="padding:3px 8px">須崎・四万十（中村）・宇和島・大洲</td></tr>
+        <tr><td style="padding:3px 8px">57</td><td style="padding:3px 8px">大分〜長崎</td><td style="padding:3px 8px">竹田・阿蘇・熊本〜（島原湾・点線）〜島原・諫早</td></tr>
+        <tr><td style="padding:3px 8px">58</td><td style="padding:3px 8px">鹿児島〜那覇</td><td style="padding:3px 8px">〜（点線）〜種子島（西之表）〜（点線）〜奄美（名瀬）〜（点線）〜名護</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</main>
+
+</body></html>
