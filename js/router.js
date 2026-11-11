@@ -60,10 +60,10 @@ function openSharePopover(anchorBtn, prompt) {
   const pop = document.createElement('div');
   pop.className = 'share-popover';
   pop.innerHTML = `
-    ${canNativeShare ? `<button type="button" data-act="native">↗ Share via…</button>` : ''}
-    <button type="button" data-act="copy">⎘ Copy link</button>
-    <a target="_blank" rel="noopener" href="https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}">↗ Share on LINE</a>
-    <a target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}">𝕏 Share on X</a>
+    ${canNativeShare ? `<button type="button" data-act="native">${escapeHtml(t('ver.shareVia'))}</button>` : ''}
+    <button type="button" data-act="copy">${escapeHtml(t('ver.copyLink'))}</button>
+    <a target="_blank" rel="noopener" href="https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}">${escapeHtml(t('ver.shareLine'))}</a>
+    <a target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}">${escapeHtml(t('ver.shareX'))}</a>
   `;
   document.body.appendChild(pop);
 
@@ -88,8 +88,8 @@ function openSharePopover(anchorBtn, prompt) {
     } else if (act === 'copy') {
       try {
         await navigator.clipboard.writeText(url);
-        toast('Link copied');
-      } catch (err) { toast('Copy failed — link: ' + url); }
+        toast(t('msg.linkCopied'));
+      } catch (err) { toast(t('msg.linkCopyFailed', { url: url })); }
       pop.remove();
     }
   });

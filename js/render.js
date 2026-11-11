@@ -1200,8 +1200,8 @@ function renderDetail(id, viewingVersionNum) {
   el.innerHTML = `
     ${isViewingPast ? `
       <div class="version-banner">
-        <span>Viewing v${viewing} of ${p.versions.length} · ${formatDate(view.date)} · ${escapeHtml(view.model)}</span>
-        <button type="button" class="back-latest" id="backToLatestBtn">← Back to latest (v${latestV})</button>
+        <span>${escapeHtml(t('ver.banner', { v: viewing, n: p.versions.length, date: formatDate(view.date), model: view.model }))}</span>
+        <button type="button" class="back-latest" id="backToLatestBtn">${escapeHtml(t('ver.backLatestN', { v: latestV }))}</button>
       </div>` : ''}
 
     <div class="detail-header">
@@ -1211,7 +1211,7 @@ function renderDetail(id, viewingVersionNum) {
           <span class="author-link" data-author="${escapeAttr(p.author)}">@${escapeHtml(p.author)}</span>
           &nbsp;·&nbsp; ${formatDateShort(p.date)}
           &nbsp;·&nbsp; ${escapeHtml(p.model)}
-          ${parent ? `&nbsp;·&nbsp; <span class="author-link" data-prompt="${parent.id}">forked from ${escapeHtml(parent.title)}</span>` : ''}
+          ${parent ? `&nbsp;·&nbsp; <span class="author-link" data-prompt="${parent.id}">${escapeHtml(t('ver.forkedFrom', { title: parent.title }))}</span>` : ''}
         </div>
         <div class="detail-counts">
           <span class="dc-item"><b>${formatNum(p.downloads)}</b> ${escapeHtml(t('profile.downloads'))}</span>
@@ -1338,7 +1338,7 @@ function renderDetail(id, viewingVersionNum) {
           }).join('')}
           <div class="actions">
             <button class="btn-copy" id="copyPromptBtn">${escapeHtml(t('ui.copyPersonalized'))}</button>
-            <button class="btn-claude" id="openClaudeBtn">↗ Open in Claude.ai</button>
+            <button class="btn-claude" id="openClaudeBtn">${escapeHtml(t('detail.open'))}</button>
             <button class="btn-reset" id="resetVarsBtn">${escapeHtml(t('ui.resetDefaults'))}</button>
             <button class="btn-clear" id="clearVarsBtn" style="display:none">${escapeHtml(t('ui.clearMine'))}</button>
             <span class="status" id="copyStatus">✓ Copied</span>
@@ -1396,7 +1396,7 @@ function renderDetail(id, viewingVersionNum) {
     });
     if (!valid) {
       const t = document.getElementById('toast');
-      t.textContent = 'Fill in the required variables first.';
+      t.textContent = window.t('msg.reqVars');
       t.classList.add('error'); t.classList.add('show');
       clearTimeout(t._timer);
       t._timer = setTimeout(() => { t.classList.remove('show'); t.classList.remove('error'); }, 2400);
@@ -1418,7 +1418,7 @@ function renderDetail(id, viewingVersionNum) {
         btn.classList.remove('success');
         btn.innerHTML = originalHTML;
       }, 1800);
-    }).catch(() => toast('Copy failed — select and copy manually'));
+    }).catch(() => toast(t('msg.copyFailed')));
   };
 
   // Point the live-preview iframe at the real HTML file. Streaming parse is
@@ -1443,7 +1443,7 @@ function renderDetail(id, viewingVersionNum) {
     const btn = e.currentTarget;
     let dl;
     try { dl = await buildPromptDownload(p, isViewingPast ? viewing : null); }
-    catch (err) { console.warn('Download failed:', err); toast('Download failed — ' + err.message); return; }
+    catch (err) { console.warn('Download failed:', err); toast(t('msg.downloadFailed', { err: err.message })); return; }
     saveBlobAs(dl.blob, dl.filename);
     p.downloads++;
     saveData(prompts);
@@ -1547,7 +1547,7 @@ function renderDetail(id, viewingVersionNum) {
           if (link && link.href) window.open(link.href, '_blank', 'noopener');
         });
       } else {
-        toast('Fullscreen not supported — opening standalone instead.');
+        toast(t('msg.fsUnsupported'));
         const link = document.getElementById('openStandaloneLink');
         if (link && link.href) window.open(link.href, '_blank', 'noopener');
       }
@@ -1721,7 +1721,7 @@ function renderDetail(id, viewingVersionNum) {
         const lIdx = prompts.findIndex(x => x.id === p.id);
         if (lIdx >= 0) prompts.splice(lIdx, 1);
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheableList(seedPrompts))); } catch(e){}
-        toast('Deleted "' + p.title + '" — Pages may take a minute to refresh');
+        toast(t('msg.deleted', { title: p.title }));
         showView('gallery');
         renderGallery();
       } catch (err) {
@@ -1832,7 +1832,7 @@ function renderDetail(id, viewingVersionNum) {
       panel.querySelectorAll('.var-field').forEach(f => f.classList.remove('error'));
       updateAnatomy();
       persistValues();
-      toast('Reset to author defaults');
+      toast(t('msg.varsReset'));
     });
 
     document.getElementById('clearVarsBtn').addEventListener('click', () => {
@@ -1844,7 +1844,7 @@ function renderDetail(id, viewingVersionNum) {
       panel.querySelectorAll('.var-field').forEach(f => f.classList.remove('error'));
       updateAnatomy();
       updateClearBtn();
-      toast('Cleared your saved values');
+      toast(t('msg.varsCleared'));
     });
   }
 
@@ -1864,18 +1864,18 @@ function renderVersionTimeline(p, viewing) {
       <div class="version-node ${isCurrent ? 'current' : ''} ${isViewing ? 'viewing' : ''}">
         <div class="node-header">
           <span class="v-num">v${v.v}</span>
-          ${isCurrent ? '<span class="v-current-tag">Current</span>' : ''}
-          ${isViewing ? '<span class="v-viewing-tag">Viewing</span>' : ''}
+          ${isCurrent ? '<span class="v-current-tag">' + escapeHtml(t('ver.current')) + '</span>' : ''}
+          ${isViewing ? '<span class="v-viewing-tag">' + escapeHtml(t('ver.viewing')) + '</span>' : ''}
           <span class="v-date">${formatDate(v.date)}</span>
         </div>
-        <div class="v-model">Model · ${escapeHtml(v.model)}</div>
-        <div class="v-changelog">${escapeHtml(v.changelog || '(no changelog)')}</div>
+        <div class="v-model">${escapeHtml(t('ver.model', { model: v.model }))}</div>
+        <div class="v-changelog">${escapeHtml(v.changelog || t('ver.noChangelog'))}</div>
         ${isPast ? `
           <div class="v-actions">
             ${v.v === viewing
-              ? `<button type="button" data-view-version="${latestV}">Back to latest</button>`
-              : `<button type="button" data-view-version="${v.v}">View this version</button>`}
-            <button type="button" data-compare-version="${v.v}">Compare with v${latestV}</button>
+              ? `<button type="button" data-view-version="${latestV}">${escapeHtml(t('ver.backLatest'))}</button>`
+              : `<button type="button" data-view-version="${v.v}">${escapeHtml(t('ver.viewThis'))}</button>`}
+            <button type="button" data-compare-version="${v.v}">${escapeHtml(t('ver.compareWith', { v: latestV }))}</button>
           </div>
         ` : ''}
       </div>
@@ -1893,7 +1893,7 @@ function renderVersionTimeline(p, viewing) {
 function openVersionEditor(promptId) {
   const p = prompts.find(x => x.id === promptId);
   if (!p) return;
-  if (p.layout === 'folder' || p.format === 'md') { toast('Saving new versions is only supported for single-file promptons for now.'); return; }
+  if (p.layout === 'folder' || p.format === 'md') { toast(t('msg.versionsFlatOnly')); return; }
   const latest = (p.versions && p.versions.length) ? p.versions[p.versions.length - 1] : null;
   const baseSys = latest ? latest.systemPrompt : (p.systemPrompt || '');
   const baseUser = latest ? latest.userPrompt : (p.userPrompt || '');
@@ -1906,42 +1906,42 @@ function openVersionEditor(promptId) {
   if (!mount) return;
   mount.innerHTML = `
     <div class="version-editor" id="versionEditor">
-      <h2>Save new version (v${nextV})</h2>
-      <div class="editor-tagline">Describe what changed and why. Past versions are preserved.</div>
-      ${versionCount >= 8 ? `<div class="editor-warning">Consider starting a fresh prompton — this one's history is getting long (${versionCount} versions).</div>` : ''}
+      <h2>${escapeHtml(t('ed.saveVersionTitle', { n: nextV }))}</h2>
+      <div class="editor-tagline">${escapeHtml(t('ed.saveVersionTagline'))}</div>
+      ${versionCount >= 8 ? `<div class="editor-warning">${escapeHtml(t('ed.longHistory', { n: versionCount }))}</div>` : ''}
       <div class="field" id="changelogField">
-        <label>Changelog <span class="req">*</span> — what changed?</label>
-        <textarea name="changelog" placeholder="e.g. Tightened the system prompt. Added a constraint about specificity."></textarea>
+        <label>${t('ed.changelogLabel')}</label>
+        <textarea name="changelog" placeholder="${escapeAttr(t('ed.changelogPh'))}"></textarea>
       </div>
       <div class="field">
-        <label>System prompt</label>
+        <label>${escapeHtml(t('ui.systemPrompt'))}</label>
         <textarea name="systemPrompt">${escapeHtml(baseSys)}</textarea>
       </div>
       <div class="field">
-        <label>User instruction</label>
+        <label>${escapeHtml(t('ui.userInstruction'))}</label>
         <textarea name="userPrompt">${escapeHtml(baseUser)}</textarea>
       </div>
       <div class="field">
-        <label>Context / data</label>
+        <label>${escapeHtml(t('ui.contextData'))}</label>
         <textarea name="context">${escapeHtml(baseCtx)}</textarea>
       </div>
       <div class="field">
-        <label>Model</label>
+        <label>${escapeHtml(t('ed.model'))}</label>
         <select name="model">
           ${modelOptionsHtml(baseModel)}
         </select>
       </div>
       <div class="field">
-        <label>New HTML output <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(optional — reuses previous if not provided)</span></label>
+        <label>${t('ed.newHtmlLabel')}</label>
         <label class="file-drop" id="versionFileDrop">
-          <div id="versionDropTitle">Drop your .html here</div>
-          <div style="font-size:11px;color:var(--ink-soft);margin-top:4px" id="versionDropHint">or click to browse</div>
+          <div id="versionDropTitle">${escapeHtml(t('ed.dropYourHtml'))}</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:4px" id="versionDropHint">${escapeHtml(t('ed.orClick'))}</div>
           <input type="file" accept=".html,text/html" style="display:none" id="versionHtmlFile" />
         </label>
       </div>
       <div class="editor-actions">
-        <button type="button" class="btn" id="versionSaveBtn">Save version</button>
-        <button type="button" class="btn-cancel" id="versionCancelBtn">Cancel</button>
+        <button type="button" class="btn" id="versionSaveBtn">${escapeHtml(t('ed.saveVersion'))}</button>
+        <button type="button" class="btn-cancel" id="versionCancelBtn">${escapeHtml(t('ed.cancel'))}</button>
       </div>
     </div>
   `;
@@ -1974,7 +1974,7 @@ function openVersionEditor(promptId) {
     if (!changelog) {
       changelogField.classList.add('error');
       const t = document.getElementById('toast');
-      t.textContent = 'A changelog is required so others know what changed.';
+      t.textContent = window.t('msg.changelogRequired');
       t.classList.add('error'); t.classList.add('show');
       clearTimeout(t._timer);
       t._timer = setTimeout(() => { t.classList.remove('show'); t.classList.remove('error'); }, 2400);
@@ -2001,48 +2001,48 @@ function openMetadataEditor(promptId) {
   if (!mount) return;
   mount.innerHTML = `
     <div class="version-editor" id="metadataEditor">
-      <h2>Edit metadata</h2>
-      <div class="editor-tagline">Title, description, tags, license, model. Prompt body and HTML are not touched — use "Save new version" for those.</div>
+      <h2>${escapeHtml(t('ed.editMetaTitle'))}</h2>
+      <div class="editor-tagline">${escapeHtml(t('ed.editMetaTagline'))}</div>
       <div class="field">
-        <label>Title <span class="req">*</span></label>
+        <label>${t('ed.titleLabel')}</label>
         <input type="text" name="title" value="${escapeAttr(p.title)}">
       </div>
       <div class="field">
-        <label>Description</label>
+        <label>${escapeHtml(t('ed.description'))}</label>
         <textarea name="description">${escapeHtml(p.description || '')}</textarea>
       </div>
       <div class="field">
-        <label>How to reproduce <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(optional — paste the exact prompt or step-by-step)</span></label>
+        <label>${t('ed.reproLabel')}</label>
         <textarea name="reproPrompt" style="min-height:80px;font-family:'JetBrains Mono', monospace;font-size:13px">${escapeHtml(p.reproPrompt || '')}</textarea>
       </div>
       <div class="field">
-        <label>Development notes <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(optional — context, iterations, gotchas)</span></label>
+        <label>${t('ed.devNotesLabel')}</label>
         <textarea name="devNotes" style="min-height:80px">${escapeHtml(p.devNotes || '')}</textarea>
       </div>
       <div class="field">
-        <label>Tags <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(type to add · Enter or comma to commit · × on a pill to remove)</span></label>
+        <label>${t('ed.tagsLabel')}</label>
         <div id="metaTagPicker"></div>
       </div>
       <div class="field">
-        <label>License</label>
+        <label>${escapeHtml(t('ed.license'))}</label>
         <input type="text" name="license" value="${escapeAttr(p.license || '')}">
       </div>
       <div class="field">
-        <label>Model</label>
+        <label>${escapeHtml(t('ed.model'))}</label>
         <select name="model">
           ${modelOptionsHtml(p.model)}
         </select>
       </div>
       <div class="field">
-        <label>Visibility <span style="color:var(--ink-soft);text-transform:none;letter-spacing:0;">(unlisted = hidden from gallery/search, but the file stays reachable by direct URL — this repo is public)</span></label>
+        <label>${t('ed.visibilityLabel')}</label>
         <select name="visibility">
-          <option value="public" ${p.visibility !== 'unlisted' ? 'selected' : ''}>Public</option>
-          <option value="unlisted" ${p.visibility === 'unlisted' ? 'selected' : ''}>Unlisted</option>
+          <option value="public" ${p.visibility !== 'unlisted' ? 'selected' : ''}>${escapeHtml(t('ed.public'))}</option>
+          <option value="unlisted" ${p.visibility === 'unlisted' ? 'selected' : ''}>${escapeHtml(t('ed.unlisted'))}</option>
         </select>
       </div>
       <div class="editor-actions">
-        <button type="button" class="btn" id="metadataSaveBtn">Save metadata</button>
-        <button type="button" class="btn-cancel" id="metadataCancelBtn">Cancel</button>
+        <button type="button" class="btn" id="metadataSaveBtn">${escapeHtml(t('ed.saveMetadata'))}</button>
+        <button type="button" class="btn-cancel" id="metadataCancelBtn">${escapeHtml(t('ed.cancel'))}</button>
       </div>
     </div>
   `;
@@ -2052,7 +2052,7 @@ function openMetadataEditor(promptId) {
     const editor = document.getElementById('metadataEditor');
     const title = editor.querySelector('[name="title"]').value.trim();
     if (!title) {
-      toast('Title is required.');
+      toast(t('msg.titleRequired'));
       return;
     }
     const tags = normalizeTagList(metaPicker ? metaPicker.getTags() : []);
@@ -2091,14 +2091,14 @@ async function saveMetadata(promptId, fields) {
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Saving…'; }
   try {
     await updatePromptMetadataOnGitHub(p);
-    toast('Saved metadata — Pages may take a minute to refresh');
+    toast(t('msg.metaSaved'));
     renderDetail(promptId);
   } catch (err) {
     console.error('Metadata save failed:', err);
     // Revert local state
     Object.assign(p, prev);
     saveData(prompts);
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save metadata'; }
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('ed.saveMetadata'); }
     alert('Save failed: ' + err.message);
   }
 }
@@ -2108,12 +2108,12 @@ async function saveNewVersion(promptId, fields) {
   if (!p) return;
   // Folder/md promptons have no htmls/<id>.html — pushing versions would
   // create empty files. Guarded here and in the UI (openVersionEditor).
-  if (p.layout === 'folder' || p.format === 'md') { toast('Saving new versions is only supported for single-file promptons for now.'); return; }
+  if (p.layout === 'folder' || p.format === 'md') { toast(t('msg.versionsFlatOnly')); return; }
   // Version snapshots need the real HTML of the current latest.
   try {
     await ensurePromptHtml(p, null);
     for (const v of (p.versions || [])) await ensurePromptHtml(p, v.v);
-  } catch (e) { toast('Could not load the current HTML — ' + e.message); return; }
+  } catch (e) { toast(t('msg.htmlLoadFailed', { err: e.message })); return; }
 
   // Snapshot for revert-on-failure
   const prevState = JSON.stringify({ versions: p.versions, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt, context: p.context, model: p.model, html: p.html, date: p.date });
@@ -2150,14 +2150,14 @@ async function saveNewVersion(promptId, fields) {
   p.versions.push(newVersion);
   syncTopLevelFromLatest(p);
   saveData(prompts);
-  toast(`Saved v${nextV} locally — "${fields.changelog.slice(0, 40)}${fields.changelog.length > 40 ? '…' : ''}"`);
+  toast(t('msg.versionSavedLocal', { n: nextV, log: fields.changelog.slice(0, 40) + (fields.changelog.length > 40 ? '…' : '') }));
   renderDetail(promptId);
 
   // Push to GitHub if owner — uploads any missing per-version HTML files and re-PUTs manifest.
   if (isOwner()) {
     try {
       await syncVersionsToGitHub(p);
-      toast(`v${nextV} pushed to GitHub — Pages may take a minute to refresh`);
+      toast(t('msg.versionPushed', { n: nextV }));
     } catch (err) {
       console.error('Version push failed:', err);
       // Revert local state on push failure so the local view doesn't drift from remote.
@@ -2242,14 +2242,14 @@ async function forkPrompt(parent) {
   try {
     const dl = await buildPromptDownload(parent, parent._versionViewed || null);
     saveBlobAs(dl.blob, dl.filename);
-  } catch (e) { console.warn('Fork download failed:', e); toast('Could not download the original — ' + e.message); }
+  } catch (e) { console.warn('Fork download failed:', e); toast(t('msg.forkDlFailed', { err: e.message })); }
   // 2. Stash parent for the upcoming upload + pre-fill the form
   try { sessionStorage.setItem('prompton_fork_parent', parent.id); } catch (e) {}
   prefillUploadFormFromParent(parent);
   // 3. Switch to upload view
   showView('upload');
   setRoute('upload');
-  toast(`Downloaded "${parent.title}" — edit it, then drop the new file above to publish your remix.`);
+  toast(t('msg.forkDownloaded', { title: parent.title }));
 }
 
 // Pre-fill the upload form with the parent's prompt text, description, tags,
@@ -2504,46 +2504,46 @@ function openEditProfileModal() {
   overlay.id = 'profileModal';
   overlay.innerHTML =
     '<div class="profile-modal-content">' +
-      '<h2>Edit profile</h2>' +
+      '<h2>' + escapeHtml(t('ed.editProfile')) + '</h2>' +
       '<div class="avatar-edit-row">' +
         '<div class="avatar-large" id="editAvatarPreview"' + (profile.avatar ? ' style="background-image:url(' + escapeAttr(profile.avatar) + ')"' : '') + '>' +
           (profile.avatar ? '' : escapeHtml(profile.name.charAt(0).toUpperCase())) +
         '</div>' +
         '<div class="avatar-edit-actions">' +
-          '<button type="button" class="btn secondary" id="changeAvatarBtn">✎ Change avatar</button>' +
-          '<button type="button" class="btn-cancel" id="removeAvatarBtn" style="' + (profile.avatar ? '' : 'display:none') + '">× Remove avatar</button>' +
+          '<button type="button" class="btn secondary" id="changeAvatarBtn">' + escapeHtml(t('ed.changeAvatar')) + '</button>' +
+          '<button type="button" class="btn-cancel" id="removeAvatarBtn" style="' + (profile.avatar ? '' : 'display:none') + '">' + escapeHtml(t('ed.removeAvatar')) + '</button>' +
           '<input type="file" id="avatarFileInput" accept="image/*" style="display:none">' +
         '</div>' +
       '</div>' +
       '<div class="field">' +
-        '<label>Display name <span style="color:var(--tomato)">*</span></label>' +
-        '<input type="text" id="editName" value="' + escapeAttr(profile.name) + '" placeholder="Your name" maxlength="80">' +
+        '<label>' + t('ed.displayName') + '</label>' +
+        '<input type="text" id="editName" value="' + escapeAttr(profile.name) + '" placeholder="' + escapeAttr(t('ed.namePh')) + '" maxlength="80">' +
       '</div>' +
       '<div class="field">' +
-        '<label>Username <span style="text-transform:none;letter-spacing:0;font-style:italic;color:var(--ink-soft)">(lowercase, 3–20 chars · changes @handle everywhere)</span></label>' +
+        '<label>' + t('ed.username') + '</label>' +
         '<input type="text" id="editHandle" value="' + escapeAttr(me_h) + '" placeholder="yourname" maxlength="20" pattern="^[a-z0-9_.-]{3,20}$" autocapitalize="off" autocomplete="off">' +
       '</div>' +
       '<div class="field">' +
-        '<label>Bio <span style="text-transform:none;letter-spacing:0;font-style:italic;color:var(--ink-soft)">(max 160 chars)</span></label>' +
-        '<textarea id="editBio" placeholder="Tell readers about yourself" maxlength="160">' + escapeHtml(profile.bio) + '</textarea>' +
+        '<label>' + t('ed.bio') + '</label>' +
+        '<textarea id="editBio" placeholder="' + escapeAttr(t('ed.bioPh')) + '" maxlength="160">' + escapeHtml(profile.bio) + '</textarea>' +
       '</div>' +
       '<div class="field-row">' +
         '<div class="field">' +
-          '<label>Email<span class="private">(private)</span></label>' +
+          '<label>' + t('ed.email') + '</label>' +
           '<input type="email" id="editEmail" value="' + escapeAttr(profile.email) + '" placeholder="you@example.com">' +
         '</div>' +
         '<div class="field">' +
-          '<label>Location</label>' +
+          '<label>' + escapeHtml(t('ed.location')) + '</label>' +
           '<input type="text" id="editLocation" value="' + escapeAttr(profile.location) + '" placeholder="City, Country">' +
         '</div>' +
       '</div>' +
       '<div class="field">' +
-        '<label>Website</label>' +
+        '<label>' + escapeHtml(t('ed.website')) + '</label>' +
         '<input type="url" id="editWebsite" value="' + escapeAttr(profile.website) + '" placeholder="https://yoursite.com">' +
       '</div>' +
       '<div class="modal-actions">' +
-        '<button type="button" class="btn primary" id="saveProfileBtn">Save changes</button>' +
-        '<button type="button" class="btn-cancel" id="cancelEditBtn">Cancel</button>' +
+        '<button type="button" class="btn primary" id="saveProfileBtn">' + escapeHtml(t('ed.saveChanges')) + '</button>' +
+        '<button type="button" class="btn-cancel" id="cancelEditBtn">' + escapeHtml(t('ed.cancel')) + '</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(overlay);
@@ -2597,7 +2597,7 @@ function openEditProfileModal() {
 
   document.getElementById('saveProfileBtn').addEventListener('click', async () => {
     const newName = document.getElementById('editName').value.trim();
-    if (!newName) { toast('Display name is required.'); document.getElementById('editName').focus(); return; }
+    if (!newName) { toast(t('msg.nameRequired')); document.getElementById('editName').focus(); return; }
 
     profile.name = newName;
     profile.bio = document.getElementById('editBio').value.trim();
@@ -2622,15 +2622,15 @@ function openEditProfileModal() {
       const handleErr = validateNewHandle(newHandle);
       if (handleErr) { toast(handleErr); document.getElementById('editHandle').focus(); return; }
       closeProfileModal();
-      toast('Renaming ' + me_h + ' → ' + newHandle + '…');
+      toast(t('msg.renaming', { from: me_h, to: newHandle }));
       try {
         await renameOwnerHandle(me_h, newHandle);
         // The rename commit carries the old profile fields; write the edits too.
         await pushOwnerProfileToGitHub(newHandle, getProfile(newHandle));
-        toast('✓ Renamed to @' + newHandle);
+        toast(t('msg.renamed', { to: newHandle }));
       } catch (err) {
         console.warn('Rename failed:', err);
-        toast('Rename failed — see console.');
+        toast(t('msg.renameFailed'));
       }
       renderProfile(ownerHandle());
       return;
@@ -2638,16 +2638,16 @@ function openEditProfileModal() {
 
     closeProfileModal();
     if (isOwner()) {
-      toast('Saving profile to GitHub…');
+      toast(t('msg.profileSaving'));
       try {
         await pushOwnerProfileToGitHub(me_h, profile);
-        toast('Profile saved — Pages may take a minute to refresh');
+        toast(t('msg.profileSavedGh'));
       } catch (err) {
         console.warn('Profile push failed:', err);
-        toast('Profile saved on this device only — GitHub push failed: ' + err.message);
+        toast(t('msg.profileSavedLocal', { err: err.message }));
       }
     } else {
-      toast('Profile saved.');
+      toast(t('msg.profileSaved'));
     }
     renderProfile(me_h);
   });

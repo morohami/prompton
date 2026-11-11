@@ -1049,7 +1049,7 @@ function renderCompare(idLeft, idRight, returnTo) {
   const pLeft = resolvePromptRef(idLeft);
   const pRight = resolvePromptRef(idRight);
   if (!pLeft || !pRight) {
-    toast('Could not find promptons to compare.');
+    toast(t('msg.compareMissing'));
     renderGallery();
     return;
   }
@@ -1065,8 +1065,8 @@ function renderCompare(idLeft, idRight, returnTo) {
   // Parent / fork labeling
   const isParentFork = pRight.parentId === pLeft.id;
   const isForkParent = pLeft.parentId === pRight.id;
-  const leftLabel = isParentFork ? 'ORIGINAL' : (isForkParent ? 'FORK' : 'A');
-  const rightLabel = isParentFork ? 'FORK' : (isForkParent ? 'ORIGINAL' : 'B');
+  const leftLabel = isParentFork ? t('cmp.original') : (isForkParent ? t('cmp.fork') : 'A');
+  const rightLabel = isParentFork ? t('cmp.fork') : (isForkParent ? t('cmp.original') : 'B');
 
   // Section diffs
   const sysDiff = wordDiff(pLeft.systemPrompt, pRight.systemPrompt);
@@ -1074,18 +1074,18 @@ function renderCompare(idLeft, idRight, returnTo) {
   const ctxDiff = wordDiff(pLeft.context, pRight.context);
 
   const sections = [
-    { name: 'System prompt', diff: sysDiff },
-    { name: 'User instruction', diff: userDiff },
-    { name: 'Context', diff: ctxDiff }
+    { name: t('ui.systemPrompt'), diff: sysDiff },
+    { name: t('ui.userInstruction'), diff: userDiff },
+    { name: t('cmp.context'), diff: ctxDiff }
   ];
   const changedCount = sections.filter(s => !s.diff.identical).length;
 
   // Summary
   const summaryItems = sections.map(s => {
     if (s.diff.identical) {
-      return `<li class="unchanged">${escapeHtml(s.name)} — unchanged ✓</li>`;
+      return `<li class="unchanged">${escapeHtml(t('cmp.unchanged', { name: s.name }))}</li>`;
     }
-    return `<li>${escapeHtml(s.name)} changed — <span class="delta-del">−${s.diff.deletedCount} words</span> · <span class="delta-add">+${s.diff.addedCount} words</span></li>`;
+    return `<li>${escapeHtml(t('cmp.changed', { name: s.name, del: s.diff.deletedCount, add: s.diff.addedCount }))}</li>`;
   }).join('');
 
   // Vote state
@@ -1104,10 +1104,10 @@ function renderCompare(idLeft, idRight, returnTo) {
   const fkWinner = pLeft.forks === pRight.forks ? null : (pLeft.forks > pRight.forks ? 'left' : 'right');
 
   // Back link
-  let backLabel = '← Back to gallery';
+  let backLabel = t('settings.back');
   if (returnTo) {
     const rp = prompts.find(p => p.id === returnTo);
-    if (rp) backLabel = '← Back to ' + rp.title;
+    if (rp) backLabel = t('cmp.backToTitle', { title: rp.title });
   }
 
   const el = document.getElementById('view-compare');
@@ -1115,13 +1115,13 @@ function renderCompare(idLeft, idRight, returnTo) {
     <span class="back-link" id="compareBackLink">${escapeHtml(backLabel)}</span>
 
     <div class="compare-header">
-      <div class="kicker">SIDE BY SIDE</div>
+      <div class="kicker">${escapeHtml(t('cmp.sideBySide'))}</div>
       <h1>${escapeHtml(pLeft.title)} <em>vs.</em> ${escapeHtml(pRight.title)}</h1>
-      <button class="btn-swap" id="swapSidesBtn" type="button">⇄ Swap sides</button>
+      <button class="btn-swap" id="swapSidesBtn" type="button">${escapeHtml(t('cmp.swap'))}</button>
     </div>
 
     <div class="compare-summary">
-      <div class="summary-title">${changedCount === 0 ? 'No differences' : changedCount + ' change' + (changedCount === 1 ? '' : 's') + ' detected'} · ${sections.length} sections compared</div>
+      <div class="summary-title">${escapeHtml(changedCount === 0 ? t('cmp.noDiff') : t(changedCount === 1 ? 'cmp.changeOne' : 'cmp.changeMany', { n: changedCount }))} · ${escapeHtml(t('cmp.sectionsCompared', { n: sections.length }))}</div>
       <ul>${summaryItems}</ul>
     </div>
 
@@ -1133,7 +1133,7 @@ function renderCompare(idLeft, idRight, returnTo) {
         </div>
         <h3>${escapeHtml(pLeft.title)}</h3>
         <div class="meta">by ${escapeHtml(pLeft.authorName)} · ${formatDate(pLeft.date)} · ${escapeHtml(pLeft.model)}</div>
-        <span class="view-full" data-view-id="${pLeft.id}">View full →</span>
+        <span class="view-full" data-view-id="${pLeft.id}">${escapeHtml(t('cmp.viewFull'))}</span>
       </div>
       <div class="compare-side right">
         <div class="side-label">${rightLabel}</div>
@@ -1142,27 +1142,27 @@ function renderCompare(idLeft, idRight, returnTo) {
         </div>
         <h3>${escapeHtml(pRight.title)}</h3>
         <div class="meta">by ${escapeHtml(pRight.authorName)} · ${formatDate(pRight.date)} · ${escapeHtml(pRight.model)}</div>
-        <span class="view-full" data-view-id="${pRight.id}">View full →</span>
+        <span class="view-full" data-view-id="${pRight.id}">${escapeHtml(t('cmp.viewFull'))}</span>
       </div>
     </div>
 
     <div class="vote-section">
-      <div class="vote-header">Which output do you prefer?</div>
+      <div class="vote-header">${escapeHtml(t('cmp.whichPrefer'))}</div>
       ${voted ? `
         <div class="vote-results">
           <div class="vote-result-side ${leftWinsVote ? 'winner' : ''}">
             <span class="pct">${leftPct}%</span>
-            <span class="label">${leftLabel} · ${votesLeft} ${votesLeft === 1 ? 'vote' : 'votes'}</span>
+            <span class="label">${leftLabel} · ${votesLeft} ${escapeHtml(t(votesLeft === 1 ? 'cmp.voteOne' : 'cmp.voteMany'))}</span>
           </div>
           <div class="vote-result-side ${rightWinsVote ? 'winner' : ''}">
             <span class="pct">${rightPct}%</span>
-            <span class="label">${rightLabel} · ${votesRight} ${votesRight === 1 ? 'vote' : 'votes'}</span>
+            <span class="label">${rightLabel} · ${votesRight} ${escapeHtml(t(votesRight === 1 ? 'cmp.voteOne' : 'cmp.voteMany'))}</span>
           </div>
         </div>
       ` : `
         <div class="vote-row">
-          <button type="button" class="vote-btn" data-vote="${pLeft.id}">← This one</button>
-          <button type="button" class="vote-btn" data-vote="${pRight.id}">This one →</button>
+          <button type="button" class="vote-btn" data-vote="${pLeft.id}">${escapeHtml(t('cmp.thisOneLeft'))}</button>
+          <button type="button" class="vote-btn" data-vote="${pRight.id}">${escapeHtml(t('cmp.thisOneRight'))}</button>
         </div>
       `}
     </div>
@@ -1170,14 +1170,14 @@ function renderCompare(idLeft, idRight, returnTo) {
     <div class="compare-diff">
       ${sections.map(s => s.diff.identical ? `
         <div class="diff-section identical">
-          <span>${escapeHtml(s.name)} — identical</span>
+          <span>${escapeHtml(t('cmp.identical', { name: s.name }))}</span>
           <span class="check">✓</span>
         </div>
       ` : `
         <div class="diff-section">
           <div class="diff-section-header">
             <span>${escapeHtml(s.name)}</span>
-            <span class="meta">${s.diff.aCount} → ${s.diff.bCount} words</span>
+            <span class="meta">${escapeHtml(t('cmp.wordsFromTo', { a: s.diff.aCount, b: s.diff.bCount }))}</span>
           </div>
           <div class="diff-grid">
             <div class="diff-block left">${renderDiffSide(s.diff.left, 'left')}</div>
@@ -1219,9 +1219,9 @@ function renderCompare(idLeft, idRight, returnTo) {
     </div>
 
     <div class="compare-cta">
-      <button type="button" class="btn secondary" data-fork-side="left">⑂ Fork ${escapeHtml(leftLabel.toLowerCase())}</button>
-      <button type="button" class="btn secondary" data-fork-side="right">⑂ Fork ${escapeHtml(rightLabel.toLowerCase())}</button>
-      <button type="button" class="btn" id="compareBackToGallery">Back to gallery</button>
+      <button type="button" class="btn secondary" data-fork-side="left">${escapeHtml(t('cmp.forkSide', { label: leftLabel }))}</button>
+      <button type="button" class="btn secondary" data-fork-side="right">${escapeHtml(t('cmp.forkSide', { label: rightLabel }))}</button>
+      <button type="button" class="btn" id="compareBackToGallery">${escapeHtml(t('cmp.backGallery'))}</button>
     </div>
   `;
 
@@ -1244,7 +1244,7 @@ function renderCompare(idLeft, idRight, returnTo) {
       p.votes = (p.votes || 0) + 1;
       saveData(prompts);
       try { localStorage.setItem(votePairKey, id); } catch(e) {}
-      toast('Thanks — recorded your preference');
+      toast(t('msg.voteThanks'));
       renderCompare(idLeft, idRight, returnTo);
     }));
   el.querySelectorAll('[data-fork-side]').forEach(b =>

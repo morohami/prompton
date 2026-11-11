@@ -86,10 +86,10 @@ function applyUploadedHtml(html, displayName, sizeBytes) {
 function handleHtmlFile(f) {
   if (!f) return;
   const looksLikeHtml = /\.html?$/i.test(f.name) || (f.type && /html/i.test(f.type));
-  if (!looksLikeHtml) { toast('That doesn\'t look like an HTML file.'); return; }
+  if (!looksLikeHtml) { toast(t('msg.notHtml')); return; }
   const reader = new FileReader();
   reader.onload = () => applyUploadedHtml(reader.result, f.name, f.size);
-  reader.onerror = () => toast('Could not read that file.');
+  reader.onerror = () => toast(t('msg.readFailed'));
   reader.readAsText(f);
 }
 
@@ -208,7 +208,7 @@ fileDrop.addEventListener('drop', (e) => {
   if (html && /<\s*html|<\s*!DOCTYPE/i.test(html)) {
     applyUploadedHtml(html, 'dropped.html');
   } else {
-    toast('Drop an HTML file (or paste raw HTML with Ctrl+V).');
+    toast(t('msg.dropHtmlOrPaste'));
   }
 });
 
@@ -259,17 +259,17 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   // Bulk path takes over when 2+ files are queued — single-prompt UI is hidden.
   if (bulkQueue.length) { return submitBulkUpload(e.target); }
-  if (!uploadedHtml) { toast('Drop an HTML file first.'); return; }
+  if (!uploadedHtml) { toast(t('msg.dropFirst')); return; }
   const fd = new FormData(e.target);
 
   // Title required
   const title = (fd.get('title') || '').trim();
-  if (!title) { toast('Give it a title.'); document.getElementById('titleInput').focus(); return; }
+  if (!title) { toast(t('msg.needTitle')); document.getElementById('titleInput').focus(); return; }
 
   // Parse the pasted prompt — split [SYSTEM] / [USER] / [CONTEXT] blocks, or treat as userPrompt
   const blocks = parsePromptBlocks(fd.get('quickPrompt') || '');
   if (!blocks.userPrompt && !blocks.systemPrompt && !blocks.context) {
-    toast('Paste the prompt that generated this output.');
+    toast(t('msg.needPrompt'));
     document.getElementById('quickPromptField').focus();
     return;
   }
@@ -327,15 +327,15 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '↑ Pushing to GitHub…'; }
     try {
       await pushPromptToGitHub(newPrompt);
-      toast('Published to GitHub · "' + newPrompt.title + '"');
+      toast(t('msg.publishedGh', { title: newPrompt.title }));
     } catch (err) {
       console.error(err);
-      toast('Saved locally — GitHub push failed: ' + err.message);
+      toast(t('msg.savedLocalFail', { err: err.message }));
     } finally {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
     }
   } else {
-    toast('Saved locally · "' + newPrompt.title + '" (configure GitHub in ⚙ Settings to publish)');
+    toast(t('msg.savedLocal', { title: newPrompt.title }));
   }
 
   resetUploadForm();
@@ -365,7 +365,7 @@ function resetUploadForm() {
 // then a second commit for thumbs once they finish rendering.
 async function submitBulkUpload(formEl) {
   if (!isOwner()) {
-    toast('Configure GitHub in ⚙ Settings before publishing.');
+    toast(t('msg.needGithub'));
     return;
   }
   const submitBtn = formEl.querySelector('button[type="submit"]');
@@ -394,7 +394,7 @@ async function submitBulkUpload(formEl) {
   try {
     manifest = (await readManifestFromGitHub()).manifest;
   } catch (err) {
-    toast('Failed to read manifest: ' + err.message);
+    toast(t('msg.manifestReadFailed', { err: err.message }));
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
     return;
   }
@@ -412,7 +412,7 @@ async function submitBulkUpload(formEl) {
     await ghBulkCommit(files, 'Prompton: bulk upload ' + newPrompts.length + ' promptons');
   } catch (err) {
     console.error('Bulk commit failed:', err);
-    toast('Bulk commit failed: ' + err.message);
+    toast(t('msg.bulkFailed', { err: err.message }));
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origLabel; }
     return;
   }
@@ -427,6 +427,6 @@ async function submitBulkUpload(formEl) {
   if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('ui.publish'); }
   // The Thumbnails workflow will pick up htmls/* changes from the bulk commit
   // and patch thumb fields into the manifest within ~30-60s.
-  toast(`✓ Published ${newPrompts.length} promptons · thumbnails generating on GitHub.`);
+  toast(t('msg.bulkPublished', { n: newPrompts.length }));
   renderGallery();
 }

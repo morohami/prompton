@@ -207,7 +207,7 @@ document.getElementById('aliasAddBtn').addEventListener('click', () => {
   const from = (document.getElementById('aliasFromInput').value || '').trim();
   const to = (document.getElementById('aliasToInput').value || '').trim();
   if (!from || !to) return;
-  if (from === to) { toast('Alias from and to are the same.'); return; }
+  if (from === to) { toast(t('msg.aliasSame')); return; }
   tagConfig.aliases[from] = to;
   document.getElementById('aliasFromInput').value = '';
   document.getElementById('aliasToInput').value = '';
