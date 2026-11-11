@@ -1033,7 +1033,7 @@
     "systemPrompt": "",
     "userPrompt": "",
     "context": "Single-file HTML.",
-    "model": "AI",
+    "model": "Other",
     "license": "CC0 — Public domain",
     "tags": [
       "map",
@@ -1051,7 +1051,9 @@
     "usage": [],
     "variables": [],
     "thumb": "thumbs/p1794334000002.jpg",
-    "thumbVer": 1794386163715
+    "thumbVer": 1794386163715,
+    "reproPrompt": "",
+    "devNotes": ""
   },
   {
     "id": "p1794334000003",
