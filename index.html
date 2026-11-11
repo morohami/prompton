@@ -1085,7 +1085,8 @@ function renderCompare(idLeft, idRight, returnTo) {
     if (s.diff.identical) {
       return `<li class="unchanged">${escapeHtml(t('cmp.unchanged', { name: s.name }))}</li>`;
     }
-    return `<li>${escapeHtml(t('cmp.changed', { name: s.name, del: s.diff.deletedCount, add: s.diff.addedCount }))}</li>`;
+    // The red/green delta spans (.delta-del / .delta-add) carry the diff colouring.
+    return `<li>${escapeHtml(t('cmp.changedHead', { name: s.name }))} <span class="delta-del">${escapeHtml(t('cmp.delWords', { n: s.diff.deletedCount }))}</span> · <span class="delta-add">${escapeHtml(t('cmp.addWords', { n: s.diff.addedCount }))}</span></li>`;
   }).join('');
 
   // Vote state

@@ -225,34 +225,10 @@
   .settings-status code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px; }
 
   /* ─── Intro tagline pair (was the huge hero, now small) ─── */
-  .intro-tagline {
-    padding: 36px 0 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 32px;
-  }
-  .intro-tagline .tagline-1 {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: clamp(18px, 2vw, 22px);
-    letter-spacing: -0.01em;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  .intro-tagline .tagline-1 em {
-    font-style: italic;
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .intro-tagline .tagline-2 {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
 
   /* .issue-line was the grey "Vol. I · Issue ..." sub-header — removed in
      favor of an Instagram-style minimal masthead. The selector stays for
      any straggling references but doesn't render. */
-  .issue-line { display: none; }
 
   /* Masthead inline search — Instagram-style, between the wordmark and the
      action icons. The dropdown is positioned by .search-wrap (relative).  */
@@ -721,7 +697,6 @@
     font-family: 'JetBrains Mono', monospace; vertical-align: 1px;
   }
   .chip.active .chip-count { background: rgba(0,0,0,0.18); color: rgba(0,0,0,0.6); }
-  .tag-chips { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
   /* ─── Pill-based tag picker ─── */
   .tag-picker { display: flex; flex-direction: column; gap: 10px; }
@@ -779,10 +754,7 @@
   }
 
   /* Curated tag chip row used in upload + metadata editor */
-  .curated-tag-chips {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin-top: 8px;
-  }
+  
   .curated-chip {
     background: transparent;
     border: 1px solid rgba(127,127,127,0.35);
@@ -820,12 +792,7 @@
     background: transparent; border: 0; padding: 0;
   }
   .tag-curation .tag-list .tag-pill .x:hover { color: #d04848; }
-  .tag-curation .tag-list .tag-pill.unused {
-    background: rgba(208, 72, 72, 0.10);
-    border: 1px dashed rgba(208, 72, 72, 0.45);
-    color: #d04848;
-  }
-  .tag-curation .tag-list .tag-pill.unused .x { color: #d04848; opacity: 0.8; }
+
   .alias-list {
     display: flex; flex-direction: column; gap: 6px;
     max-height: 240px; overflow: auto;
@@ -1793,138 +1760,8 @@
   .toast.error { background: var(--tomato); }
 
   /* ─── Cover Story ─── */
-  .magazine-section {
-    padding: 60px 0;
-  }
-  .cover-kicker, .picks-kicker {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--tomato);
-    margin-bottom: 24px;
-  }
-  .cover-grid {
-    display: grid;
-    grid-template-columns: 3fr 2fr;
-    gap: 48px;
-    align-items: start;
-  }
-  .cover-preview .preview-wrap {
-    aspect-ratio: 4 / 3;
-  }
-  .cover-title {
-    font-family: 'Fraunces', serif;
-    font-weight: 300;
-    font-size: clamp(36px, 5vw, 64px);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    margin-bottom: 24px;
-  }
-  .cover-title em {
-    font-style: italic;
-    font-weight: 400;
-    color: var(--tomato);
-  }
-  .cover-note {
-    position: relative;
-    padding-left: 36px;
-    margin-bottom: 24px;
-  }
-  .cover-dropcap {
-    position: absolute;
-    left: -4px;
-    top: -16px;
-    font-family: 'Fraunces', serif;
-    font-size: 64px;
-    color: var(--tomato);
-    line-height: 1;
-  }
-  .cover-note p {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 18px;
-    line-height: 1.6;
-    color: var(--ink);
-  }
-  .cover-sig {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: var(--ink-soft);
-    margin-top: 12px;
-  }
-  .cover-byline {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-bottom: 20px;
-  }
-  .cover-ctas {
-    display: flex;
-    gap: 10px;
-  }
-  .cover-ctas .btn.cover-primary {
-    background: var(--tomato);
-    color: var(--accent-on);
-  }
-  .cover-ctas .btn.cover-primary:hover {
-    background: var(--tomato-deep);
-  }
 
   /* ─── Picks Strip ─── */
-  .picks-section {
-    margin-top: 48px;
-    padding-top: 36px;
-    border-top: 1px solid rgba(42,34,26,0.15);
-  }
-  .picks-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-  .pick-card {
-    cursor: pointer;
-    transition: transform 0.25s ease;
-  }
-  .pick-card:hover { transform: translateY(-4px); }
-  .pick-card .thumb-wrap {
-    position: relative;
-    aspect-ratio: 16 / 10;
-    background: var(--card);
-    border: 1px solid rgba(42,34,26,0.15);
-    box-shadow: 0 8px 20px -6px var(--shadow);
-    overflow: hidden;
-    transition: box-shadow 0.25s ease;
-  }
-  .pick-card:hover .thumb-wrap {
-    box-shadow: 0 14px 30px -8px var(--shadow);
-  }
-  .pick-card .thumb {
-    position: absolute;
-    top: 0; left: 0;
-    width: 1280px; height: 800px;
-    transform: scale(0.234);
-    transform-origin: top left;
-    pointer-events: none;
-    border: 0;
-  }
-  .pick-card h3 {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 1.15;
-    margin-top: 12px;
-  }
-  .pick-card .by {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-soft);
-    margin-top: 4px;
-    letter-spacing: 0.05em;
-  }
 
   /* ─── Archive Header ─── */
   .archive-header {
@@ -2454,18 +2291,6 @@
   }
   .version-banner .back-latest:hover { color: var(--tomato); border-color: var(--tomato); }
 
-  .version-history { margin: 30px 0; }
-  .version-history h2 {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--tomato);
-    margin-bottom: 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--rule);
-  }
   .version-timeline {
     position: relative;
     padding-left: 24px;
@@ -2484,110 +2309,8 @@
     padding: 0 0 22px 0;
   }
   .version-node:last-child { padding-bottom: 0; }
-  .version-dot {
-    position: absolute;
-    left: -24px;
-    top: 4px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--paper);
-    border: 2px solid var(--rule);
-    box-sizing: border-box;
-    z-index: 2;
-  }
-  .version-dot.filled {
-    background: var(--tomato);
-    border-color: var(--tomato);
-  }
-  .version-node.viewing .version-dot {
-    outline: 3px solid rgba(214,164,55,0.5);
-    outline-offset: 2px;
-  }
-  .version-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    color: var(--ink);
-    display: flex;
-    gap: 10px;
-    align-items: baseline;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
-  }
-  .version-meta .version-num { font-weight: 500; color: var(--ink); }
-  .version-meta .version-date { color: var(--ink-soft); }
-  .version-meta .version-model { color: var(--ink-soft); font-size: 11px; }
-  .version-meta .version-current-tag {
-    background: var(--tomato);
-    color: var(--paper);
-    padding: 2px 8px;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    border-radius: 999px;
-  }
-  .version-meta .version-viewing-tag {
-    background: var(--mustard);
-    color: var(--ink);
-    padding: 2px 8px;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    border-radius: 999px;
-  }
-  .version-changelog {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--ink-soft);
-    margin: 6px 0 8px;
-  }
-  .version-actions {
-    display: flex;
-    gap: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    flex-wrap: wrap;
-  }
-  .version-actions .version-action {
-    color: var(--ink);
-    cursor: pointer;
-    border-bottom: 1px dotted var(--ink);
-    padding-bottom: 2px;
-    background: transparent;
-    border-top: 0; border-left: 0; border-right: 0;
-    font-family: inherit;
-    font-size: inherit;
-    letter-spacing: inherit;
-    text-transform: inherit;
-  }
-  .version-actions .version-action:hover {
-    color: var(--tomato);
-    border-color: var(--tomato);
-  }
-  .version-actions .version-action.disabled {
-    color: var(--ink-soft);
-    border-color: var(--ink-soft);
-    cursor: help;
-    opacity: 0.6;
-  }
 
   /* Version badge on gallery cards */
-  .version-badge {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    background: var(--olive);
-    color: var(--paper);
-    padding: 2px 7px;
-    border-radius: 999px;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-    margin-left: 6px;
-    line-height: 1.4;
-  }
 
   /* Save new version editor panel */
   .version-editor {
@@ -2605,11 +2328,7 @@
     margin-bottom: 4px;
     color: var(--ink);
   }
-  .version-editor .editor-sub {
-    color: var(--ink-soft);
-    font-size: 13px;
-    margin-bottom: 18px;
-  }
+  
   .version-editor .field { margin-bottom: 16px; }
   .version-editor .field textarea { min-height: 70px; }
   .version-editor .editor-actions {
@@ -2637,13 +2356,6 @@
   .version-editor .field.error textarea {
     border-color: var(--tomato) !important;
     box-shadow: 0 0 0 1px var(--tomato);
-  }
-  .version-warning {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--tomato);
-    margin-top: 12px;
-    line-height: 1.5;
   }
 
   /* Inline compare link in fork-tree */
@@ -3245,178 +2957,18 @@
     margin-top: 40px;
     padding-bottom: 30px;
   }
-  .news-section-kicker {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--tomato);
-    margin-bottom: 18px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--rule);
-  }
 
   /* Lead story (#1) */
-  .lead-story {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 48px;
-    align-items: start;
-    margin-bottom: 60px;
-    padding-bottom: 60px;
-    border-bottom: 3px double var(--rule);
-  }
-  .lead-story .preview-wrap {
-    aspect-ratio: 5 / 4;
-    cursor: pointer;
-  }
-  .lead-kicker {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--tomato);
-    margin-bottom: 16px;
-  }
-  .lead-story h2.lead-title {
-    font-family: 'Fraunces', serif;
-    font-weight: 300;
-    font-size: clamp(40px, 5.5vw, 72px);
-    line-height: 1.0;
-    letter-spacing: -0.025em;
-    color: var(--ink);
-    margin-bottom: 20px;
-    cursor: pointer;
-    transition: color 0.15s;
-  }
-  .lead-story h2.lead-title:hover { color: var(--tomato); }
-  .lead-story h2.lead-title em { font-style: italic; color: var(--tomato); font-weight: 400; }
-  .lead-excerpt {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 18px;
-    line-height: 1.6;
-    color: var(--ink);
-    margin-bottom: 20px;
-    position: relative;
-    padding-left: 28px;
-  }
-  .lead-excerpt::before {
-    content: '"';
-    position: absolute;
-    left: -2px;
-    top: -16px;
-    font-family: 'Fraunces', serif;
-    font-size: 56px;
-    color: var(--tomato);
-    line-height: 1;
-  }
-  .lead-byline {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-  }
-  .lead-byline .author-link {
-    color: var(--ink);
-    cursor: pointer;
-    border-bottom: 1px dotted var(--ink);
-  }
-  .lead-stats {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
-    margin-top: 6px;
-  }
-  .lead-stats b { color: var(--ink); font-weight: 500; }
-  .lead-cta {
-    margin-top: 22px;
-  }
 
   /* Major stories (#2-3) */
-  .major-stories {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    margin-bottom: 50px;
-    padding-bottom: 50px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .major-story { cursor: pointer; }
-  .major-story .preview-wrap {
-    aspect-ratio: 16 / 10;
-    margin-bottom: 14px;
-  }
-  .major-story h3.major-title {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: 32px;
-    line-height: 1.08;
-    letter-spacing: -0.015em;
-    margin-bottom: 8px;
-    transition: color 0.15s;
-  }
-  .major-story:hover h3.major-title { color: var(--tomato); }
-  .major-story h3.major-title em { font-style: italic; color: var(--tomato); font-weight: 400; }
-  .major-byline {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
-  }
-  .major-excerpt {
-    font-size: 14px;
-    color: var(--ink);
-    line-height: 1.55;
-    margin-top: 8px;
-  }
 
   /* Briefs (#4-7) */
-  .briefs-section {
-    margin-bottom: 50px;
-    padding-bottom: 40px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .briefs-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 28px;
-  }
+
   .brief { cursor: pointer; }
   .brief .preview-wrap {
     aspect-ratio: 4 / 3;
     margin-bottom: 10px;
   }
-  .brief h4.brief-title {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: 17px;
-    line-height: 1.22;
-    letter-spacing: -0.005em;
-    margin-bottom: 4px;
-    transition: color 0.15s;
-  }
-  .brief:hover h4.brief-title { color: var(--tomato); }
-  .brief-byline {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .brief-stats {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-soft);
-    letter-spacing: 0.05em;
-    margin-top: 4px;
-  }
-  .brief-stats b { color: var(--ink); font-weight: 500; }
 
   /* ─── Profile page (v2) ─── */
   .profile-page { }
@@ -3886,11 +3438,9 @@
     .field-row { grid-template-columns: 1fr; }
     .view { padding: 24px; }
     header.masthead { padding: 14px 24px; }
-    .issue-line { padding: 6px 24px; font-size: 10px; }
+    
     .nav-actions { gap: 16px; }
-    .cover-grid { grid-template-columns: 1fr; gap: 30px; }
-    .cover-title { font-size: 36px; }
-    .picks-grid { grid-template-columns: 1fr; gap: 20px; }
+
     .personalize .actions { flex-wrap: wrap; }
     .compare-outputs { grid-template-columns: 1fr; gap: 40px; }
     .compare-outputs::before { display: none; }
@@ -3919,11 +3469,7 @@
     .html-preview iframe { height: 220px; }
     .submit-row { flex-direction: column; gap: 14px; align-items: stretch; }
     .submit-row .btn { width: 100%; }
-    .lead-story { grid-template-columns: 1fr; gap: 24px; padding-bottom: 40px; margin-bottom: 40px; }
-    .lead-story h2.lead-title { font-size: 36px; }
-    .major-stories { grid-template-columns: 1fr; gap: 30px; padding-bottom: 36px; margin-bottom: 36px; }
-    .major-story h3.major-title { font-size: 26px; }
-    .briefs-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+
     .profile-header-v2 { grid-template-columns: 100px 1fr; gap: 20px; }
     .profile-header-v2 .avatar-large { width: 100px; height: 100px; font-size: 44px; }
     .profile-header-v2 .profile-info h1 { font-size: 32px; }
@@ -3943,9 +3489,6 @@
     .profile-stats-v2 .stat-card:nth-child(5) { grid-column: span 3; }
     .profile-modal-content { padding: 22px; }
     .profile-modal-content .field-row { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 500px) {
-    .briefs-grid { grid-template-columns: 1fr; }
   }
 
   /* ─── Phone layout (≤ 600px) — tighten the desktop chrome ─── */
@@ -3969,8 +3512,7 @@
       .nav-actions .btn-upload { font-size: 0; padding: 8px 10px; }
       .nav-actions .btn-upload::before { content: "＋"; font-size: 16px; }
     }
-    .issue-line { padding: 4px 14px; font-size: 9px; }
-    .issue-line span:last-child { display: none; }
+
     .view { padding: 16px !important; }
     .filter-bar input.search { min-width: 0; width: 100%; padding: 10px 14px 10px 38px; }
     .filter-bar { gap: 6px 8px; margin-bottom: 16px; }
